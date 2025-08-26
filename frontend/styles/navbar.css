@@ -1,0 +1,117 @@
+/* Sticky glass navbar */
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: saturate(1.1) blur(8px);
+    background: linear-gradient(180deg, rgba(10, 12, 20, .55), rgba(10, 12, 20, .35));
+}
+
+.navbar__inner {
+    height: 68px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Brand */
+.navbar__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text);
+}
+
+.navbar__brand:hover {
+    background: rgba(255, 255, 255, .06);
+}
+
+.navbar__logo {
+    width: 28px;
+    height: 28px;
+}
+
+.navbar__title {
+    font-weight: 800;
+    letter-spacing: .2px;
+    font-family: Poppins, Inter, sans-serif;
+}
+
+/* Links */
+.navbar__nav {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+}
+
+.navlink {
+    position: relative;
+    padding: 6px 8px;
+    border-radius: 8px;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.navlink:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, .05);
+}
+
+.navlink.active {
+    color: #fff;
+    background: rgba(139, 92, 246, .12);
+    box-shadow: inset 0 0 0 1px rgba(139, 92, 246, .25);
+}
+
+/* CTA */
+.navbar__cta {
+    display: flex;
+    align-items: center;
+}
+
+/* subtle bottom border glow */
+.navbar__border {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, .45), transparent);
+}
+
+/* Responsive */
+@media (max-width: 880px) {
+    .navbar__inner {
+        grid-template-columns: auto auto;
+        grid-template-rows: 56px auto;
+        height: auto;
+        gap: 10px 12px;
+        padding-block: 6px;
+    }
+
+    .navbar__nav {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .navbar__cta {
+        justify-self: end;
+    }
+}
+
+@media (max-width: 560px) {
+    .navbar__title {
+        display: none;
+    }
+
+    /* лишаємо тільки іконку на дуже малих */
+    .navbar__nav {
+        gap: 8px;
+    }
+
+    .navlink {
+        padding: 6px 6px;
+    }
+}

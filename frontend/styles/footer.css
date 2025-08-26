@@ -1,0 +1,89 @@
+.footer {
+    background: var(--surface);
+    color: var(--text);
+    padding-top: var(--space-6);
+    font-size: 14px;
+}
+
+.footer__top {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 40px;
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+
+.footer__brand {
+    max-width: 320px;
+}
+
+.footer__logo {
+    width: 42px;
+    height: 42px;
+    margin-bottom: 12px;
+}
+
+.footer__tagline {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.footer__nav h4,
+.footer__contacts h4 {
+    font-weight: 700;
+    font-size: 15px;
+    margin: 0 0 var(--space-2);
+}
+
+.footer__nav ul,
+.footer__contacts ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.footer__nav li,
+.footer__contacts li {
+    margin-bottom: 8px;
+}
+
+.footer__nav a,
+.footer__contacts a {
+    color: var(--muted);
+    text-decoration: none;
+    transition: color .2s;
+}
+
+.footer__nav a:hover,
+.footer__contacts a:hover {
+    color: #fff;
+}
+
+.footer__contacts .btn {
+    margin-top: var(--space-3);
+}
+
+/* Нижня плашка */
+.footer__bottom {
+    background: #0b0c12;
+    padding: var(--space-3) 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: .2px;
+}
+
+/* Адаптивність */
+@media (max-width: 900px) {
+    .footer__top {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .footer__top {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+}

@@ -1,0 +1,24 @@
+.packages {
+    padding: var(--space-6) 0 var(--space-7);
+    background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, 0));
+}
+
+.packages__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: var(--space-4);
+}
+
+.packages__group {
+    margin-top: var(--space-5);
+}
+
+.packages__group-title {
+    margin: 0 0 12px;
+    font-family: Poppins, Inter, sans-serif;
+    font-size: clamp(20px, 2.2vw, 26px);
+    font-weight: 800;
+}

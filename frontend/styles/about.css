@@ -1,0 +1,126 @@
+.about {
+    padding: var(--space-6) 0 var(--space-7);
+    background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, 0));
+}
+
+.about__hero {
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto var(--space-6);
+}
+
+.about__title {
+    margin: 8px 0 10px;
+    font-family: Poppins, Inter, sans-serif;
+    font-size: clamp(26px, 3.6vw, 40px);
+    letter-spacing: .2px;
+}
+
+.about__lead {
+    margin: 0 auto;
+    color: var(--muted);
+    max-width: 70ch;
+}
+
+.about__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.about__card {
+    padding: 22px;
+    border-radius: var(--radius);
+    background: var(--card);
+    border: 1px solid rgba(255, 255, 255, .08);
+    box-shadow: var(--shadow-lg);
+}
+
+.about__card h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.about__list {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    color: var(--muted);
+}
+
+.about__badges {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.about__badges .badge {
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .12);
+}
+
+/* Guarantee banner */
+.about__guarantee {
+    margin-top: var(--space-6);
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 18px;
+    padding: 22px;
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, rgba(124, 58, 237, .18), rgba(255, 255, 255, .04));
+    border: 1px solid rgba(139, 92, 246, .35);
+    box-shadow: var(--shadow-lg);
+}
+
+.about__g-content h3 {
+    margin: 0 0 6px;
+    font-size: clamp(20px, 2.4vw, 28px);
+}
+
+.about__g-content p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.about__g-stats {
+    display: flex;
+    justify-content: flex-end;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.about__g-stats>div {
+    min-width: 140px;
+    text-align: center;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.about__g-stats strong {
+    display: block;
+    font-size: 24px;
+    font-weight: 900;
+    font-family: Poppins, Inter, sans-serif;
+}
+
+.about__g-stats span {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* responsive */
+@media (max-width: 900px) {
+    .about__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .about__guarantee {
+        grid-template-columns: 1fr;
+    }
+
+    .about__g-stats {
+        justify-content: flex-start;
+    }
+}

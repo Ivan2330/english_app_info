@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 2111
+      POSTGRES_DB: prime_platform_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks: [appnet]
+
+  backend:
+    build: ./backend
+    container_name: backend
+    restart: always
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    expose:
+      - "8000"
+    depends_on:
+      - db
+    networks: [appnet]
+
+  # Frontend збираємо в образ nginx із вбудованим /dist
+  nginx:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: "https://my-prime-academy.com"   # ← API base
+        VITE_WS_URL: "wss://my-prime-academy.com"      # ← якщо є WS
+    container_name: nginx
+    restart: always
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    depends_on: [backend]
+    networks: [appnet]
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    entrypoint: >
+      sh -c "while :; do
+            certbot renew --webroot -w /var/www/certbot --quiet --agree-tos --no-eff-email
+            nginx -s reload 2>/dev/null || true
+            sleep 12h; done"
+    networks: [appnet]
+
+networks:
+  appnet:
+
+volumes:
+  postgres_data:
