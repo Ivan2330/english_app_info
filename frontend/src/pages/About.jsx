@@ -72,7 +72,7 @@ export default function About() {
             <p>Не бачите прогресу? Продовжуємо навчання безкоштовно — доки не досягнемо мети разом.</p>
           </div>
           <div className="about__g-stats">
-            <div><strong>1000+</strong><span>випускників</span></div>
+            <div><strong>500+</strong><span>випускників</span></div>
             <div><strong>95%</strong><span>складають іспит з 1-го разу</span></div>
             <div><strong>4.7/5</strong><span>середня оцінка</span></div>
           </div>
