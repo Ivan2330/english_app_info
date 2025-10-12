@@ -1,11 +1,13 @@
+import main_logo from "../assets/icons/logo.svg";
+
 export default function About() {
   return (
-    <section className="about">
+    <section className="about" aria-labelledby="about-title">
       <div className="container about__inner">
         {/* Hero/Intro */}
         <header className="about__hero">
           <p className="kicker">About Prime Academy</p>
-          <h1 className="about__title">
+          <h1 id="about-title" className="about__title">
             Місія — зробити англійську вашим щоденним інструментом
           </h1>
           <p className="about__lead">
@@ -16,25 +18,77 @@ export default function About() {
         </header>
 
         {/* Brand Medallion */}
-        <div className="about__brand">
-          <div className="about__brand-logo">
-            <img src="/logo.svg" alt="Prime Academy logo" />
+        <section
+          className="about__brand"
+          aria-label="Філософія та цінності Prime Academy"
+        >
+          <div className="about__brand-logo" aria-hidden="true">
+            <img src={main_logo} alt="Prime Academy" />
           </div>
+
           <h2 className="about__brand-title">
             Школа, де англійська звучить щодня
           </h2>
+
           <p className="about__brand-text">
-            Ми віримо, що успіх народжується з щоденної практики. Тому наші
-            уроки — це не підручники, а живе спілкування, розумна структура і
-            підтримка викладача, який бачить ваш прогрес.
+            Успіх приходить із щоденної практики. Тому наші уроки — це живе
+            спілкування, чітка структура й підтримка викладача, який бачить ваш
+            прогрес і підлаштовує темп під вашу мету.
           </p>
-          <div className="about__brand-tags">
-            <span>Speaking-first</span>
-            <span>CEFR roadmap</span>
-            <span>Measurable progress</span>
-            <span>Result guarantee</span>
+
+          <div className="about__brand-tags" role="list" aria-label="Наші цінності">
+            <span role="listitem">Speaking-first</span>
+            <span role="listitem">CEFR roadmap</span>
+            <span role="listitem">Measurable progress</span>
+            <span role="listitem">Result guarantee</span>
           </div>
-        </div>
+        </section>
+
+        {/* Student Path (Timeline) */}
+        <section className="about__steps" aria-label="Шлях студента в Prime Academy">
+          <h2 className="about__steps-title">Шлях студента</h2>
+          <p className="about__steps-lead">
+            Від діагностики — до вимірюваного результату за CEFR. Чітко, прозоро, без хаосу.
+          </p>
+
+          <ol className="about__steps-list">
+            <li className="about__step">
+              <div className="about__step-icon">🧭</div>
+              <h3>Діагностика</h3>
+              <p>Тест + розмова, щоб визначити стартовий рівень і потреби.</p>
+            </li>
+
+            <li className="about__step">
+              <div className="about__step-icon">🎯</div>
+              <h3>Цілі</h3>
+              <p>Фіксуємо конкретні результати: CEFR-рівень, іспит чи задачі роботи.</p>
+            </li>
+
+            <li className="about__step">
+              <div className="about__step-icon">🗺️</div>
+              <h3>План</h3>
+              <p>Особистий маршрут: частота, матеріали, контрольні точки.</p>
+            </li>
+
+            <li className="about__step">
+              <div className="about__step-icon">💬</div>
+              <h3>Живі уроки</h3>
+              <p>Speaking-first + «розумна» граматика, без зайвої теорії.</p>
+            </li>
+
+            <li className="about__step">
+              <div className="about__step-icon">⏱️</div>
+              <h3>Практика</h3>
+              <p>Домашки, міні-челенджі, щотижневий фідбек і метрики прогресу.</p>
+            </li>
+
+            <li className="about__step">
+              <div className="about__step-icon">🏆</div>
+              <h3>Сертифікат / Результат</h3>
+              <p>Підтвердження за CEFR і видимий апґрейд у реальних ситуаціях.</p>
+            </li>
+          </ol>
+        </section>
 
         {/* 2-col content */}
         <div className="about__grid">
@@ -52,10 +106,10 @@ export default function About() {
             <h3>Викладачі</h3>
             <p>
               Наша команда — сертифіковані викладачі з реальним досвідом
-              підготовки до <strong>IELTS / TOEFL</strong> і корпоративного
+              підготовки до <strong>IELTS/TOEFL</strong> та корпоративного
               навчання.
             </p>
-            <div className="about__badges">
+            <div className="about__badges" aria-label="Сертифікації">
               <span className="badge">IELTS</span>
               <span className="badge">CEFR</span>
               <span className="badge">DELTA</span>
@@ -65,16 +119,14 @@ export default function About() {
           <article className="about__card">
             <h3>Сертифікати</h3>
             <p>
-              Після успішного завершення курсу ви отримуєте офіційний
-              сертифікат <strong>Prime Academy</strong> із унікальним кодом
-              перевірки. Він підтверджує ваш рівень за шкалою{" "}
-              <strong>CEFR</strong> та може стати перевагою при вступі або
-              працевлаштуванні. Усі сертифікати зберігаються в базі — їх легко
-              перевірити онлайн на сторінці <em>“Перевірити сертифікат”</em>.
+              Після завершення курсу ви отримуєте офіційний сертифікат{" "}
+              <strong>Prime Academy</strong> з унікальним кодом перевірки. Він
+              підтверджує рівень за міжнародною шкалою <strong>CEFR</strong> і
+              може стати перевагою при вступі або працевлаштуванні.
             </p>
             <p>
-              Ми пишаємося тим, що документи Prime Academy визнають у багатьох
-              міжнародних компаніях та освітніх програмах.
+              Усі сертифікати зберігаються в нашій базі: їх легко перевірити
+              онлайн на сторінці <em>«Перевірити сертифікат»</em>.
             </p>
           </article>
 
@@ -93,7 +145,7 @@ export default function About() {
         </div>
 
         {/* Guarantee banner */}
-        <aside className="about__guarantee">
+        <aside className="about__guarantee" aria-label="Гарантія та показники">
           <div className="about__g-content">
             <h3>Гарантія результату</h3>
             <p>
