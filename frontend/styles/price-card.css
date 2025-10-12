@@ -21,7 +21,7 @@
     padding: 20px;
     border-radius: var(--radius);
     background: var(--card);
-    border: 1px solid rgba(255, 255, 255, .08);
+    border: 1px solid rgba(209 0 238);
     box-shadow: var(--shadow-lg);
     display: grid;
     gap: 14px;
