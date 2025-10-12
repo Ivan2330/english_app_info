@@ -5,12 +5,36 @@ export default function About() {
         {/* Hero/Intro */}
         <header className="about__hero">
           <p className="kicker">About Prime Academy</p>
-          <h1 className="about__title">Місія — зробити англійську вашим щоденним інструментом</h1>
+          <h1 className="about__title">
+            Місія — зробити англійську вашим щоденним інструментом
+          </h1>
           <p className="about__lead">
-            Ми навчаємо дітей і дорослих говорити впевнено: розмовний фокус, чіткі цілі та вимірюваний прогрес.
-            Якщо результату немає — ми продовжуємо навчання <strong>безкоштовно</strong>.
+            Ми навчаємо дітей і дорослих говорити впевнено: розмовний фокус,
+            чіткі цілі та вимірюваний прогрес. Якщо результату немає — ми
+            продовжуємо навчання <strong>безкоштовно</strong>.
           </p>
         </header>
+
+        {/* Brand Medallion */}
+        <div className="about__brand">
+          <div className="about__brand-logo">
+            <img src="/logo.svg" alt="Prime Academy logo" />
+          </div>
+          <h2 className="about__brand-title">
+            Школа, де англійська звучить щодня
+          </h2>
+          <p className="about__brand-text">
+            Ми віримо, що успіх народжується з щоденної практики. Тому наші
+            уроки — це не підручники, а живе спілкування, розумна структура і
+            підтримка викладача, який бачить ваш прогрес.
+          </p>
+          <div className="about__brand-tags">
+            <span>Speaking-first</span>
+            <span>CEFR roadmap</span>
+            <span>Measurable progress</span>
+            <span>Result guarantee</span>
+          </div>
+        </div>
 
         {/* 2-col content */}
         <div className="about__grid">
@@ -27,35 +51,38 @@ export default function About() {
           <article className="about__card">
             <h3>Викладачі</h3>
             <p>
-              Наша команда — сертифіковані викладачі із реальним
-              досвідом підготовки до <strong>IELTS/TOEFL</strong> і корпоративного навчання.
+              Наша команда — сертифіковані викладачі з реальним досвідом
+              підготовки до <strong>IELTS / TOEFL</strong> і корпоративного
+              навчання.
             </p>
             <div className="about__badges">
               <span className="badge">IELTS</span>
+              <span className="badge">CEFR</span>
               <span className="badge">DELTA</span>
-              <span className="badge">CERF</span>
             </div>
           </article>
 
-        <article className="about__card">
+          <article className="about__card">
             <h3>Сертифікати</h3>
             <p>
-              Після успішного завершення курсу ви отримуєте офіційний сертифікат{" "}
-              <strong>Prime Academy</strong> із унікальним кодом перевірки.
-              Він підтверджує ваш рівень за міжнародною шкалою <strong>CEFR</strong>
-              та може стати вагомою перевагою при вступі до університетів чи працевлаштуванні.
-              Усі сертифікати зберігаються в нашій базі — їх легко перевірити онлайн на сторінці{" "}
-              <em>“Перевірити сертифікат”</em>.
+              Після успішного завершення курсу ви отримуєте офіційний
+              сертифікат <strong>Prime Academy</strong> із унікальним кодом
+              перевірки. Він підтверджує ваш рівень за шкалою{" "}
+              <strong>CEFR</strong> та може стати перевагою при вступі або
+              працевлаштуванні. Усі сертифікати зберігаються в базі — їх легко
+              перевірити онлайн на сторінці <em>“Перевірити сертифікат”</em>.
             </p>
             <p>
-              Ми пишаємося тим, що документи Prime Academy визнають у багатьох міжнародних компаніях та освітніх програмах.
+              Ми пишаємося тим, що документи Prime Academy визнають у багатьох
+              міжнародних компаніях та освітніх програмах.
             </p>
           </article>
 
           <article className="about__card">
             <h3>Гарантія результату</h3>
             <p>
-              Якщо ви дотримуєтесь плану, але не досягаєте цілей — ми продовжуємо навчання безкоштовно до потрібного рівня.
+              Якщо ви дотримуєтесь плану, але не досягаєте цілей — ми
+              продовжуємо навчання безкоштовно до потрібного рівня.
             </p>
             <ul className="about__list">
               <li>Прозорі метрики прогресу</li>
@@ -69,12 +96,24 @@ export default function About() {
         <aside className="about__guarantee">
           <div className="about__g-content">
             <h3>Гарантія результату</h3>
-            <p>Не бачите прогресу? Продовжуємо навчання безкоштовно — доки не досягнемо мети разом.</p>
+            <p>
+              Не бачите прогресу? Продовжуємо навчання безкоштовно — доки не
+              досягнемо мети разом.
+            </p>
           </div>
           <div className="about__g-stats">
-            <div><strong>500+</strong><span>випускників</span></div>
-            <div><strong>95%</strong><span>складають іспит з 1-го разу</span></div>
-            <div><strong>4.7/5</strong><span>середня оцінка</span></div>
+            <div>
+              <strong>500+</strong>
+              <span>випускників</span>
+            </div>
+            <div>
+              <strong>95%</strong>
+              <span>складають іспит з 1-го разу</span>
+            </div>
+            <div>
+              <strong>4.7/5</strong>
+              <span>середня оцінка</span>
+            </div>
           </div>
         </aside>
       </div>
