@@ -51,7 +51,7 @@ export default function About() {
             Від діагностики — до вимірюваного результату за CEFR. Чітко, прозоро, без хаосу.
           </p>
 
-          <ol className="about__steps-list">
+          <ul className="about__steps-list" role="list">
             <li className="about__step">
               <div className="about__step-icon">🧭</div>
               <h3>Діагностика</h3>
@@ -87,7 +87,7 @@ export default function About() {
               <h3>Сертифікат / Результат</h3>
               <p>Підтвердження за CEFR і видимий апґрейд у реальних ситуаціях.</p>
             </li>
-          </ol>
+          </ul>
         </section>
 
         {/* 2-col content */}
