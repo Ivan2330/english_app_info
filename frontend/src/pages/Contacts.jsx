@@ -25,6 +25,7 @@ export default function Contacts() {
 
   async function onSubmit(e) {
     e.preventDefault();
+
     if (!form.name.trim()) {
       alert("Вкажіть, будь ласка, ім’я");
       return;
@@ -76,12 +77,15 @@ export default function Contacts() {
     <section className="contact">
       <div className="container contact__inner">
         <header className="contact__head">
-          <h1 className="section-title">Запис на пробний урок</h1>
-          <p className="contact__lead">
-            Залиште контакти — менеджер зв’яжеться та підбере зручний час і програму.
+          <h1 className="section-title">
+            Запишись на БЕЗКОШТОВНИЙ пробний урок англійської 💬
+          </h1>
+          <p className="section-subtitle">
+            Дізнайся свій рівень і отримай персональну програму навчання —
+            безкоштовно та без зобов’язань.
           </p>
           <p className="contact__hint">
-            Потрібно ввести <strong>хоча б один спосіб зв’язку</strong> (телефон або Telegram або email).
+            Вкажи <strong>хоча б один спосіб зв’язку</strong> (телефон / Telegram / email).
             Інші поля — за бажанням.
           </p>
         </header>
@@ -97,8 +101,9 @@ export default function Contacts() {
                   name="name"
                   value={form.name}
                   onChange={onChange}
-                  required
                   placeholder="Ваше ім’я"
+                  required
+                  autoComplete="name"
                 />
               </label>
 
@@ -110,6 +115,8 @@ export default function Contacts() {
                   value={form.phone}
                   onChange={onChange}
                   placeholder="+380..."
+                  autoComplete="tel"
+                  inputMode="tel"
                 />
               </label>
             </div>
@@ -124,6 +131,7 @@ export default function Contacts() {
                   value={form.email}
                   onChange={onChange}
                   placeholder="name@example.com"
+                  autoComplete="email"
                 />
               </label>
 
@@ -151,7 +159,6 @@ export default function Contacts() {
                   <option value="">Обрати...</option>
                   <option value="kids">Діти</option>
                   <option value="adults">Дорослі</option>
-                  {/* прибрано: business, it */}
                 </select>
               </label>
 
@@ -174,30 +181,31 @@ export default function Contacts() {
                 name="comment"
                 value={form.comment}
                 onChange={onChange}
-                rows="4"
+                rows={4}
                 placeholder="Побажання щодо графіку, цілей або викладача"
               />
             </label>
 
             <div className="form__footer">
               <div className="form__note">
-                Натискаючи «Відправити», ви погоджуєтесь із умовами обробки даних.
+                Натискаючи «Записатись», ви погоджуєтесь із умовами обробки даних.
               </div>
               <button className="btn btn-cta" type="submit" disabled={sending}>
-                {sending ? "Надсилаємо..." : "Відправити заявку"}
+                {sending ? "Надсилаємо..." : "📅 Записатись на пробний урок"}
               </button>
             </div>
 
-            {result && result.ok && (
-              <p className="form__success" role="status">
-                Дякуємо! Заявку  отримано — ми звʼяжемось найближчим часом.
-              </p>
-            )}
-            {result && !result.ok && (
-              <p className="form__error" role="alert">
-                Помилка: {result.error}
-              </p>
-            )}
+            <p
+              className={result?.ok ? "form__success" : result ? "form__error" : "sr-only"}
+              role="status"
+              aria-live="polite"
+            >
+              {result?.ok
+                ? "Дякуємо! Заявку отримано — ми звʼяжемось найближчим часом."
+                : result
+                ? `Помилка: ${result.error}`
+                : ""}
+            </p>
           </form>
 
           {/* ASIDE */}
@@ -206,7 +214,6 @@ export default function Contacts() {
               <h3>Контакти</h3>
               <ul className="contact__list">
                 <li><a href="tel:+380991797047">+38 (099) 179-70-47</a></li>
-                {/* прибрано email справа */}
                 <li>
                   <a href="https://t.me/IvanKozhevnyk" target="_blank" rel="noreferrer">
                     Telegram
@@ -226,12 +233,10 @@ export default function Contacts() {
               <h3>Як проходить пробний урок</h3>
               <ol className="contact__steps">
                 <li>Короткий дзвінок з координатором (цілі та графік).</li>
-                <li>Діагностика рівня і план навчання.</li>
-                <li>Пробний урок (30–60 хв) та рекомендації.</li>
+                <li>Діагностика рівня і персональний план навчання.</li>
+                <li>Пробний урок 30–60 хв + рекомендації.</li>
               </ol>
             </div>
-
-            {/* прибрано блок "Ми онлайн" */}
           </aside>
         </div>
       </div>
