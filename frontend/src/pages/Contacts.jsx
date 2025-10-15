@@ -190,7 +190,7 @@ export default function Contacts() {
 
             {result && result.ok && (
               <p className="form__success" role="status">
-                Дякуємо! Заявку №{result.id} отримано — ми звʼяжемось найближчим часом.
+                Дякуємо! Заявку  отримано — ми звʼяжемось найближчим часом.
               </p>
             )}
             {result && !result.ok && (
