@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import CTAButton from "./CTAButton";
 
 export default function HeroSection() {
   const navigate = useNavigate();
@@ -15,10 +16,17 @@ export default function HeroSection() {
           </p>
 
           <div className="hero__actions">
-            <button className="btn btn-primary" onClick={() => navigate("/contacts")}>
-              Записатись на пробний урок
-            </button>
-            <button className="btn btn-ghost" onClick={() => navigate("/packages")}>
+            {/* Приглушена за замовчуванням → яскрава при hover */}
+            <CTAButton
+              label="Записатись на пробний урок"
+              onClick={() => navigate("/contacts")}
+            />
+
+            {/* Додаткова вторинна дія лишається ghost */}
+            <button
+              className="btn btn-ghost"
+              onClick={() => navigate("/packages")}
+            >
               Переглянути пакети
             </button>
           </div>

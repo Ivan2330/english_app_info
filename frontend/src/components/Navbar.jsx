@@ -1,4 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
+import CTAButton from "./CTAButton";
 import logo from "../assets/icons/prime_logo2.svg";
 
 export default function Navbar() {
@@ -7,7 +8,11 @@ export default function Navbar() {
   return (
     <header className="navbar">
       <div className="container navbar__inner">
-        <button className="navbar__brand" onClick={() => navigate("/")} aria-label="Prime Academy — на головну">
+        <button
+          className="navbar__brand"
+          onClick={() => navigate("/")}
+          aria-label="Prime Academy — на головну"
+        >
           <img src={logo} alt="" className="navbar__logo" />
           <span className="navbar__title">Prime Academy</span>
         </button>
@@ -20,11 +25,15 @@ export default function Navbar() {
         </nav>
 
         <div className="navbar__cta">
-          <button className="btn btn-primary" onClick={() => navigate("/contacts")}>
-            Пробний урок
-          </button>
+          {/* Компактна приглушена кнопка */}
+          <CTAButton
+            size="sm"
+            label="Пробний урок"
+            onClick={() => navigate("/contacts")}
+          />
         </div>
       </div>
+
       <div className="navbar__border" aria-hidden="true" />
     </header>
   );
