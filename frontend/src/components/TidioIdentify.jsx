@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 
-// Хелпер для викликів тільки після готовності Tidio
+/** Виклик callback лише після готовності Tidio */
 function onTidioReady(cb) {
-  if (window.tidioChatApi) return cb();
+  if (typeof window !== "undefined" && window.tidioChatApi) return cb();
   document.addEventListener("tidioChat-ready", cb, { once: true });
 }
 
@@ -15,16 +15,30 @@ export default function TidioIdentify({ visitor }) {
 
     onTidioReady(() => {
       try {
-        // Офіційний метод оновлення даних відвідувача
-        window.tidioChatApi.setVisitorData({
+        if (!window?.tidioChatApi?.setVisitorData) return;
+
+        const payload = {
           ...("distinct_id" in visitor ? { distinct_id: visitor.distinct_id } : {}),
           ...("name" in visitor ? { name: visitor.name } : {}),
           ...("email" in visitor ? { email: visitor.email } : {}),
           ...("phone" in visitor ? { phone: visitor.phone } : {}),
+        };
+
+        // Фільтр пустих/фальшивих значень
+        Object.keys(payload).forEach((k) => {
+          if (payload[k] == null || payload[k] === "" || String(payload[k]).includes("...")) {
+            delete payload[k];
+          }
         });
+
+        if (Object.keys(payload).length) {
+          window.tidioChatApi.setVisitorData(payload);
+          // eslint-disable-next-line no-console
+          console.log("[Tidio] visitor data sent");
+        }
       } catch (e) {
         // eslint-disable-next-line no-console
-        console.error("Failed to set Tidio visitor data:", e);
+        console.error("[Tidio] Failed to set visitor data:", e);
       }
     });
   }, [visitor]);

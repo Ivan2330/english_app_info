@@ -1,9 +1,9 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
-import { TIDIO_KEY } from "./config.js";
-// +++ add these 3 lines at the very top:
+
+// Глобальні стилі
 import "../styles/variables.css";
 import "../styles/global.css";
 import "../styles/home.css";
@@ -17,8 +17,6 @@ import "../styles/contacts.css";
 import "../styles/certificates.css";
 
 function Root() {
-
-
   return (
     <BrowserRouter>
       <App />
