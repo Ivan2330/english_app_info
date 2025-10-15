@@ -17,14 +17,7 @@ import "../styles/contacts.css";
 import "../styles/certificates.css";
 
 function Root() {
-  useEffect(() => {
-    if (TIDIO_KEY) {
-      const s = document.createElement("script");
-      s.src = `https://code.tidio.co/${TIDIO_KEY}.js`;
-      s.async = true;
-      document.body.appendChild(s);
-    }
-  }, []);
+
 
   return (
     <BrowserRouter>

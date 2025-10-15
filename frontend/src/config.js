@@ -4,4 +4,4 @@ export const API_URL =
     ? "https://my-prime-academy.com"   // прод (краще проксити /api цим же доменом)
     : "http://localhost:8000";         // дев
 
-export const TIDIO_KEY = import.meta.env.VITE_TIDIO_PUBLIC_KEY || "";
+
