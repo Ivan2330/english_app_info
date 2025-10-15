@@ -27,7 +27,11 @@ export default function PriceCard({
     <article className={`price-card ${isPremium ? "is-premium" : ""}`}>
       {hasDiscount && (
         <div className="discount">
-          {discountPercent ? `-${discountPercent}%` : discountMoney ? `-${formatCurrency(discountMoney, currency)}` : "Знижка"}
+          {discountPercent
+            ? `-${discountPercent}%`
+            : discountMoney
+            ? `-${formatCurrency(discountMoney, currency)}`
+            : "Знижка"}
         </div>
       )}
 
@@ -55,7 +59,10 @@ export default function PriceCard({
 
       <div className="price-card__footer">
         <div className="guarantee">Не буде прогресу — навчаємо безкоштовно</div>
-        <button className="btn btn-primary price-card__cta" onClick={onSelect}>Обрати пакет</button>
+        {/* приглушена CTA з яскравим hover */}
+        <button className="btn btn-cta price-card__cta" onClick={onSelect}>
+          Обрати пакет
+        </button>
       </div>
     </article>
   );
