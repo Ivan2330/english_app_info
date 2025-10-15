@@ -131,30 +131,50 @@ button {
 }
 .btn-ghost:hover { background: rgba(255, 255, 255, .12); }
 
-/* НОВА: приглушена за замовчуванням, яскрава при hover (для "Пробний урок") */
+/* CTA: м’який фіолетовий фон за замовчуванням, яскравіший при hover */
 .btn-cta {
-    color: var(--text);
-    background: rgba(255, 255, 255, .06);
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(255, 255, 255, .12);
-    box-shadow: none;
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.65),
+    rgba(167, 139, 250, 0.55)
+  );
+  border: 1px solid rgba(167, 139, 250, 0.45);
+  box-shadow: 0 6px 14px rgba(139, 92, 246, 0.25);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.2s ease,
+    background 0.25s ease,
+    border-color 0.25s ease;
 }
-.btn-cta:hover {
-    color: #fff;
-    background: linear-gradient(135deg, var(--primary-600), var(--primary-400));
-    border-color: transparent;
-    box-shadow: 0 14px 30px rgba(139, 92, 246, .45);
-}
-.btn-cta:focus-visible {
-    outline: 2px solid rgba(139, 92, 246, .8);
-    outline-offset: 2px;
-    box-shadow: 0 0 0 6px rgba(139, 92, 246, .25);
-}
-.btn-cta:active { transform: translateY(0); }
-.btn-cta:disabled { opacity: .6; cursor: not-allowed; }
 
-/* Розміри */
-.btn--sm { padding: 10px 14px; font-size: 14px; }
+.btn-cta:hover {
+  background: linear-gradient(135deg, var(--primary-600), var(--primary-400));
+  border-color: transparent;
+  box-shadow: 0 14px 30px rgba(139, 92, 246, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-cta:focus-visible {
+  outline: 2px solid rgba(139, 92, 246, 0.8);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(139, 92, 246, 0.25);
+}
+
+.btn-cta:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 12px rgba(139, 92, 246, 0.35);
+}
+
+.btn-cta:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn--sm {
+  padding: 10px 14px;
+  font-size: 14px;
+}
 
 /* =========================
    Accent bar
