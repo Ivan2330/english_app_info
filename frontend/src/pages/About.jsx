@@ -1,4 +1,4 @@
-import main_logo from "../assets/icons/logo.svg";
+import main_logo from "../assets/icons/logo_circle.png";
 
 export default function About() {
   return (

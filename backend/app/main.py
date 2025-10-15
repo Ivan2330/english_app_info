@@ -49,11 +49,13 @@ async def startup():
         await create_all()
     async for session in get_async_session():
         assert isinstance(session, AsyncSession)
-        from app.core.bootstrap_admin import ensure_owner_admin, ensure_default_packages
+        from app.core.bootstrap_admin import ensure_owner_admin, ensure_standard_packages, ensure_premium_packages
         info_admin = await ensure_owner_admin(session)
-        info_packages = await ensure_default_packages(session)
+        info_packages = await ensure_standard_packages(session, purge_existing=True)
+        premium_packs = await ensure_premium_packages(session, purge_existing=True)
         print(f"Admin bootstrap: {info_admin}")
         print(f"Packages bootstrap: {info_packages}")
+        print(f"Premium bootstrap: {premium_packs}")
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
