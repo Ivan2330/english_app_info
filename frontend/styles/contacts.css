@@ -89,8 +89,8 @@
 .btn:active { transform: translateY(1px); }
 
 .btn-cta {
-  background: #ffffff; color: #4b2bb9;        /* контраст на темному фоні */
-  border-color: #ffffff;
+  background: #4b2bb9;        /* контраст на темному фоні */
+  /* border-color: #ffffff; */
   box-shadow: 0 10px 24px rgba(255,255,255,.08);
 }
 .btn-cta:hover { box-shadow: 0 12px 28px rgba(255,255,255,.12); }
