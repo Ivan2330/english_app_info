@@ -29,6 +29,16 @@ export default function Contacts() {
       alert("Вкажіть, будь ласка, ім’я");
       return;
     }
+    const hasAnyContact =
+      (form.phone && form.phone.trim()) ||
+      (form.telegram && form.telegram.trim()) ||
+      (form.email && form.email.trim());
+
+    if (!hasAnyContact) {
+      alert("Вкажіть хоча б один контакт: телефон, Telegram або email.");
+      return;
+    }
+
     setSending(true);
     setResult(null);
     try {
@@ -67,7 +77,13 @@ export default function Contacts() {
       <div className="container contact__inner">
         <header className="contact__head">
           <h1 className="section-title">Запис на пробний урок</h1>
-          <p className="contact__lead">Залиште контакти — менеджер зв’яжеться та підбере зручний час і програму.</p>
+          <p className="contact__lead">
+            Залиште контакти — менеджер зв’яжеться та підбере зручний час і програму.
+          </p>
+          <p className="contact__hint">
+            Потрібно ввести <strong>хоча б один спосіб зв’язку</strong> (телефон або Telegram або email).
+            Інші поля — за бажанням.
+          </p>
         </header>
 
         <div className="contact__grid">
@@ -76,53 +92,98 @@ export default function Contacts() {
             <div className="form__row">
               <label className="field">
                 <span className="field__label">Ім’я *</span>
-                <input className="field__input" name="name" value={form.name} onChange={onChange} required />
+                <input
+                  className="field__input"
+                  name="name"
+                  value={form.name}
+                  onChange={onChange}
+                  required
+                  placeholder="Ваше ім’я"
+                />
               </label>
 
               <label className="field">
                 <span className="field__label">Телефон</span>
-                <input className="field__input" name="phone" value={form.phone} onChange={onChange} placeholder="+380..." />
+                <input
+                  className="field__input"
+                  name="phone"
+                  value={form.phone}
+                  onChange={onChange}
+                  placeholder="+380..."
+                />
               </label>
             </div>
 
             <div className="form__row">
               <label className="field">
                 <span className="field__label">Email</span>
-                <input className="field__input" type="email" name="email" value={form.email} onChange={onChange} />
+                <input
+                  className="field__input"
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={onChange}
+                  placeholder="name@example.com"
+                />
               </label>
 
               <label className="field">
                 <span className="field__label">Telegram</span>
-                <input className="field__input" name="telegram" value={form.telegram} onChange={onChange} placeholder="@username" />
+                <input
+                  className="field__input"
+                  name="telegram"
+                  value={form.telegram}
+                  onChange={onChange}
+                  placeholder="@username"
+                />
               </label>
             </div>
 
             <div className="form__row">
               <label className="field">
                 <span className="field__label">Аудиторія</span>
-                <select className="field__input" name="audience" value={form.audience} onChange={onChange}>
+                <select
+                  className="field__input field__select"
+                  name="audience"
+                  value={form.audience}
+                  onChange={onChange}
+                >
                   <option value="">Обрати...</option>
                   <option value="kids">Діти</option>
                   <option value="adults">Дорослі</option>
-                  <option value="business">Бізнес</option>
-                  <option value="it">IT</option>
+                  {/* прибрано: business, it */}
                 </select>
               </label>
 
               <label className="field">
                 <span className="field__label">Зручний час</span>
-                <input className="field__input" name="preferred_time" value={form.preferred_time} onChange={onChange} placeholder="Будні 18:00-20:00" />
+                <input
+                  className="field__input"
+                  name="preferred_time"
+                  value={form.preferred_time}
+                  onChange={onChange}
+                  placeholder="Будні 18:00–20:00"
+                />
               </label>
             </div>
 
             <label className="field">
               <span className="field__label">Коментар</span>
-              <textarea className="field__textarea" name="comment" value={form.comment} onChange={onChange} rows="4" />
+              <textarea
+                className="field__textarea"
+                name="comment"
+                value={form.comment}
+                onChange={onChange}
+                rows="4"
+                placeholder="Побажання щодо графіку, цілей або викладача"
+              />
             </label>
 
             <div className="form__footer">
-              <div className="form__note">Натискаючи «Відправити», ви погоджуєтесь із умовами обробки даних.</div>
-              <button className="btn btn-primary" type="submit" disabled={sending}>
+              <div className="form__note">
+                Натискаючи «Відправити», ви погоджуєтесь із умовами обробки даних.
+              </div>
+              <button className="btn btn-cta" type="submit" disabled={sending}>
                 {sending ? "Надсилаємо..." : "Відправити заявку"}
               </button>
             </div>
@@ -139,16 +200,26 @@ export default function Contacts() {
             )}
           </form>
 
-          {/* INFO / CTA / MAP */}
+          {/* ASIDE */}
           <aside className="contact__aside">
             <div className="contact__card card">
               <h3>Контакти</h3>
               <ul className="contact__list">
                 <li><a href="tel:+380991797047">+38 (099) 179-70-47</a></li>
-                <li><a href="mailto:my.primeacademy19@gmail.com">my.primeacademy19@gmail.com</a></li>
-                <li><a href="https://t.me/IvanKozhevnyk" target="_blank" rel="noreferrer">Telegram</a></li>
+                {/* прибрано email справа */}
+                <li>
+                  <a href="https://t.me/IvanKozhevnyk" target="_blank" rel="noreferrer">
+                    Telegram
+                  </a>
+                </li>
               </ul>
-              <button className="btn btn-ghost" onClick={() => window.tidioChatApi?.open?.()}>Написати у чат</button>
+              <button
+                className="btn btn-ghost"
+                onClick={() => window.tidioChatApi?.open?.()}
+                type="button"
+              >
+                Написати у чат
+              </button>
             </div>
 
             <div className="contact__card card">
@@ -160,10 +231,7 @@ export default function Contacts() {
               </ol>
             </div>
 
-            <div className="contact__map card">
-              <h3>Ми онлайн</h3>
-              <p>Займаємось віддалено у зручний для вас час. За бажанням — очні заняття у партнерських просторах (за запитом).</p>
-            </div>
+            {/* прибрано блок "Ми онлайн" */}
           </aside>
         </div>
       </div>
