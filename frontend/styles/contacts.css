@@ -1,23 +1,22 @@
-/* ===== CONTACT — polished combo (one height + perfect radiuses) ===== */
 :root { --radius: 18px; --control-h: 50px; }
 
-.contact {
-  position: relative;
+.contact{
+  position:relative;
   padding: var(--space-6) 0 var(--space-7);
   background:
     radial-gradient(90rem 60rem at 85% -10%, rgba(139,92,246,.12), transparent 70%),
     radial-gradient(60rem 40rem at -10% 100%, rgba(56,189,248,.10), transparent 70%),
     linear-gradient(180deg, rgba(255,255,255,.03), transparent);
 }
-.contact__inner { position: relative; z-index: 1; }
+.contact__inner{ position:relative; z-index:1; }
 
-.contact__head--span { max-width: 980px; margin: 0 auto 18px; text-align: left; }
-.kicker { color:#b9a7ff;text-transform:uppercase;letter-spacing:.08em;font-weight:700;font-size:12px;margin:0 0 6px; }
+.contact__head--span{ max-width:980px; margin:0 auto 18px; text-align:left; }
+.kicker{ color:#b9a7ff; text-transform:uppercase; letter-spacing:.08em; font-weight:700; font-size:12px; margin:0 0 6px; }
 .section-title{ margin:0 0 10px; font-size:clamp(28px,3.2vw,42px); line-height:1.12; letter-spacing:-.02em; }
 .section-subtitle{ color:var(--muted); margin:0 0 6px; font-size:18px; line-height:1.5; }
 .contact__hint{ margin:6px 0 0; font-size:14px; color:#d7d9e6; opacity:.95; }
 
-/* ——— One big card that houses form + photo ——— */
+/* Card */
 .card{
   background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.10);
@@ -26,57 +25,54 @@
   box-shadow: 0 10px 30px rgba(0,0,0,.25);
 }
 
-/* COMBO: equal height via flex, seamless middle divider */
+/* Combo: form + (optional) photo */
 .combo{
-  max-width: 1200px; margin: 0 auto;
-  display: flex; gap: 0; align-items: stretch; /* <- одна висота */
-  overflow: hidden; border-radius: var(--radius);
+  max-width:1200px; margin:0 auto;
+  display:flex; gap:0; align-items:stretch;
+  overflow:hidden; border-radius:var(--radius);
+  position:relative;
 }
 .combo::before{
-  /* тонкий розділювач між половинами */
-  content:""; width:1px; background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
-  position: relative; z-index: 1;
-  /* ставимо його поверх, а блоки робимо флекс-дітьми через order */
+  content:""; width:1px;
+  background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+  position:absolute; left:52%; top:0; bottom:0;
 }
+.combo--formOnly::before{ display:none; }         /* без фото — без дівайдера */
 
-/* LEFT side (form) */
-.form--combo{
-  flex:1 1 52%;
-  padding: 22px;
-  border-right: 0; /* дівайдер малює ::before на .combo */
-}
+/* Left: form */
+.form--combo{ flex:1 1 52%; padding:22px; }
 .form__row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-@media (max-width:720px){ .form__row{ grid-template-columns:1fr; } }
+@media (max-width:900px){ .form__row{ grid-template-columns:1fr; } }
 
-.field{ display:grid; gap:6px; }
+.field{ display:grid; gap:4px; }                  /* ← ближче лейбл до інпуту */
 .field__label{ font-weight:700; font-size:13px; color:#fff; }
 .input-wrap{ position:relative; display:grid; }
 
 .field__icon{ position:absolute; left:12px; top:50%; transform:translateY(-50%); width:18px; height:18px; opacity:.72; pointer-events:none; }
 
 .field__input, .field__select{
-  height: var(--control-h);
-  line-height: calc(var(--control-h) - 2px);
-  border-radius: 12px;
-  padding: 0 14px 0 38px;
-  color: var(--text);
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
-  outline: none;
-  transition: border-color .15s, box-shadow .15s, background .15s, transform .04s;
-  font: 14px/1 Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  height:var(--control-h);
+  line-height:calc(var(--control-h) - 2px);
+  border-radius:12px;
+  padding:0 14px 0 38px;
+  color:var(--text);
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  outline:none;
+  transition:border-color .15s, box-shadow .15s, background .15s, transform .04s;
+  font:14px/1 Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
 }
 .field__textarea{
   width:100%; border-radius:12px; padding:12px 14px; min-height:120px;
   color:var(--text); background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
   transition:border-color .15s, box-shadow .15s, background .15s, transform .04s;
-  font: 14px/1.5 Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  font:14px/1.5 Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
 }
 .field__input::placeholder{ color:#9aa0b3; }
 .field__input:focus,.field__textarea:focus,.field__select:focus{
-  border-color: rgba(139,92,246,.6);
-  box-shadow: 0 0 0 3px rgba(139,92,246,.25);
-  background: rgba(255,255,255,.08);
+  border-color:rgba(139,92,246,.6);
+  box-shadow:0 0 0 3px rgba(139,92,246,.25);
+  background:rgba(255,255,255,.08);
 }
 .field__select{ appearance:none; padding-right:38px; position:relative; }
 .field__select::-ms-expand{ display:none; }
@@ -96,7 +92,7 @@
 .btn-cta{ background:#4b2bb9; color:#fff; box-shadow:0 12px 32px rgba(91,46,230,.35); }
 .btn-cta:hover{ box-shadow:0 16px 40px rgba(91,46,230,.45); filter:brightness(1.03); }
 
-/* RIGHT side (photo) */
+/* Right: photo (не буде в DOM на мобайлі, але стилі лишаємо для десктопів) */
 .visual{ flex:1 1 48%; position:relative; }
 .visual__media{ position:relative; height:100%; min-height:560px; }
 .visual__img{ width:100%; height:100%; object-fit:cover; object-position: 62% center; display:block; }
@@ -104,15 +100,11 @@
 .visual__badges{ position:absolute; left:14px; bottom:14px; display:flex; gap:8px; flex-wrap:wrap; }
 .visual-badge{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700; background:rgba(17,17,26,.55); border:1px solid rgba(255,255,255,.18); color:#f2f4ff; backdrop-filter:blur(10px); }
 
-/* Divider placement: put ::before between flex children */
-.form--combo{ order:1; }
-.visual{ order:2; }
-.combo::before{ order:1; align-self:stretch; }
-
-/* Responsive: stack */
-@media (max-width: 1024px){
+/* Stacking for tablets; на телефонах фото просто не рендеримо */
+@media (max-width:1024px){
   .combo{ flex-direction:column; }
   .combo::before{ display:none; }
-  .visual__media{ min-height:380px; }
 }
-@media (max-width:480px){ .form--combo{ padding:16px; } }
+@media (max-width:480px){
+  .form--combo{ padding:16px; }
+}
