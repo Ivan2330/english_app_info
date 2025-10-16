@@ -1,3 +1,6 @@
+/* блокування скролу сторінки, коли меню відкрите */
+.body--lock { overflow: hidden; }
+
 /* ===== Sticky glass navbar (десктоп зберігаємо як було) ===== */
 .navbar {
   position: sticky;
