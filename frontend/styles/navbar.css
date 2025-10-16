@@ -1,117 +1,154 @@
-/* Sticky glass navbar */
+/* Sticky glass navbar — як було */
 .navbar {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    backdrop-filter: saturate(1.1) blur(8px);
-    background: linear-gradient(180deg, rgba(10, 12, 20, .55), rgba(10, 12, 20, .35));
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: saturate(1.1) blur(8px);
+  background: linear-gradient(180deg, rgba(10, 12, 20, .55), rgba(10, 12, 20, .35));
+}
+
+/* Врахувати виріз (iOS notch) */
+@supports (padding: max(0px)) {
+  .navbar { padding-top: max(0px, env(safe-area-inset-top)); }
 }
 
 .navbar__inner {
-    height: 68px;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 16px;
+  height: 68px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
 }
 
 /* Brand */
 .navbar__brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 8px;
-    border-radius: 10px;
-    background: transparent;
-    color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
 }
+.navbar__brand:hover { background: rgba(255, 255, 255, .06); }
 
-.navbar__brand:hover {
-    background: rgba(255, 255, 255, .06);
-}
+.navbar__logo { width: 28px; height: 28px; }
+.navbar__title { font-weight: 800; letter-spacing: .2px; font-family: Poppins, Inter, sans-serif; }
 
-.navbar__logo {
-    width: 28px;
-    height: 28px;
-}
-
-.navbar__title {
-    font-weight: 800;
-    letter-spacing: .2px;
-    font-family: Poppins, Inter, sans-serif;
-}
-
-/* Links */
-.navbar__nav {
-    display: flex;
-    justify-content: center;
-    gap: 18px;
-}
-
-.navlink {
-    position: relative;
-    padding: 6px 8px;
-    border-radius: 8px;
-    color: var(--muted);
-    font-weight: 600;
-}
-
-.navlink:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, .05);
-}
-
+/* Links — десктоп */
+.navbar__nav { display: flex; justify-content: center; gap: 18px; }
+.navlink { position: relative; padding: 6px 8px; border-radius: 8px; color: var(--muted); font-weight: 600; }
+.navlink:hover { color: #fff; background: rgba(255, 255, 255, .05); }
 .navlink.active {
-    color: #fff;
-    background: rgba(139, 92, 246, .12);
-    box-shadow: inset 0 0 0 1px rgba(139, 92, 246, .25);
+  color: #fff;
+  background: rgba(139, 92, 246, .12);
+  box-shadow: inset 0 0 0 1px rgba(139, 92, 246, .25);
 }
 
 /* CTA */
-.navbar__cta {
-    display: flex;
-    align-items: center;
-}
+.navbar__cta { display: flex; align-items: center; gap: 8px; }
 
-/* subtle bottom border glow */
-.navbar__border {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, .45), transparent);
+/* Меню-кнопка (мобільні) */
+.navbar__menuBtn {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
 }
+.navbar__menuBtn:focus-visible { outline: 2px solid rgba(139,92,246,.6); outline-offset: 2px; }
 
-/* Responsive */
+.navbar__menuIcon,
+.navbar__menuIcon::before,
+.navbar__menuIcon::after {
+  display: block;
+  position: relative;
+  width: 18px; height: 2px; background: #fff; border-radius: 2px; margin: auto;
+  transition: transform .25s ease, opacity .2s ease;
+}
+.navbar__menuIcon::before,
+.navbar__menuIcon::after {
+  content: "";
+  position: absolute; left: 0; right: 0;
+}
+.navbar__menuIcon::before { transform: translateY(-6px); }
+.navbar__menuIcon::after  { transform: translateY(6px); }
+
+/* Анімація іконки при відкритті */
+.navbar--open .navbar__menuIcon { background: transparent; }
+.navbar--open .navbar__menuIcon::before { transform: rotate(45deg); }
+.navbar--open .navbar__menuIcon::after  { transform: rotate(-45deg); }
+
+/* Нижня підсвітка */
+.navbar__border { height: 1px; background: linear-gradient(90deg, transparent, rgba(139, 92, 246, .45), transparent); }
+
+/* ---------- Responsive ---------- */
+
+/* < 880px: компактніший бар + мобільне меню */
 @media (max-width: 880px) {
-    .navbar__inner {
-        grid-template-columns: auto auto;
-        grid-template-rows: 56px auto;
-        height: auto;
-        gap: 10px 12px;
-        padding-block: 6px;
-    }
+  .navbar__inner {
+    height: 56px; /* було 68px */
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    padding-block: 6px;
+  }
 
-    .navbar__nav {
-        grid-column: 1 / -1;
-        justify-content: flex-start;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
+  /* Приховати хедерні лінки — вони переїдуть у моб. меню */
+  .navbar__nav { display: none; }
 
-    .navbar__cta {
-        justify-self: end;
-    }
+  /* Показати кнопку меню */
+  .navbar__menuBtn { display: inline-flex; align-items: center; justify-content: center; }
+
+  /* Трохи менший логотип */
+  .navbar__logo { width: 24px; height: 24px; }
+  .navbar__title { font-size: 15px; }
 }
 
+/* < 560px: ще компактніше, великі тап-зони в меню */
 @media (max-width: 560px) {
-    .navbar__title {
-        display: none;
-    }
-
-    /* лишаємо тільки іконку на дуже малих */
-    .navbar__nav {
-        gap: 8px;
-    }
-
-    .navlink {
-        padding: 6px 6px;
-    }
+  .navbar__inner { height: 52px; }
+  .navbar__title { display: none; } /* залишаємо тільки іконку */
 }
+
+/* Мобільне меню (sliding panel під хедером) */
+.mobileNav {
+  position: fixed;
+  top: calc(56px + max(0px, env(safe-area-inset-top))); /* синхронізовано з моб. висотою */
+  left: 0; right: 0;
+  transform: translateY(-16px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .25s ease, opacity .2s ease;
+  z-index: 49;
+}
+@media (min-width: 880px) { .mobileNav { display: none; } }
+
+.navbar--open .mobileNav {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobileNav__inner {
+  margin: 0 auto;
+  max-width: min(100%, 960px);
+  background: linear-gradient(180deg, rgba(10,12,20,.95), rgba(10,12,20,.86));
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255,255,255,.08);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 12px 30px rgba(0,0,0,.35);
+  padding: 8px;
+}
+
+.mobileNav__item {
+  width: 100%;
+  text-align: left;
+  padding: 14px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: transparent;
+}
+.mobileNav__item:hover { background: rgba(255,255,255,.06); }
+.mobileNav__cta { padding: 8px; }
