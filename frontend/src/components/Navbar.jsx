@@ -1,20 +1,27 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import CTAButton from "./CTAButton";
 import logo from "../assets/icons/prime_logo2.svg";
+import "./navbar.css"; // якщо стилі в окремому файлі
 
 export default function Navbar() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  // Закривати меню при зміні маршруту / ресайзі
+  // Закривати меню при ресайзі на десктоп
   useEffect(() => {
-    const closeOnResize = () => {
+    const onResize = () => {
       if (window.innerWidth >= 880) setOpen(false);
     };
-    window.addEventListener("resize", closeOnResize);
-    return () => window.removeEventListener("resize", closeOnResize);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  // Блокувати скрол сторінки, коли меню відкрите
+  useEffect(() => {
+    document.documentElement.classList.toggle("body--lock", open);
+    return () => document.documentElement.classList.remove("body--lock");
+  }, [open]);
 
   const go = (path) => {
     navigate(path);
@@ -33,7 +40,7 @@ export default function Navbar() {
           <span className="navbar__title">Prime Academy</span>
         </button>
 
-        {/* Десктопна навігація */}
+        {/* Десктоп-меню */}
         <nav className="navbar__nav" aria-label="Головна навігація">
           <NavLink to="/packages" className="navlink">Пакети</NavLink>
           <NavLink to="/about" className="navlink">Про нас</NavLink>
@@ -41,9 +48,12 @@ export default function Navbar() {
           <NavLink to="/contacts" className="navlink">Контакти</NavLink>
         </nav>
 
+        {/* Правий блок: CTA завжди видимий + бургер на мобайлі */}
         <div className="navbar__cta">
-          <CTAButton size="sm" label="Пробний урок" onClick={() => go("/contacts")} />
-          {/* Кнопка меню лише на мобільних */}
+          <div className="navbar__ctaBtn">
+            <CTAButton size="sm" label="Пробний урок" onClick={() => go("/contacts")} />
+          </div>
+
           <button
             className="navbar__menuBtn"
             aria-label={open ? "Закрити меню" : "Відкрити меню"}
@@ -56,16 +66,16 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Мобільне меню (slide-down) */}
+      {/* Бекдроп поверх контенту */}
+      <div className="mobileNav__backdrop" onClick={() => setOpen(false)} />
+
+      {/* Мобільне меню без CTA (щоб не дублювався) */}
       <div id="mobile-nav" className="mobileNav" aria-hidden={!open}>
         <div className="mobileNav__inner">
           <button className="mobileNav__item" onClick={() => go("/packages")}>Пакети</button>
           <button className="mobileNav__item" onClick={() => go("/about")}>Про нас</button>
           <button className="mobileNav__item" onClick={() => go("/verify-certificate")}>Сертифікат</button>
           <button className="mobileNav__item" onClick={() => go("/contacts")}>Контакти</button>
-          <div className="mobileNav__cta">
-            <CTAButton label="Пробний урок" onClick={() => go("/contacts")} />
-          </div>
         </div>
       </div>
 
