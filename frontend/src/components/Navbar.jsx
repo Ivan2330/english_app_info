@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import CTAButton from "./CTAButton";
 import logo from "../assets/icons/prime_logo2.svg";
-import "./navbar.css"; // якщо стилі в окремому файлі
+
 
 export default function Navbar() {
   const navigate = useNavigate();
