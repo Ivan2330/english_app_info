@@ -1,4 +1,6 @@
-/* ===== CONTACT SECTION v2 ===== */
+/* ===== CONTACT PAGE (form left + big visual right) ===== */
+
+:root { --control-h: 50px; }
 
 .contact { 
   position: relative;
@@ -11,26 +13,24 @@
 }
 .contact__inner { position: relative; z-index: 1; }
 
-/* ----- Head ----- */
-.contact__head { text-align: center; max-width: 820px; margin: 0 auto var(--space-5); }
-.section-title { margin: 0 0 8px; font-size: clamp(28px, 3.2vw, 40px); line-height: 1.12; letter-spacing: -0.02em; }
-.section-subtitle { color: var(--muted); margin: 0; font-size: 18px; line-height: 1.5; }
-.contact__hint { margin: 10px 0 0; font-size: 14px; color: #d7d9e6; opacity: .95; }
-
-/* trust badges */
-.contact__badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
-.badge { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); box-shadow: 0 6px 16px rgba(0,0,0,.12) inset; }
-
-/* ----- Grid: [FORM] [VISUAL+ASIDE] ----- */
+/* GRID: left content + right visual */
 .contact__grid {
   display: grid;
-  grid-template-columns: 1.45fr .95fr;
-  gap: 18px;
+  grid-template-columns: 1.05fr .95fr;  /* баланс як у прикладі */
+  gap: 22px;
+  align-items: start;
 }
-@media (max-width: 1100px) { .contact__grid { grid-template-columns: 1.2fr 0.8fr; } }
-@media (max-width: 960px)  { .contact__grid { grid-template-columns: 1fr; } }
+@media (max-width: 1024px) { .contact__grid { grid-template-columns: 1fr; } }
 
-/* Card base */
+/* ----- Left content ----- */
+.contact__content { display: grid; gap: 16px; }
+.kicker { color: #b9a7ff; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; font-size: 12px; margin: 0 0 6px; }
+.contact__head { max-width: 720px; }
+.section-title { margin: 0 0 10px; font-size: clamp(28px, 3.2vw, 42px); line-height: 1.12; letter-spacing: -0.02em; }
+.section-subtitle { color: var(--muted); margin: 0 0 6px; font-size: 18px; line-height: 1.5; }
+.contact__hint { margin: 6px 0 0; font-size: 14px; color: #d7d9e6; opacity: .95; }
+
+/* ----- Card base ----- */
 .card {
   background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.10);
@@ -47,10 +47,8 @@
 .field { display: grid; gap: 6px; }
 .field__label { font-weight: 700; font-size: 13px; color: #fff; }
 
-/* unified control height */
-:root { --control-h: 50px; }
-
 .input-wrap { position: relative; display: grid; }
+
 .field__icon {
   position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
   width: 18px; height: 18px; opacity: .72; pointer-events: none;
@@ -61,7 +59,7 @@
   height: var(--control-h);
   line-height: calc(var(--control-h) - 2px);
   border-radius: 12px;
-  padding: 0 14px 0 38px;
+  padding: 0 14px 0 38px; /* під іконку */
   color: var(--text);
   background: rgba(255,255,255,.06);
   border: 1px solid rgba(255,255,255,.12);
@@ -83,7 +81,6 @@
   font-size: 14px;
 }
 .field__input::placeholder { color: #9aa0b3; }
-
 .field__input:focus,
 .field__textarea:focus,
 .field__select:focus {
@@ -92,13 +89,11 @@
   background: rgba(255,255,255,.08);
 }
 
-/* SELECT caret */
+/* Select caret */
 .field__select { appearance: none; padding-right: 38px; position: relative; }
 .field__select::-ms-expand { display: none; }
 .field__select option { background: #22153f; color: #e9ecf2; }
-
-/* helper note */
-.help { font-size: 12px; color: #cbd2e1; margin-top: 4px; }
+.field__icon.caret { right: 10px; left: auto; }
 
 /* Footer & statuses */
 .form__footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-top: 6px; }
@@ -114,25 +109,22 @@
 .btn:active { transform: translateY(1px); }
 .btn-cta { background: #4b2bb9; color: #fff; box-shadow: 0 12px 32px rgba(91,46,230,.35); }
 .btn-cta:hover { box-shadow: 0 16px 40px rgba(91,46,230,.45); filter: brightness(1.03); }
-.btn-ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.25); }
-.btn-ghost:hover { background: rgba(255,255,255,.06); }
 
-/* ----- VISUAL PANEL ----- */
-.contact__visual { 
-  position: relative; overflow: hidden; 
-  padding: 0; 
-  display: grid; 
+/* ----- Right visual ----- */
+.contact__visual { position: relative; display: grid; padding: 0; }
+.visual__media { position: relative; min-height: 540px; border-radius: 16px; overflow: hidden; }
+@media (max-width: 1024px) { .visual__media { min-height: 380px; } }
+
+.visual__img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.02); }
+
+/* плавне злиття фото з фоном ліворуч */
+.visual__fadeLeft {
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(18,6,36,0.9) 0%, rgba(18,6,36,0.6) 10%, transparent 32%);
+  pointer-events: none;
 }
-.visual__media {
-  position: relative;
-  min-height: 360px;
-  border-radius: 16px;
-  overflow: hidden;
-}
-.visual__img {
-  width: 100%; height: 100%; object-fit: cover; display: block;
-  transform: scale(1.02);
-}
+
+/* декоративні glows */
 .visual__glow {
   position: absolute; inset: -20%; 
   background:
@@ -149,40 +141,11 @@
   padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
   background: rgba(17,17,26,.55);
   border: 1px solid rgba(255,255,255,.18);
+  color: #f2f4ff;
   backdrop-filter: blur(10px);
 }
 
-/* ----- Aside ----- */
-.contact__aside { display: grid; gap: 18px; }
-.contact__card { padding: 18px; }
-.contact__card h3 { margin: 0 0 8px; font-size: 18px; }
-.contact__list { list-style: none; margin: 6px 0 12px; padding: 0; }
-.contact__list li { margin-bottom: 6px; }
-.contact__list li + li { border-top: 1px dashed rgba(255,255,255,.08); padding-top: 6px; }
-.contact__list a { color: var(--text); text-decoration: none; }
-.contact__list a:hover { text-decoration: underline; }
-.contact__steps { margin: 8px 0 0; padding-left: 18px; color: var(--muted); }
-
 /* mobile spacing */
-@media (max-width: 960px) {
-  .contact__visual { order: -1; } /* візуал піде вище форми */
+@media (max-width: 480px) {
   .form { padding: 16px; }
-  .contact__card { padding: 16px; }
-  .form__footer { align-items: stretch; }
 }
-
-/* ----- PHONE GROUP (alignment fix) ----- */
-.phone-group {
-  display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center;
-}
-.phone-prefix {
-  height: var(--control-h);
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 0 12px;
-  border-radius: 12px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
-  white-space: nowrap; font-weight: 700; font-size: 14px;
-}
-.phone-prefix .flag { font-size: 16px; }
-.phone-input .field__input { padding-left: 38px; } /* залишаємо іконку */
