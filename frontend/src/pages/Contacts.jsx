@@ -1,11 +1,9 @@
 import { useLocation } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { createLead } from "../api/leads.js";
-
-// Підстав свій файл (1920×1080 .webp) у цю папку
 import contactHero from "../assets/hero/contact-hero.webp";
 
-/* --- inline SVG icons --- */
+/* --- icons --- */
 function IconPhone() {
   return (
     <svg className="field__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -94,7 +92,7 @@ export default function Contacts() {
       const payload = {
         kind: "trial",
         name: form.name.trim(),
-        phone: form.phone || undefined,      // <-- без префіксів, як просив
+        phone: form.phone || undefined,
         telegram: form.telegram || undefined,
         email: form.email || undefined,
         audience: form.audience || undefined,
@@ -132,161 +130,158 @@ export default function Contacts() {
   return (
     <section className="contact">
       <div className="container contact__inner">
-        <div className="contact__grid">
 
-          {/* LEFT: CONTENT (title + form) */}
-          <div className="contact__content">
-            <header className="contact__head">
-              <p className="kicker">Prime Academy</p>
-              <h1 className="section-title">
-                Запис на пробний онлайн-урок
-              </h1>
-              <p className="section-subtitle">
-                50–60 хвилин з викладачем по відеозв’язку: діагностика рівня та персональний план.
-              </p>
-              <p className="contact__hint">
-                Вкажи <strong>хоча б один спосіб зв’язку</strong> (телефон / Telegram / email). Інші поля — за бажанням.
-              </p>
-            </header>
+        {/* Головний грід: заголовок зверху на 2 колонки, нижче — комбо-блок */}
+        <header className="contact__head contact__head--span">
+          <p className="kicker">Prime Academy</p>
+          <h1 className="section-title">Запис на пробний онлайн-урок</h1>
+          <p className="section-subtitle">
+            50–60 хвилин з викладачем по відеозв’язку: діагностика рівня та персональний план.
+          </p>
+          <p className="contact__hint">
+            Вкажи <strong>хоча б один спосіб зв’язку</strong> (телефон / Telegram / email). Інші поля — за бажанням.
+          </p>
+        </header>
 
-            <form className="form card" onSubmit={onSubmit} noValidate>
-              <div className="form__row">
-                <label className="field">
-                  <span className="field__label">Ім’я *</span>
-                  <span className="input-wrap">
-                    <IconUser />
-                    <input
-                      className="field__input"
-                      name="name"
-                      value={form.name}
-                      onChange={onChange}
-                      placeholder="Ваше ім’я"
-                      required
-                      autoComplete="name"
-                    />
-                  </span>
-                </label>
-
-                <label className="field">
-                  <span className="field__label">Телефон</span>
-                  <span className="input-wrap">
-                    <IconPhone />
-                    <input
-                      className="field__input"
-                      name="phone"
-                      value={form.phone}
-                      onChange={onChange}
-                      placeholder="+380 00 000 00 00"
-                      autoComplete="tel"
-                      inputMode="tel"
-                    />
-                  </span>
-                </label>
-              </div>
-
-              <div className="form__row">
-                <label className="field">
-                  <span className="field__label">Email</span>
-                  <span className="input-wrap">
-                    <IconMail />
-                    <input
-                      className="field__input"
-                      type="email"
-                      name="email"
-                      value={form.email}
-                      onChange={onChange}
-                      placeholder="name@example.com"
-                      autoComplete="email"
-                    />
-                  </span>
-                </label>
-
-                <label className="field">
-                  <span className="field__label">Telegram</span>
-                  <span className="input-wrap">
-                    <IconTelegram />
-                    <input
-                      className="field__input"
-                      name="telegram"
-                      value={form.telegram}
-                      onChange={onChange}
-                      placeholder="@username"
-                    />
-                  </span>
-                </label>
-              </div>
-
-              <div className="form__row">
-                <label className="field">
-                  <span className="field__label">Аудиторія</span>
-                  <span className="input-wrap">
-                    <IconSelect />
-                    <select
-                      className="field__select"
-                      name="audience"
-                      value={form.audience}
-                      onChange={onChange}
-                    >
-                      <option value="">Обрати...</option>
-                      <option value="kids">Діти</option>
-                      <option value="adults">Дорослі</option>
-                    </select>
-                  </span>
-                </label>
-
-                <label className="field">
-                  <span className="field__label">Зручний час</span>
-                  <span className="input-wrap">
-                    <IconClock />
-                    <input
-                      className="field__input"
-                      name="preferred_time"
-                      value={form.preferred_time}
-                      onChange={onChange}
-                      placeholder="Будні 18:00–20:00"
-                    />
-                  </span>
-                </label>
-              </div>
-
+        <div className="contact__combo">
+          {/* Ліва частина комбо — форма */}
+          <form className="form card couple-left" onSubmit={onSubmit} noValidate>
+            <div className="form__row">
               <label className="field">
-                <span className="field__label">Коментар</span>
-                <textarea
-                  className="field__textarea"
-                  name="comment"
-                  value={form.comment}
-                  onChange={onChange}
-                  rows={4}
-                  placeholder="Побажання щодо графіку, цілей або викладача"
-                />
+                <span className="field__label">Ім’я *</span>
+                <span className="input-wrap">
+                  <IconUser />
+                  <input
+                    className="field__input"
+                    name="name"
+                    value={form.name}
+                    onChange={onChange}
+                    placeholder="Ваше ім’я"
+                    required
+                    autoComplete="name"
+                  />
+                </span>
               </label>
 
-              <div className="form__footer">
-                <div className="form__note">
-                  Натискаючи «Записатись», ви погоджуєтесь із умовами обробки даних.
-                </div>
-                <button className="btn btn-cta" type="submit" disabled={sending}>
-                  {sending ? "Надсилаємо..." : "📅 Записатись на пробний урок"}
-                </button>
+              <label className="field">
+                <span className="field__label">Телефон</span>
+                <span className="input-wrap">
+                  <IconPhone />
+                  <input
+                    className="field__input"
+                    name="phone"
+                    value={form.phone}
+                    onChange={onChange}
+                    placeholder="Ваш номер телефону"
+                    autoComplete="tel"
+                    inputMode="tel"
+                  />
+                </span>
+              </label>
+            </div>
+
+            <div className="form__row">
+              <label className="field">
+                <span className="field__label">Email</span>
+                <span className="input-wrap">
+                  <IconMail />
+                  <input
+                    className="field__input"
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={onChange}
+                    placeholder="name@example.com"
+                    autoComplete="email"
+                  />
+                </span>
+              </label>
+
+              <label className="field">
+                <span className="field__label">Telegram</span>
+                <span className="input-wrap">
+                  <IconTelegram />
+                  <input
+                    className="field__input"
+                    name="telegram"
+                    value={form.telegram}
+                    onChange={onChange}
+                    placeholder="@username"
+                  />
+                </span>
+              </label>
+            </div>
+
+            <div className="form__row">
+              <label className="field">
+                <span className="field__label">Аудиторія</span>
+                <span className="input-wrap">
+                  <IconSelect />
+                  <select
+                    className="field__select"
+                    name="audience"
+                    value={form.audience}
+                    onChange={onChange}
+                  >
+                    <option value="">Обрати...</option>
+                    <option value="kids">Діти</option>
+                    <option value="adults">Дорослі</option>
+                  </select>
+                </span>
+              </label>
+
+              <label className="field">
+                <span className="field__label">Зручний час</span>
+                <span className="input-wrap">
+                  <IconClock />
+                  <input
+                    className="field__input"
+                    name="preferred_time"
+                    value={form.preferred_time}
+                    onChange={onChange}
+                    placeholder="Будні 18:00–20:00"
+                  />
+                </span>
+              </label>
+            </div>
+
+            <label className="field">
+              <span className="field__label">Коментар</span>
+              <textarea
+                className="field__textarea"
+                name="comment"
+                value={form.comment}
+                onChange={onChange}
+                rows={4}
+                placeholder="Побажання щодо графіку, цілей або викладача"
+              />
+            </label>
+
+            <div className="form__footer">
+              <div className="form__note">
+                Натискаючи «Записатись», ви погоджуєтесь із умовами обробки даних.
               </div>
+              <button className="btn btn-cta" type="submit" disabled={sending}>
+                {sending ? "Надсилаємо..." : "📅 Записатись на пробний урок"}
+              </button>
+            </div>
 
-              <p
-                ref={statusRef}
-                className={result?.ok ? "form__success" : result ? "form__error" : "sr-only"}
-                role="status"
-                aria-live="polite"
-              >
-                {result?.ok
-                  ? "Дякуємо! Заявку отримано — ми звʼяжемось найближчим часом."
-                  : result
-                  ? `Помилка: ${result.error}`
-                  : ""}
-              </p>
-            </form>
-          </div>
+            <p
+              ref={statusRef}
+              className={result?.ok ? "form__success" : result ? "form__error" : "sr-only"}
+              role="status"
+              aria-live="polite"
+            >
+              {result?.ok
+                ? "Дякуємо! Заявку отримано — ми звʼяжемось найближчим часом."
+                : result
+                ? `Помилка: ${result.error}`
+                : ""}
+            </p>
+          </form>
 
-          {/* RIGHT: BIG VISUAL (як у прикладі, але в наших тонах) */}
-          <aside className="contact__visual card" aria-label="Візуал">
+          {/* Права частина комбо — фото, опущене до рівня форми та «злите» з нею */}
+          <aside className="contact__visual card couple-right" aria-label="Візуал">
             <div className="visual__media">
               {contactHero ? (
                 <img
@@ -298,19 +293,12 @@ export default function Contacts() {
               ) : (
                 <div className="visual__img" aria-hidden="true" />
               )}
-              {/* лівий градієнт для плавного злиття з фоном */}
               <div className="visual__fadeLeft" aria-hidden="true"></div>
               <div className="visual__glow"></div>
-
-              {/* невеликі бейджі внизу фото */}
               <div className="visual__badges">
-                <span className="visual-badge">⭐ 4.9 / 5</span>
-                <span className="visual-badge">👩‍🏫 1-до-1 онлайн</span>
-                <span className="visual-badge">🎯 Персональна програма</span>
               </div>
             </div>
           </aside>
-
         </div>
       </div>
     </section>
