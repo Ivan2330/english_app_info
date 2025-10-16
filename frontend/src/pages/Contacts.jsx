@@ -1,6 +1,8 @@
 import { useLocation } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { createLead } from "../api/leads.js";
+// Підстав своє фото у цю папку:
+import contactHero from "../assets/hero/contact-hero.webp";
 
 function IconPhone() {
   return (
@@ -114,13 +116,11 @@ export default function Contacts() {
       setResult({ ok: false, error: err?.response?.data?.detail || "Помилка відправки" });
     } finally {
       setSending(false);
-      // прокрутити до статусу для мобілок
       setTimeout(() => statusRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
     }
   }
 
   useEffect(() => {
-    // Фікс: якщо прийшли зі сторінки тарифу — підсвітимо коментар і фокуснемо ім'я
     if (preselected && !form.comment) {
       setForm((s) => ({ ...s, comment: `Цікавить пакет: ${preselected}` }));
     }
@@ -142,7 +142,6 @@ export default function Contacts() {
             Вкажи <strong>хоча б один спосіб зв’язку</strong> (телефон / Telegram / email).
             Інші поля — за бажанням.
           </p>
-
           <div className="contact__badges">
             <span className="badge">✅ Гарантія результату</span>
             <span className="badge">🎯 Персональна програма</span>
@@ -151,6 +150,7 @@ export default function Contacts() {
         </header>
 
         <div className="contact__grid">
+
           {/* FORM */}
           <form className="form card" onSubmit={onSubmit} noValidate>
             <div className="form__row">
@@ -170,20 +170,28 @@ export default function Contacts() {
                 </span>
               </label>
 
+              {/* PHONE with prefix box — alignment FIX */}
               <label className="field">
                 <span className="field__label">Телефон</span>
-                <span className="input-wrap">
-                  <IconPhone />
-                  <input
-                    className="field__input"
-                    name="phone"
-                    value={form.phone}
-                    onChange={onChange}
-                    placeholder="+380..."
-                    autoComplete="tel"
-                    inputMode="tel"
-                  />
-                </span>
+                <div className="phone-group">
+                  <div className="phone-prefix" aria-hidden="true">
+                    <span className="flag">🇺🇦</span> +380
+                  </div>
+                  <span className="input-wrap phone-input">
+                    <IconPhone />
+                    <input
+                      className="field__input"
+                      name="phone"
+                      value={form.phone}
+                      onChange={onChange}
+                      placeholder="(00) 000-00-00"
+                      autoComplete="tel"
+                      inputMode="tel"
+                      pattern="^\(?\d{2}\)?\s?\d{3}\-?\d{2}\-?\d{2}$"
+                      title="Формат: (00) 000-00-00"
+                    />
+                  </span>
+                </div>
                 <span className="help">Можна залишити тільки телефон або тільки Telegram/email</span>
               </label>
             </div>
@@ -289,8 +297,31 @@ export default function Contacts() {
             </p>
           </form>
 
-          {/* ASIDE */}
-          <aside className="contact__aside">
+          {/* VISUAL + ASIDE колонка */}
+          <div className="contact__aside">
+            {/* Візуальна картка (як у прикладі-конкурента, але в нашому стилі) */}
+            <section className="contact__visual card" aria-label="Візуал">
+              <div className="visual__media">
+                {contactHero ? (
+                  <img
+                    src={contactHero}
+                    alt="Щаслива студентка на пробному уроці англійської"
+                    className="visual__img"
+                    loading="eager"
+                  />
+                ) : (
+                  <div className="visual__img" aria-hidden="true" />
+                )}
+                <div className="visual__glow"></div>
+                <div className="visual__badges">
+                  <span className="visual-badge">⭐ 4.9 / 5</span>
+                  <span className="visual-badge">👩‍🏫 1-до-1 уроки</span>
+                  <span className="visual-badge">🎥 Онлайн</span>
+                </div>
+              </div>
+            </section>
+
+            {/* Контакти */}
             <div className="contact__card card">
               <h3>Контакти</h3>
               <ul className="contact__list">
@@ -310,6 +341,7 @@ export default function Contacts() {
               </button>
             </div>
 
+            {/* Кроки */}
             <div className="contact__card card">
               <h3>Як проходить пробний урок</h3>
               <ol className="contact__steps">
@@ -318,7 +350,7 @@ export default function Contacts() {
                 <li>Пробний урок 30–60 хв + рекомендації.</li>
               </ol>
             </div>
-          </aside>
+          </div>
         </div>
       </div>
     </section>
