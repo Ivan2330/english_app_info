@@ -1,7 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { createLead } from "../api/leads.js";
-import "./Contact.css";
+
 
 /* ===== Icons ===== */
 function IconUser(){
