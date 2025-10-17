@@ -128,7 +128,7 @@
   position: relative;
   padding: 16px;
   border-radius: var(--radius);
-  background: rgba(255,255,255,.05);
+  background: #220a35ab;
   border: 1px solid rgba(255,255,255,.08);
   box-shadow: var(--shadow-md);
   transition: transform .2s ease, background .2s ease, border-color .2s ease;
@@ -163,7 +163,7 @@
 .about__card {
   padding: 22px;
   border-radius: var(--radius);
-  background: #16182a4f;
+  background: #16182a9e;
   border: 1px solid rgba(255, 255, 255, .08);
   box-shadow: var(--shadow-lg);
 }
@@ -195,7 +195,7 @@
   gap: 18px;
   padding: 22px;
   border-radius: var(--radius);
-  background: linear-gradient(135deg, rgba(124, 58, 237, .18), rgba(255, 255, 255, .04));
+  background: #220a35ab;
   border: 1px solid rgba(139, 92, 246, .35);
   box-shadow: var(--shadow-lg);
 }

@@ -20,7 +20,7 @@
     position: relative;
     padding: 20px;
     border-radius: var(--radius);
-    background: var(--card);
+    background: #16182a24;
     border: 1px solid rgb(190 44 206 / 48%);
     box-shadow: var(--shadow-lg);
     display: grid;

@@ -8,11 +8,11 @@
 ========================= */
 :root {
     /* colors */
-    --bg: #1C0738;
+    --bg: linear-gradient(90deg, #1D0738 13%, #5F0EC2 51%, #A008A5 100%);
     --surface: #121424;
-    --card: #16182a87;
+    --card: #16182a9e;
     --text: #e9ecf2;
-    --muted: #a5a8b8;
+    --muted: #dcdcdc;
     --primary-400: #a78bfa;
     --primary-500: #8b5cf6;
     --primary-600: #7c3aed;
@@ -117,7 +117,7 @@ button {
 /* ЯСКРАВА завжди */
 .btn-primary {
     color: #fff;
-    background: linear-gradient(135deg, var(--primary-600), var(--primary-400));
+    background: #300361;
     box-shadow: 0 10px 24px rgba(139, 92, 246, .35);
 }
 .btn-primary:hover { box-shadow: 0 14px 30px rgba(139, 92, 246, .45); }
@@ -125,7 +125,7 @@ button {
 /* Прозора/скляна */
 .btn-ghost {
     color: var(--text);
-    background: rgba(255, 255, 255, .06);
+    background: #300361;
     backdrop-filter: blur(6px);
     border: 1px solid rgba(255, 255, 255, .08);
 }

@@ -67,7 +67,7 @@
     padding: 18px 12px;
     border-radius: var(--radius-sm);
     text-align: center;
-    background: rgba(255, 255, 255, .035);
+    background: #b4b4b429;
     border: 1px solid rgba(255, 255, 255, .06);
 }
 
