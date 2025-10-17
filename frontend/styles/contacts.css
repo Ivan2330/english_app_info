@@ -115,7 +115,7 @@
 }
 .btn:active{ transform:translateY(1px); }
 .btn-cta{
-  background:linear-gradient(90deg, var(--c2) 0%, var(--c3) 100%);
+  background:#3c0f7d;
   color:#fff; box-shadow:0 12px 32px rgba(160,8,165,.35);
 }
 .btn-cta:hover{ box-shadow:0 16px 40px rgba(160,8,165,.45); filter:brightness(1.03); }
