@@ -92,20 +92,8 @@
 }
 
 /* Картка ціни */
-.price-card {
-  position: relative;
-  padding: 20px;
-  border-radius: var(--radius);
-  background: var(--card);
-  border: 1px solid rgb(190 44 206 / 48%); /* лишив як у тебе */
-  box-shadow: var(--shadow-lg);
-  display: grid;
-  gap: 14px;
-}
-.price-card.is-premium {
-  background: linear-gradient(180deg, rgba(139, 92, 246, .16), rgba(255, 255, 255, .02));
-  border-color: rgba(139, 92, 246, .35);
-}
+
+
 
 /* Header картки */
 .price-card__head {
