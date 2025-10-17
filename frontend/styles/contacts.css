@@ -10,10 +10,7 @@
 .contact{
   position:relative;
   padding: var(--space-6) 0 var(--space-7);
-  background:
-    radial-gradient(90rem 60rem at 85% -10%, rgba(95,14,194,.12), transparent 70%),
-    radial-gradient(60rem 40rem at -10% 100%, rgba(160,8,165,.10), transparent 70%),
-    linear-gradient(180deg, var(--c1) 0%, #2a0a4f 40%, #3c0f7d 70%, #4a10a4 85%, #5d10bc 100%);
+  background: linear-gradient(90deg, #1D0738 13%, #5F0EC2 71%, #A008A5 100%);
   color:#eef0ff;
 }
 
