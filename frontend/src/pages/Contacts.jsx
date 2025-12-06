@@ -121,8 +121,8 @@ export default function Contacts(){
           {/* ===== PROMO (замість фото) ===== */}
           <aside className="promo card">
             <div className="promo__head">
-              <span className="badge-deadline">🔔 Акція діє до 20 жовтня</span>
-              <h3 className="promo__title">Зафіксуйте акційні ціни на жовтневий набір</h3>
+              <span className="badge-deadline">🎁 Спеціальна зимова акція для нових учнів</span>
+              <h3 className="promo__title">Зафіксуйте акційні ціну записавшись одразу на пробний урок</h3>
               <p className="promo__subtitle">
                 Додаткові знижки <strong>понад поточні</strong> знижки у пакетах.
               </p>
