@@ -21,6 +21,8 @@ services:
       - ./backend/.env
     volumes:
       - ./backend:/app
+      # 👇 1. Мапимо папку з хоста в контейнер бекенду (щоб скрипт міг перевіряти файли)
+      - ./certificates:/app/static/certificates
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     expose:
       - "8000"
@@ -28,13 +30,12 @@ services:
       - db
     networks: [appnet]
 
-  # Frontend збираємо в образ nginx із вбудованим /dist
   nginx:
     build:
       context: ./frontend
       args:
-        VITE_API_URL: "https://my-prime-academy.com"   # ← API base
-        VITE_WS_URL: "wss://my-prime-academy.com"      # ← якщо є WS
+        VITE_API_URL: "https://my-prime-academy.com"
+        VITE_WS_URL: "wss://my-prime-academy.com"
     container_name: nginx
     restart: always
     ports: ["80:80", "443:443"]
@@ -42,6 +43,8 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/certbot/conf:/etc/letsencrypt
       - ./nginx/certbot/www:/var/www/certbot
+      # 👇 2. Мапимо ту саму папку в Nginx (щоб він віддавав PDF людям)
+      - ./certificates:/var/www/certificates
     depends_on: [backend]
     networks: [appnet]
 

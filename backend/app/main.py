@@ -1,7 +1,9 @@
 # app/main.py
 import uvicorn
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles  # <--- Додав для файлів
 from app.core.config import settings
 from app.db.database import create_all, get_async_session
 
@@ -16,7 +18,16 @@ from app.api.admin.certificates import router as admin_certs
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+# --- АВТОМАТИЧНЕ СТВОРЕННЯ ПАПКИ ДЛЯ СЕРТИФІКАТІВ ---
+# Це гарантує, що папка існує перед запуску, щоб не було помилок
+os.makedirs("static/certificates", exist_ok=True)
+
 app = FastAPI(title="School Info API")
+
+# ✅ Налаштування StaticFiles
+# Всі файли з папки "static" будуть доступні за посиланням /static/...
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 # ✅ чіткі origin-и (dev + prod)
 ALLOWED_ORIGINS = [
@@ -37,11 +48,11 @@ app.add_middleware(
 # Routers
 app.include_router(pub_packages)
 app.include_router(pub_leads)
-app.include_router(pub_certs)
+app.include_router(pub_certs)     # <--- Це твій роутер перевірки
 app.include_router(admin_auth)
 app.include_router(admin_leads)
 app.include_router(admin_packages)
-app.include_router(admin_certs)
+app.include_router(admin_certs)   # <--- Це адмінський, хай буде на майбутнє
 
 @app.on_event("startup")
 async def startup():
