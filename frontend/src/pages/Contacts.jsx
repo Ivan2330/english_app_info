@@ -153,7 +153,7 @@ export default function Contacts(){
 
             <div className="promo__foot">
               <div className="promo__note">
-                Щоб зафіксувати ціну, достатньо залишити заявку на пробний до <strong>20.10</strong> — менеджер підкаже деталі.
+                Щоб зафіксувати ціну, достатньо залишити заявку на пробний до <strong>1 березня включно</strong> — менеджер підкаже деталі.
               </div>
               <a href="#contact-form" className="btn btn-cta promo__cta" onClick={scrollToForm}>
                 Хочу ціну по акції
