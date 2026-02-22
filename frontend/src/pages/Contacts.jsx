@@ -112,7 +112,7 @@ export default function Contacts(){
 
           {/* Mobile ribbon */}
           <div className="promo-ribbon" aria-live="polite">
-            <strong>До 20.10</strong> — зафіксуйте акційну ціну: <b>400/375/340/320 грн</b>
+            <strong>До 1 березня включно</strong> — зафіксуйте акційну ціну: <b>400/375/340/320 грн</b>
             <span className="promo-ribbon__sub">додатково до поточних знижок у пакетах</span>
           </div>
         </header>
