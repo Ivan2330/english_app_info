@@ -1,7 +1,34 @@
 // src/config.js
+//
+// Адреса API. Пріоритет:
+//   1) VITE_API_URL з .env — якщо треба вказати щось нестандартне
+//   2) прод — той самий домен, /api проксить nginx
+//   3) дев — локальний backend на 8000
+//
+// У dev-режимі Vite ще й проксить /api на localhost:8000 (див. vite.config.js),
+// тому запити йдуть без CORS.
+// У DEV — порожній рядок, тобто той самий origin, що й сторінка (localhost:5173),
+// а Vite проксює /api і /static на бекенд (див. vite.config.js).
+//
+// Раніше тут стояв прямий `http://localhost:8000`, і браузер ходив на інший
+// порт. Це давало дві проблеми:
+//   1) кожен запит ставав крос-доменним, тобто залежав від CORS і куків
+//      із `withCredentials` — зайва складність там, де її на проді немає;
+//   2) VPN-розширення, корпоративні проксі й деякі антивіруси ріжуть
+//      звернення на сторонній порт localhost. Виглядає це як
+//      ERR_CONNECTION_RESET, причому в логах бекенда **порожньо** —
+//      запит просто не доходить.
+//
+// Тепер dev поводиться так само, як прод: усе з одного походження.
 export const API_URL =
-  import.meta.env.PROD
-    ? "https://my-prime-academy.com"   // прод (краще проксити /api цим же доменом)
-    : "http://localhost:8000";         // дев
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? "https://my-prime-academy.com" : "");
 
+// Платформа навчання — окремий продукт на окремому домені.
+// Кнопка «Кабінет учня» веде одразу на сторінку входу.
+export const PLATFORM_URL =
+  import.meta.env.VITE_PLATFORM_URL || "https://my-prime-academy.online/login";
 
+// Адмінка менеджера. Шлях у одному місці, бо на нього посилається
+// і футер, і роутер, і robots.txt.
+export const ADMIN_PATH = "/admin";

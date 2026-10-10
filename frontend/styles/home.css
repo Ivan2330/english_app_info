@@ -1,196 +1,604 @@
-/* HERO */
+/* =========================================================
+   Головна: hero, статистика, переваги, фінальний заклик
+   ========================================================= */
+
+/* ---------- HERO ---------- */
 .hero {
     position: relative;
-    isolation: isolate;
-    background:
-        linear-gradient(180deg, rgba(6, 7, 12, .55), rgba(6, 7, 12, .85)),
-        var(--hero-image) center/cover no-repeat;
-    min-height: min(86vh, 820px);
+    padding: 158px 0 80px;
+}
+
+.hero__inner { display: block; }
+.hero__content { min-width: 0; }
+
+.hero__grid {
     display: grid;
+    grid-template-columns: 1.06fr .94fr;
+    gap: var(--space-6);
     align-items: center;
 }
 
-.hero::after {
-    /* subtle top vignette */
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(80% 60% at 50% 0%, rgba(124, 58, 237, .25), transparent 60%);
-    pointer-events: none;
-    z-index: 0;
+.hero__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 16px 8px 8px;
+    border-radius: 999px;
+    font-size: 13.5px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, .7);
+    border: 1px solid var(--glass-brd);
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-s);
 }
 
-.hero__inner {
-    position: relative;
-    z-index: 1;
-}
-
-.hero__content {
-    max-width: 760px;
+.hero__pill b {
+    background: var(--ink);
+    color: var(--lime);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    letter-spacing: .04em;
 }
 
 .hero__title {
-    margin: 0 0 var(--space-3);
-    font-family: Poppins, Inter, sans-serif;
-    font-size: clamp(32px, 5.2vw, 56px);
-    line-height: 1.15;
-    letter-spacing: .2px;
-    text-shadow: 0 2px 20px rgba(0, 0, 0, .5);
+    font-size: clamp(38px, 5.6vw, 74px);
+    margin: 24px 0 0;
+    max-width: 14ch;
+}
+
+/* Слово, що змінюється: усі варіанти лежать в одній клітинці грида,
+   тому висота не стрибає під час зміни. */
+.hero__rotator {
+    display: inline-grid;
+    vertical-align: bottom;
+    overflow: hidden;
+    height: 1.08em;
+    margin-left: .3em;
+}
+
+.hero__rotator span {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transform: translateY(105%) rotate(4deg);
+    transition: opacity .7s var(--ease), transform .7s var(--ease);
+    white-space: nowrap;
+    padding-right: .06em;
+    background: linear-gradient(100deg, var(--violet), var(--cyan) 55%, var(--coral));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.hero__rotator span.is-on {
+    opacity: 1;
+    transform: none;
 }
 
 .hero__subtitle {
-    margin: 0 0 var(--space-4);
-    font-size: clamp(16px, 1.6vw, 18px);
+    margin-top: 24px;
+    font-size: 19px;
     color: var(--muted);
-    max-width: 56ch;
+    max-width: 52ch;
 }
 
 .hero__actions {
     display: flex;
     gap: 14px;
+    margin-top: 34px;
     flex-wrap: wrap;
 }
 
-/* STATS */
-.stats {
-    padding: var(--space-6) 0 var(--space-5);
-    background: linear-gradient(180deg, rgba(255, 255, 255, .03), transparent);
+/* ---------- картка прогресу ---------- */
+.hero__visual {
+    position: relative;
+    display: grid;
+    place-items: center;
 }
 
+.pcard {
+    position: relative;
+    width: min(100%, 420px);
+    padding: 26px;
+    border-radius: var(--r-l);
+    background: rgba(255, 255, 255, .7);
+    backdrop-filter: blur(26px) saturate(175%);
+    -webkit-backdrop-filter: blur(26px) saturate(175%);
+    border: 1px solid var(--glass-brd);
+    box-shadow: var(--shadow-l);
+}
+
+.pcard__head { display: flex; align-items: center; gap: 12px; }
+
+.pcard__avatar {
+    width: 46px;
+    height: 46px;
+    flex: none;
+    border-radius: 15px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 17px;
+    background: linear-gradient(135deg, var(--violet), var(--violet-d));
+}
+
+.pcard__name { font-weight: 800; font-size: 16px; }
+.pcard__goal { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+
+.pcard__since {
+    margin-left: auto;
+    font-size: 11.5px;
+    font-weight: 800;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: rgba(200, 244, 94, .35);
+    color: #4A6B00;
+}
+
+.pcard__scale { margin-top: 24px; }
+
+.pcard__scale-top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--muted);
+    letter-spacing: .04em;
+}
+
+.pcard__scale-top b { color: var(--ink); }
+
+/* Заповнення має впиратися рівно в підпис B1 — картка каже «A2 → B1»,
+   і смужка, що доповзає до B2, читається як помилка в даних.
+   Шість підписів нижче стоять сіткою з рівних колонок, тож центр
+   третього — завжди (2 + 0.5) / 6. Через flex із space-between це
+   число залежало б від ширини літер і «пливло» б при зміні шрифта. */
+.pcard__track {
+    --pcard-fill: 41.6%;
+    position: relative;
+    height: 12px;
+    border-radius: 99px;
+    background: rgba(10, 10, 22, .07);
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.pcard__track i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--pcard-fill);
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--violet), var(--cyan) 70%, var(--lime));
+    /* Анімуємо ВІД нуля, а не ДО 62%: при prefers-reduced-motion глобальне
+       `animation: none` лишало б смужку порожньою, бо кінцева ширина жила б
+       тільки в keyframes. `backwards` тримає нуль під час затримки. */
+    animation: pcardGrow 2.4s var(--ease) .4s backwards;
+}
+
+@keyframes pcardGrow { from { width: 0; } }
+
+.pcard__ticks {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    text-align: center;
+    margin-top: 9px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+}
+
+.pcard__ticks b { color: var(--violet); }
+
+.pcard__mini {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.pcard__cell {
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, .75);
+    border: 1px solid rgba(10, 10, 22, .05);
+}
+
+.pcard__cell span {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--muted);
+    display: block;
+}
+
+.pcard__cell b {
+    font-family: var(--font-head);
+    font-size: 23px;
+    font-weight: 800;
+    letter-spacing: -.04em;
+    display: block;
+    margin-top: 3px;
+}
+
+.pcard__meta {
+    margin-top: 12px;
+    font-size: 12.5px;
+    color: var(--muted);
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.pcard__spark {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 34px;
+    margin-top: 6px;
+}
+
+.pcard__spark i {
+    flex: 1;
+    border-radius: 3px;
+    background: linear-gradient(180deg, var(--violet), var(--cyan));
+    opacity: .85;
+    transform-origin: bottom;
+    animation: pcardBar .9s var(--ease) backwards;
+}
+
+@keyframes pcardBar { from { transform: scaleY(0); } }
+
+.pcard__steps {
+    margin-top: 20px;
+    display: grid;
+    gap: 9px;
+}
+
+.pcard__steps li {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+.pcard__steps b {
+    width: 22px;
+    height: 22px;
+    flex: none;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    background: var(--lime);
+    color: var(--ink);
+}
+
+.pcard__steps li.is-next { color: var(--muted); }
+
+.pcard__steps li.is-next b {
+    background: rgba(10, 10, 22, .08);
+    color: var(--muted);
+}
+
+/* ---------- плаваючі бейджі ---------- */
+.pcard__float {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 17px;
+    border-radius: var(--r-m);
+    font-weight: 700;
+    font-size: 13.5px;
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-brd);
+    box-shadow: var(--shadow-l);
+}
+
+.pcard__float small {
+    display: block;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.pcard__float--goal {
+    right: -4%;
+    top: 1%;
+    animation: pcardBob 6s ease-in-out infinite;
+}
+
+.pcard__float--growth {
+    left: -6%;
+    bottom: 9%;
+    animation: pcardBob 7.5s ease-in-out infinite reverse;
+}
+
+@keyframes pcardBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-13px); }
+}
+
+.pcard__emoji {
+    width: 34px;
+    height: 34px;
+    flex: none;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+    background: linear-gradient(135deg, var(--lime), #8FE03C);
+}
+
+.pcard__emoji--cyan { background: linear-gradient(135deg, #1FD6E8, #5FE8F5); }
+
+/* ---------- біжучий рядок ---------- */
+.hero__marquee {
+    margin-top: 66px;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+.hero__marquee-track {
+    display: flex;
+    gap: 52px;
+    width: max-content;
+    animation: marqueeScroll 34s linear infinite;
+}
+
+.hero__marquee:hover .hero__marquee-track { animation-play-state: paused; }
+
+@keyframes marqueeScroll { to { transform: translateX(-50%); } }
+
+.hero__marquee-track span {
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--muted);
+    opacity: .7;
+    white-space: nowrap;
+    letter-spacing: -.02em;
+}
+
+/* ---------- СТАТИСТИКА ---------- */
+.stats { padding: var(--space-5) 0 var(--space-6); }
+
+/* Чотири в ряд, а не 3+1: остання картка окремим рядком читалася
+   як «ще один пункт, який не влізли», а не як частина набору. */
 .stats__inner {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-3);
+}
+
+@media (max-width: 1100px) {
+    .stats__inner { grid-template-columns: repeat(2, 1fr); }
 }
 
 .stat {
-    padding: 18px 12px;
-    border-radius: var(--radius-sm);
-    text-align: center;
-    background: #b4b4b429;
-    border: 1px solid rgba(255, 255, 255, .06);
+    padding: 28px 24px;
+    border-radius: var(--r-l);
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-brd);
+    box-shadow: var(--shadow-s);
+    transition: transform .4s var(--ease), box-shadow .4s var(--ease);
+}
+
+.stat:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-m);
 }
 
 .stat__number {
-    font-family: Poppins, Inter, sans-serif;
-    font-size: clamp(28px, 4.2vw, 42px);
+    font-family: var(--font-head);
+    font-size: clamp(32px, 4vw, 46px);
     font-weight: 800;
-    line-height: 1.1;
-    background: linear-gradient(135deg, var(--primary-400), #ffffff);
+    letter-spacing: -.04em;
+    line-height: 1;
+    background: linear-gradient(120deg, var(--violet), var(--cyan));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    filter: drop-shadow(0 10px 22px rgba(139, 92, 246, .25));
 }
 
 .stat__label {
-    margin-top: 6px;
+    margin-top: 8px;
+    font-size: 14.5px;
     color: var(--muted);
-    font-size: 14px;
+    font-weight: 600;
 }
 
-/* FEATURES */
-.features {
-    padding: var(--space-6) 0 var(--space-6);
-}
+/* ---------- ПЕРЕВАГИ ---------- */
+.features { padding: var(--space-6) 0; }
 
 .features__grid {
-    list-style: none;
-    margin: var(--space-4) 0 0;
-    padding: 0;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
 }
 
 .feature-card {
-    padding: 22px;
-    border-radius: var(--radius);
-    background: var(--card);
-    border: 1px solid rgba(255, 255, 255, .06);
-    box-shadow: var(--shadow-lg);
+    position: relative;
+    padding: 28px 24px;
+    border-radius: var(--r-l);
+    overflow: hidden;
+    color: #fff;
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    transform-style: preserve-3d;
+    transition: box-shadow .4s var(--ease), transform .4s var(--ease);
 }
 
+.feature-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(260px 160px at 78% -10%, rgba(255, 255, 255, .34), transparent 70%);
+}
+
+.features__grid > .feature-card:nth-child(1) { background: linear-gradient(160deg, #6D4BFF, #2E17A6); }
+.features__grid > .feature-card:nth-child(2) { background: linear-gradient(160deg, #FF7A59, #D9264A); }
+.features__grid > .feature-card:nth-child(3) { background: linear-gradient(160deg, #1FD6E8, #0B6F94); }
+.features__grid > .feature-card:nth-child(4) { background: linear-gradient(160deg, #1A1A32, #0A0A16); }
+
+.feature-card:hover { box-shadow: var(--shadow-l); }
+
 .feature-card__icon {
-    width: 44px;
-    height: 44px;
+    position: relative;
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
     display: grid;
     place-items: center;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--primary-600), var(--primary-400));
-    color: #fff;
-    font-size: 22px;
-    box-shadow: 0 8px 18px rgba(139, 92, 246, .35);
-    margin-bottom: 12px;
+    font-size: 24px;
+    background: rgba(255, 255, 255, .18);
+    border: 1px solid rgba(255, 255, 255, .3);
+    backdrop-filter: blur(6px);
 }
 
 .feature-card__title {
-    margin: 0 0 6px;
+    position: relative;
+    font-family: var(--font-head);
+    font-size: 21px;
     font-weight: 700;
-    font-size: 18px;
+    letter-spacing: -.03em;
+    margin-top: 20px;
 }
 
 .feature-card__text {
-    margin: 0;
-    color: var(--muted);
-    font-size: 14px;
+    position: relative;
+    margin-top: 10px;
+    font-size: 14.5px;
+    opacity: .86;
+    line-height: 1.55;
 }
 
-/* CTA */
-.cta {
-    padding: var(--space-6) 0 var(--space-7);
-    background:
-        radial-gradient(80% 80% at 20% 0%, rgba(124, 58, 237, .18), transparent 60%),
-        linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, 0));
-}
+/* ---------- ФІНАЛЬНИЙ ЗАКЛИК ---------- */
+.cta { padding: var(--space-6) 0 var(--space-7); }
 
 .cta__inner {
+    position: relative;
     display: grid;
-    grid-template-columns: 1.5fr 1fr;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-5);
     align-items: center;
-    gap: 20px;
-    background: rgba(255, 255, 255, .04);
-    border: 1px solid rgba(255, 255, 255, .06);
-    border-radius: var(--radius);
-    padding: 28px;
-    box-shadow: var(--shadow-lg);
+    padding: clamp(30px, 5.6vw, 64px);
+    border-radius: var(--r-xl);
+    overflow: hidden;
+    color: #fff;
+    background: linear-gradient(135deg, #6D4BFF, #3A1FC4 45%, #0F8FA8);
+    box-shadow: var(--shadow-l);
 }
 
-.cta__content h2 {
-    margin: 0 0 6px;
-    font-family: Poppins, Inter, sans-serif;
-    font-size: clamp(22px, 3vw, 32px);
+.cta__inner::before {
+    content: "";
+    position: absolute;
+    inset: -40% -10% auto auto;
+    width: 60%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(200, 244, 94, .45), transparent 62%);
+    filter: blur(40px);
+    animation: auroraFloat2 20s var(--ease) infinite;
 }
+
+.cta__content { position: relative; }
+
+.cta__content h2 { font-size: clamp(28px, 4.2vw, 46px); }
 
 .cta__content p {
-    margin: 0;
-    color: var(--muted);
+    margin-top: 16px;
+    font-size: 17.5px;
+    color: rgba(255, 255, 255, .82);
+    max-width: 46ch;
 }
 
 .cta__actions {
+    position: relative;
     display: flex;
-    justify-content: flex-end;
     gap: 12px;
     flex-wrap: wrap;
 }
 
-/* responsive */
-@media (max-width: 900px) {
-    .features__grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .stats__inner {
-        grid-template-columns: 1fr;
-    }
-
-    .cta__inner {
-        grid-template-columns: 1fr;
-    }
+.cta__actions .btn-primary,
+.cta__actions .btn-cta {
+    background: var(--lime);
+    color: var(--ink);
+    box-shadow: 0 12px 34px rgba(200, 244, 94, .45);
 }
 
-@media (max-width: 520px) {
-    .features__grid {
-        grid-template-columns: 1fr;
-    }
+.cta__actions .btn-ghost {
+    background: rgba(255, 255, 255, .16);
+    border-color: rgba(255, 255, 255, .3);
+    color: #fff;
+}
+
+.cta__actions .btn-ghost:hover {
+    background: rgba(255, 255, 255, .26);
+}
+
+/* ---------- АДАПТИВ ---------- */
+@media (max-width: 1080px) {
+    .features__grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 920px) {
+    .hero { padding: 126px 0 56px; }
+    .hero__grid { grid-template-columns: 1fr; gap: var(--space-5); }
+    .hero__visual { margin-top: var(--space-4); padding: 20px 0; }
+    .hero__marquee { margin-top: 48px; }
+    .stats__inner { grid-template-columns: 1fr; }
+    .cta__inner { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+    .features__grid { grid-template-columns: 1fr; }
+    .hero__actions .btn { width: 100%; }
+    .hero__title { max-width: none; }
+    /* Плаваючі бейджі на вузькому екрані вилазять за межі — лишаємо один */
+    .pcard__float--goal { display: none; }
+    .pcard__float--growth { left: auto; right: 0; bottom: -12px; }
+}
+
+/* ---------- примітка під експрес-тестом ---------- */
+
+.quiz-note {
+    margin: 18px 0 26px;
+    display: grid;
+    gap: 14px;
+}
+
+.quiz-note__card {
+    padding: 20px 22px;
+    border-radius: var(--r-l);
+    border: 1px solid var(--line);
+    background: var(--card);
+}
+
+.quiz-note__card h3 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-family: var(--font-head);
+}
+
+.quiz-note__card p {
+    margin: 0;
+    line-height: 1.65;
+    color: var(--muted);
+}
+
+.quiz-note__card a {
+    color: var(--violet);
+    font-weight: 600;
+}
+
+@media (min-width: 760px) {
+    .quiz-note { grid-template-columns: 1fr 1fr; gap: 18px; }
 }

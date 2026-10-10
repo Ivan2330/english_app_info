@@ -2,9 +2,16 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-ARG API_URL
+# Імена мають збігатися з `args:` у docker-compose.yml І мати префікс VITE_ —
+# Vite підставляє в збірку тільки змінні з цим префіксом. Раніше тут стояв
+# `ARG API_URL`, а compose передавав `VITE_API_URL`: аргумент мовчки
+# ігнорувався. Рятував лише запасний варіант у `src/config.js`, тож зламалося б
+# це рівно тоді, коли комусь знадобиться інша адреса API.
+ARG VITE_API_URL
+ARG VITE_WS_URL
 
-ENV API_URL=$API_URL
+ENV VITE_API_URL=$VITE_API_URL \
+    VITE_WS_URL=$VITE_WS_URL
 
 
 COPY package*.json ./

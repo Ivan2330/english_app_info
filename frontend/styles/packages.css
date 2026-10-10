@@ -1,187 +1,777 @@
-/* Контейнер сторінки пакетів */
-.packages {
-  padding: var(--space-6) 0 var(--space-7);
-  background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, 0));
+/* =========================================================
+   Сторінка цін: заголовок, групи блоків, спільні секції
+   ========================================================= */
+
+.packages { padding: 150px 0 var(--space-7); }
+.packages.packages--catalog { padding-top: 0; }
+
+.bonus-lessons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px 32px;
+    margin-top: var(--space-4);
+    padding: clamp(20px, 3vw, 32px);
+    border-radius: var(--r-l);
+    background: var(--ink);
+    color: #fff;
+    border: 1px solid rgba(200, 244, 94, .35);
+    box-shadow: var(--shadow-s);
+}
+.bonus-lessons__amount {
+    color: var(--lime);
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: clamp(32px, 4vw, 48px);
+    letter-spacing: -.04em;
+    line-height: 1.15;
+}
+.bonus-lessons__amount span {
+    display: block;
+    margin-top: 8px;
+    font-family: var(--font-text);
+    font-size: 15px;
+    letter-spacing: 0;
+}
+.bonus-lessons__body { flex: 1 1 300px; min-width: 0; }
+.bonus-lessons h3 { margin: 0 0 10px; color: #fff; font-size: 18px; line-height: 1.4; }
+.bonus-lessons p { margin: 0; color: rgba(255, 255, 255, .8); font-size: 14px; line-height: 1.65; }
+.bonus-lessons .bonus-lessons__note { margin-top: 10px; font-size: 12.5px; color: rgba(255, 255, 255, .65); }
+.package-section-links { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: var(--space-3); font-size: 14px; line-height: 1.5; }
+.package-section-links span { color: var(--muted); }
+.package-section-links a { color: var(--violet); font-weight: 700; }
+.package-section-links a:hover { text-decoration: underline; }
+
+.packages__head { max-width: 900px; }
+
+.packages__lead {
+    color: var(--muted);
+    max-width: 72ch;
+    margin-top: var(--space-3);
+    line-height: 1.65;
+    font-size: 18px;
 }
 
-.packages__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: var(--space-4);
+.packages__lead strong { color: var(--ink); }
+
+.packages__group { margin-top: var(--space-7); }
+
+.packages__group-title {
+    font-size: clamp(26px, 3.4vw, 40px);
+    margin: 0;
 }
 
-/* Промо-нота (акційні ціни) */
-.promo-note {
-  max-width: 520px;
-  padding: 12px 16px;
-  border-radius: 12px;
-  background: rgba(139, 92, 246, .10);
-  border: 1px solid rgba(139, 92, 246, .25);
-  color: var(--text);
-  font-size: 14px;
-  line-height: 1.5;
+.package-subtitle {
+    margin-top: var(--space-3);
+    color: var(--muted);
+    font-size: 17px;
+    max-width: 68ch;
+    line-height: 1.6;
 }
 
-/* Спільний блок "У кожному пакеті" */
+.package-subtitle strong { color: var(--ink); }
+
+/* Рядок-розвилка: «вам, можливо, потрібне не це, а он те нижче».
+   Навмисно дрібніший і з лінією зліва — має читатись як підказка збоку,
+   а не як другий абзац опису, інакше конкурує з самим конструктором. */
+.package-subtitle--aside {
+    margin-top: var(--space-2);
+    padding-left: 12px;
+    border-left: 2px solid var(--violet);
+    font-size: 15px;
+}
+
+.package-subtitle--aside a {
+    color: var(--violet);
+    font-weight: 600;
+}
+
+/* Переваги поруч із цінами; кожна має власний короткий опис. */
+.pricing-benefits { margin-top: var(--space-6); }
+.packages [id] { scroll-margin-top: 120px; }
+.pricing-benefits__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+}
+.pricing-benefit {
+    padding: clamp(24px, 3vw, 36px);
+    border: 1px solid var(--glass-brd);
+    border-radius: var(--r-l);
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    box-shadow: var(--shadow-s);
+}
+.pricing-benefit--friend { background: linear-gradient(135deg, rgba(200, 244, 94, .3), rgba(255, 255, 255, .8)); }
+.pricing-benefit__label { font-size: 13px; font-weight: 700; color: var(--muted); }
+.pricing-benefit__value {
+    margin: 16px 0;
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: clamp(36px, 4vw, 54px);
+    letter-spacing: -.04em;
+    line-height: 1.15;
+}
+.pricing-benefit__value span { font-family: var(--font-text); font-size: 18px; letter-spacing: 0; }
+.pricing-benefit__value--progress { font-size: clamp(28px, 3vw, 40px); }
+.pricing-benefit h3 { margin: 0 0 12px; font-size: 20px; line-height: 1.35; }
+.pricing-benefit p { color: var(--muted); font-size: 15px; line-height: 1.65; }
+.pricing-benefit .pricing-benefit__note { margin-top: 12px; font-size: 13px; }
+.pricing-benefit__link { display: inline-block; margin-top: 16px; color: var(--violet); font-weight: 700; }
+.pricing-benefit__link:hover { text-decoration: underline; }
+@media (max-width: 700px) {
+    .pricing-benefits__grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- сітка карток ---------- */
+.price-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+    gap: 18px;
+    align-items: stretch;
+    margin-top: var(--space-4);
+}
+
+/* ---------- блок «у кожному пакеті» ---------- */
 .shared-included {
-  padding: 18px;
-  border-radius: var(--radius);
-  border: 1px solid rgba(255, 255, 255, .06);
-  background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, 0) 60%);
-  margin-bottom: var(--space-4);
+    margin-top: var(--space-6);
+    padding: clamp(24px, 3.4vw, 40px);
 }
 
 .shared-included__list {
-  margin: 8px 0 0;
-  padding-left: 18px;
-  color: var(--text);
-}
-.shared-included__list li { margin-bottom: 8px; }
-
-/* Групи пакетів */
-.packages__group {
-  margin-top: var(--space-5);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    font-size: 15px;
+    color: var(--muted);
 }
 
-.packages__group-title {
-  margin: 0 0 12px;
-  font-family: Poppins, Inter, sans-serif;
-  font-size: clamp(20px, 2.2vw, 26px);
-  font-weight: 800;
+/* Галочка позиціюється абсолютно, а не як флекс-елемент.
+   При display:flex кожен інлайновий шматок тексту стає окремим флекс-елементом,
+   і рядок «Матеріали уроків і <strong>домашні завдання</strong> в кабінеті»
+   розлітався на чотири блоки з дірками між словами. */
+.shared-included__list li {
+    position: relative;
+    padding-left: 26px;
+    line-height: 1.55;
 }
 
-/* Підзаголовок під групою */
-.package-subtitle {
-  margin: 0 0 var(--space-3);
-  color: var(--muted);
-  font-size: 16px;
-  max-width: 80ch;
+.shared-included__list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--violet);
+    font-weight: 800;
 }
 
-/* Дві колонки "Що входить" / "Умови" */
-.package-columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: var(--space-4);
-}
-.package-col {
-  padding: 18px;
-  border-radius: var(--radius);
-}
-.h3 {
-  margin: 0 0 10px;
-  font-weight: 800;
-  font-size: 18px;
+.shared-included__list strong { color: var(--ink); }
+
+/* ---------- фільтр курсів ---------- */
+.course-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: var(--space-4) 0 0;
 }
 
-/* Сітка карток цін */
-.price-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-}
-@media (max-width: 1024px) {
-  .price-grid { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 640px) {
-  .price-grid { grid-template-columns: 1fr; }
-}
-
-/* Картка ціни */
-
-
-
-/* Header картки */
-.price-card__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-.price-card__title {
-  margin: 0;
-  font-weight: 800;
-  font-family: Poppins, Inter, sans-serif;
-  font-size: 18px;
-  letter-spacing: .2px;
-}
-.badge {
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: .2px;
-  background: rgba(255, 255, 255, .08);
-  border: 1px solid rgba(255, 255, 255, .12);
-  color: #fff;
-}
-.badge--premium {
-  background: linear-gradient(135deg, var(--primary-700), var(--primary-400));
-  border-color: rgba(139, 92, 246, .65);
+.chip {
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 700;
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-brd);
+    color: var(--muted);
+    transition: .25s var(--ease);
 }
 
-/* Ціни */
-.price {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.price__old {
-  color: var(--muted);
-  text-decoration: line-through;
-}
-.price__current {
-  font-size: 28px;
-  font-weight: 900;
-  font-family: Poppins, Inter, sans-serif;
-}
-.price__perlesson {
-  margin-left: auto;
-  color: var(--muted);
-  font-size: 13px;
+.chip:hover {
+    color: var(--ink);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-s);
 }
 
-/* Бейдж знижки */
-.discount {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  padding: 6px 10px;
-  border-radius: 10px;
-  background: rgba(16, 185, 129, .15);
-  color: #c8ffe7;
-  font-weight: 800;
-  font-size: 12px;
-  border: 1px solid rgba(16, 185, 129, .35);
+.chip.is-active {
+    background: linear-gradient(120deg, var(--violet), var(--cyan));
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 10px 26px rgba(109, 75, 255, .32);
 }
 
-/* Списки особливостей */
-.features-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 14px;
+/* ---------- корпоративна таблиця ---------- */
+.corp-table-wrap {
+    overflow-x: auto;
+    border-radius: var(--r-l);
+    border: 1px solid var(--glass-brd);
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    box-shadow: var(--shadow-s);
+    margin-top: var(--space-4);
+    -webkit-overflow-scrolling: touch;
 }
 
-/* Footer картки */
-.price-card__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+.corp-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 620px;
 }
-.price-card__cta { white-space: nowrap; }
-.guarantee { color: var(--muted); font-size: 12px; }
 
-/* Респонсив колонки */
-@media (max-width: 980px) {
-  .package-columns { grid-template-columns: 1fr; }
+.corp-table th,
+.corp-table td {
+    padding: 16px 18px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+    font-size: 14.5px;
+    vertical-align: top;
+}
+
+.corp-table thead th {
+    font-size: 12.5px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: rgba(255, 255, 255, .5);
+    font-weight: 800;
+}
+
+.corp-table tbody tr:last-child td { border-bottom: 0; }
+.corp-table tr.is-popular { background: rgba(109, 75, 255, .07); }
+
+.corp-note {
+    display: block;
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 4px;
+    line-height: 1.45;
+    max-width: 48ch;
+}
+
+.corp-price {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: -.02em;
+    white-space: nowrap;
+}
+
+.corp-terms { margin-top: var(--space-4); }
+
+/* ---------- блок індивідуальної корпоративної пропозиції ---------- */
+.corp-offer {
+    display: grid;
+    grid-template-columns: 1.35fr .65fr;
+    gap: clamp(20px, 3vw, 44px);
+    align-items: center;
+    margin-top: var(--space-5);
+    padding: clamp(24px, 3.6vw, 44px);
+    border-radius: var(--r-xl);
+    background: var(--ink);
+    color: #fff;
+    box-shadow: var(--shadow-l);
+    overflow: hidden;
+}
+
+.corp-offer__title {
+    font-family: var(--font-head);
+    font-size: clamp(22px, 2.9vw, 32px);
+    font-weight: 700;
+    letter-spacing: -.03em;
+    line-height: 1.22;
+    margin-top: var(--space-3);
+}
+
+.corp-offer__text {
+    margin-top: var(--space-3);
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, .72);
+    max-width: 58ch;
+}
+
+.corp-offer__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px 22px;
+    margin-top: var(--space-4);
+    font-size: 14.5px;
+    color: rgba(255, 255, 255, .82);
+}
+
+.corp-offer__list li { position: relative; padding-left: 24px; line-height: 1.5; }
+
+.corp-offer__list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--lime);
+    font-weight: 800;
+}
+
+.corp-offer__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: var(--space-4);
+}
+
+.corp-offer__side {
+    padding: clamp(20px, 2.4vw, 28px);
+    border-radius: var(--r-l);
+    background: rgba(255, 255, 255, .07);
+    border: 1px solid rgba(255, 255, 255, .12);
+}
+
+.corp-offer__big {
+    font-family: var(--font-head);
+    font-size: clamp(34px, 4.4vw, 52px);
+    font-weight: 800;
+    letter-spacing: -.04em;
+    line-height: 1;
+    background: linear-gradient(120deg, var(--lime), var(--cyan));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.corp-offer__side > p {
+    margin-top: 8px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, .66);
+}
+
+.corp-offer__side ul {
+    display: grid;
+    gap: 9px;
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid rgba(255, 255, 255, .12);
+    font-size: 13.5px;
+    color: rgba(255, 255, 255, .8);
+}
+
+.corp-offer__side li { position: relative; padding-left: 20px; line-height: 1.45; }
+.corp-offer__side li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--cyan);
+    font-weight: 700;
+}
+
+@media (max-width: 900px) {
+    .corp-offer { grid-template-columns: 1fr; text-align: left; }
+}
+
+/* ---------- юридичний блок monobank ---------- */
+.legal-note {
+    margin-top: var(--space-5);
+    padding: var(--space-4);
+    border-radius: var(--r-m);
+    background: rgba(255, 255, 255, .5);
+    border: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.65;
+}
+
+.legal-note strong { color: var(--ink); }
+.legal-note ul { margin: 10px 0; padding-left: 18px; list-style: disc; }
+.legal-note a { color: var(--violet); font-weight: 600; }
+
+@media (max-width: 920px) {
+    .packages { padding: 118px 0 var(--space-6); }
+    .packages__group { margin-top: var(--space-6); }
+}
+
+.promo__head { display: block; }
+
+/* =========================================================
+   Оформлення замовлення
+   =========================================================
+   Один екран без майстра: на чеку 10–40 тисяч кожен зайвий
+   крок — місце, де людина зупиняється й іде подумати.
+   Зліва те, що купує, справа контакти й оплата.
+   ========================================================= */
+
+.co {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: clamp(20px, 3vw, 44px);
+    align-items: start;
+}
+
+/* ---------- підсумок ---------- */
+.co__summary {
+    position: sticky;
+    top: 104px;
+    padding: clamp(24px, 3vw, 34px);
+    border-radius: var(--r-xl);
+    background: var(--ink);
+    color: #fff;
+    box-shadow: var(--shadow-l);
+}
+
+.co__eyebrow {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--lime);
+}
+
+.co__title {
+    font-family: var(--font-head);
+    font-size: clamp(19px, 2.4vw, 24px);
+    font-weight: 700;
+    letter-spacing: -.03em;
+    line-height: 1.3;
+    margin-top: 12px;
+}
+
+.co__price {
+    font-family: var(--font-head);
+    font-size: clamp(32px, 4.4vw, 44px);
+    font-weight: 800;
+    letter-spacing: -.045em;
+    line-height: 1;
+    margin-top: var(--space-4);
+}
+
+.co__rate { margin-top: 8px; font-size: 14px; color: rgba(255, 255, 255, .62); }
+
+.co__facts {
+    display: grid;
+    gap: 10px;
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid rgba(255, 255, 255, .12);
+    font-size: 14.5px;
+    color: rgba(255, 255, 255, .8);
+}
+
+.co__facts li { position: relative; padding-left: 24px; line-height: 1.5; }
+
+.co__facts li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--lime);
+    font-weight: 800;
+}
+
+.co__fine {
+    margin-top: var(--space-4);
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, .55);
+}
+
+.co__fine a { color: var(--lime); font-weight: 600; }
+
+/* ---------- форма ---------- */
+.co__form {
+    padding: clamp(24px, 3vw, 36px);
+    border-radius: var(--r-xl);
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-brd);
+    box-shadow: var(--shadow-s);
+}
+
+.co__h3 {
+    font-family: var(--font-text);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: var(--space-3);
+}
+
+.co__h3:not(:first-child) { margin-top: var(--space-5); }
+
+.co__field { display: block; margin-top: 14px; }
+
+.co__field > span {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 7px;
+}
+
+.co__field input,
+.co__field textarea,
+.co__field select {
+    width: 100%;
+    padding: 13px 15px;
+    border-radius: var(--r-m);
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, .7);
+    font-size: 15.5px;
+    color: var(--ink);
+    font-family: inherit;
+    transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+}
+
+.co__field input:focus,
+.co__field textarea:focus,
+.co__field select:focus {
+    outline: none;
+    border-color: var(--violet);
+    box-shadow: 0 0 0 4px rgba(109, 75, 255, .13);
+}
+
+.co__field textarea { resize: vertical; line-height: 1.5; }
+
+.co__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.co__row .co__field { margin-top: 14px; }
+
+/* ---------- вибір оплати ---------- */
+.co__pay {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    margin-top: 10px;
+    padding: 16px 18px;
+    border-radius: var(--r-m);
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, .55);
+    cursor: pointer;
+    transition: border-color .2s var(--ease), background .2s var(--ease);
+}
+
+.co__pay:hover { border-color: var(--violet); }
+
+.co__pay.is-on {
+    border-color: var(--violet);
+    background: rgba(109, 75, 255, .07);
+    box-shadow: 0 0 0 3px rgba(109, 75, 255, .1);
+}
+
+.co__pay input { margin-top: 3px; accent-color: var(--violet); flex: none; }
+.co__pay b { display: block; font-size: 15px; color: var(--ink); }
+
+.co__pay small {
+    display: block;
+    margin-top: 5px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+}
+
+.co__parts { margin-top: 14px; }
+
+.co__err {
+    margin-top: var(--space-4);
+    padding: 13px 16px;
+    border-radius: var(--r-m);
+    background: rgba(255, 122, 89, .12);
+    border: 1px solid rgba(255, 122, 89, .4);
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--ink);
+}
+
+.co__submit { width: 100%; margin-top: var(--space-4); }
+
+.co__form .co__fine { color: var(--muted); }
+.co__form .co__fine a { color: var(--violet); }
+
+.co-msg { font-size: 16px; color: var(--muted); }
+.co-msg a { color: var(--violet); font-weight: 600; }
+
+/* =========================================================
+   Результат оплати
+   ========================================================= */
+
+.pr {
+    max-width: 640px;
+    padding: clamp(24px, 3.4vw, 40px);
+    border-radius: var(--r-xl);
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-brd);
+    box-shadow: var(--shadow-s);
+}
+
+.pr h2 {
+    font-family: var(--font-head);
+    font-size: clamp(21px, 2.8vw, 27px);
+    font-weight: 700;
+    letter-spacing: -.03em;
+}
+
+.pr p { margin-top: 14px; font-size: 15.5px; line-height: 1.65; color: var(--muted); }
+.pr p b { color: var(--ink); }
+.pr a { color: var(--violet); font-weight: 600; }
+
+.pr--ok { border-color: rgba(200, 244, 94, .5); background: rgba(200, 244, 94, .08); }
+.pr--wait { border-color: rgba(255, 122, 89, .35); }
+
+.pr__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line);
+}
+
+.pr__facts dt {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.pr__facts dd {
+    margin: 6px 0 0;
+    font-family: var(--font-head);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -.03em;
+    color: var(--ink);
+}
+
+.pr__next { margin-top: var(--space-4); }
+.pr__fine { margin-top: var(--space-3); font-size: 13.5px; }
+
+/* Три крапки, поки чекаємо банк */
+.pr__spin { display: flex; gap: 7px; margin-top: var(--space-4); }
+
+.pr__spin i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--violet);
+    animation: prPulse 1.2s ease-in-out infinite;
+}
+
+.pr__spin i:nth-child(2) { animation-delay: .15s; }
+.pr__spin i:nth-child(3) { animation-delay: .3s; }
+
+@keyframes prPulse {
+    0%, 100% { opacity: .25; transform: scale(.8); }
+    50%      { opacity: 1;   transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pr__spin i { animation: none; opacity: .6; }
+}
+
+@media (max-width: 900px) {
+    .co { grid-template-columns: 1fr; }
+    .co__summary { position: static; }
+}
+
+@media (max-width: 560px) {
+    .co__row { grid-template-columns: 1fr; }
+}
+
+/* =========================================================
+   ПОКУПКА ЧАСТИНАМИ monobank
+   =========================================================
+   Вимоги банку, виражені в CSS, а не в домовленості:
+
+   `--chast-name-size` — кегль слів «Покупка Частинами» в цьому блоці.
+   Юридичний текст про ставку мусить бути не менше ПОЛОВИНИ від нього,
+   тому його розмір порахований від тієї ж змінної через `max()`,
+   а не записаний окремим числом. Збільшите назву — обовʼязковий текст
+   виросте сам. Записане руками число розійшлося б із назвою при першій
+   же правці, і помітити це можна було б лише лінійкою по скриншоту.
+
+   Нижня межа 11px — щоб текст лишався читабельним, коли назва дрібна.
+   ========================================================= */
+
+.chast-badge {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    max-width: 100%;
+}
+
+.chast-badge__brand { display: inline-flex; flex-direction: column; align-items: flex-start; max-width: 100%; }
+.chast-badge__provider { font-size: 12px; font-weight: 600; color: var(--ink); margin-top: 5px; }
+.payment-installments .chast-badge { margin-bottom: 8px; }
+.payment-installments p { margin: 0; }
+
+.chast-badge__img {
+    display: block;
+    height: auto;
+    /* Пропорції офіційного файлу не чіпаємо: міняти візуальні матеріали
+       monobank можна лише за погодженням. Задаємо тільки ширину. */
+    width: var(--chast-badge-w, 260px);
+    max-width: 100%;
+}
+
+.chast-badge--sm { --chast-badge-w: 240px; }
+.chast-badge--md { --chast-badge-w: 260px; }
+
+.chast-badge__text {
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.chast-badge--sm .chast-badge__text { font-size: 13px; }
+.chast-badge--md .chast-badge__text { font-size: 15px; }
+
+.chast-legal {
+    --chast-name-size: 14px;
+
+    margin-top: var(--space-5);
+    padding: var(--space-4);
+    border-radius: var(--r-m);
+    background: rgba(255, 255, 255, .5);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.chast-legal__name {
+    display: block;
+    font-size: var(--chast-name-size);
+    color: var(--ink);
+}
+
+/* Ось саме те правило: не менше 50% від назви. */
+.chast-legal__rate {
+    margin: 8px 0 0;
+    font-size: max(11px, calc(var(--chast-name-size) * .6));
+}
+
+.chast-legal__facts {
+    margin: 10px 0;
+    padding-left: 18px;
+    list-style: disc;
+    font-size: 12.5px;
+}
+
+.chast-legal__bank,
+.chast-legal__link {
+    margin: 8px 0 0;
+    font-size: 12.5px;
+}
+
+.chast-legal__link a {
+    color: var(--violet);
+    font-weight: 600;
 }

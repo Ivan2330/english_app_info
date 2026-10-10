@@ -1,69 +1,98 @@
-function formatCurrency(v, currency = "UAH") {
-  if (v == null) return null;
-  try {
-    return new Intl.NumberFormat("uk-UA", { style: "currency", currency }).format(v);
-  } catch {
-    return `${v} ${currency}`;
-  }
-}
+import { money, lessonsWord, FORMAT } from "../lib/labels.js";
 
-export default function PriceCard({
-  title,
-  type,               // "standard" | "premium"
-  oldPrice,           // not_true_price
-  totalPrice,         // total_price or base_price
-  pricePerLesson,     // price_per_lesson
-  discountPercent,    // discount_percent
-  discountMoney,      // discount_money
-  lessonsCount,
-  lessonDuration,
-  currency = "UAH",
-  onSelect,
-}) {
-  const isPremium = type === "premium";
-  const hasDiscount = Boolean(discountPercent || discountMoney || oldPrice);
+/**
+ * Картка пакета. Використовується для тематичних курсів, Speaking Club
+ * і корпоративних позицій — тобто скрізь, де показуємо готовий продукт,
+ * а не результат роботи конструктора.
+ *
+ * Раніше картка малювала бейдж Standard/Premium. Тарифних рівнів більше немає:
+ * тепер вона показує напрям, формат і — для курсів під іспит — стартовий рівень.
+ */
+export default function PriceCard({ pkg, onSelect }) {
+  if (!pkg) return null;
+
+  const {
+    name,
+    short_description,
+    lessons_count,
+    lesson_duration_min,
+    group_size_max,
+    level_from,
+    level_target,
+    duration_hint,
+    validity_days,
+    total_price,
+    price_per_lesson,
+    not_true_price,
+    discount_percent,
+    price_per_person,
+    currency = "UAH",
+    is_popular,
+    format,
+    chast_enabled,
+    chast_max_parts,
+  } = pkg;
+
+  const hasDiscount = Boolean(discount_percent && not_true_price);
 
   return (
-    <article className={`price-card ${isPremium ? "is-premium" : ""}`}>
-      {hasDiscount && (
-        <div className="discount">
-          {discountPercent
-            ? `-${discountPercent}%`
-            : discountMoney
-            ? `-${formatCurrency(discountMoney, currency)}`
-            : "Знижка"}
-        </div>
-      )}
+    <article className={`price-card${is_popular ? " is-popular" : ""}`}>
+      {is_popular ? <div className="price-card__badge">Найчастіше обирають</div> : null}
+      {hasDiscount ? <div className="discount">-{discount_percent}%</div> : null}
 
-      <div className="price-card__head">
-        <h3 className="price-card__title">{title}</h3>
-        <span className={`badge ${isPremium ? "badge--premium" : ""}`}>
-          {isPremium ? "Premium" : "Standard"}
-        </span>
-      </div>
+      {level_from ? (
+        <div className="level-row">
+          <span className="level-from">{level_from}</span>
+          <span className="level-arrow" aria-hidden="true">→</span>
+          <span className="level-to">{level_target}</span>
+        </div>
+      ) : null}
+
+      <h3 className="price-card__title">{name}</h3>
+      {short_description ? <p className="price-card__desc">{short_description}</p> : null}
 
       <div className="price">
-        {oldPrice ? <div className="price__old">{formatCurrency(oldPrice, currency)}</div> : null}
-        <div className="price__current">{formatCurrency(totalPrice, currency)}</div>
-        {pricePerLesson ? (
-          <div className="price__perlesson">/ {formatCurrency(pricePerLesson, currency)} за урок</div>
+        {hasDiscount ? (
+          <div className="price__old">{money(not_true_price, currency)}</div>
+        ) : null}
+        <div className="price__current">{money(total_price, currency)}</div>
+        {price_per_lesson ? (
+          <div className="price__perlesson">
+            {money(price_per_lesson, currency)} за урок
+            {price_per_person ? " з людини" : ""}
+          </div>
         ) : null}
       </div>
 
-      <ul className="features-list" aria-label="Що входить у пакет">
-        {lessonsCount ? <li>Уроків у пакеті: <strong>{lessonsCount}</strong></li> : null}
-        {lessonDuration ? <li>Тривалість одного уроку: <strong>{lessonDuration} хв</strong></li> : null}
-        <li>Гарантія результату</li>
-        <li>Індивідуальний план та домашні завдання</li>
+      {pkg.family === "course" && (
+        <a className="price-card__benefits" href="#benefits">Ще −20% кожному за друга</a>
+      )}
+
+      <ul className="features-list" aria-label="Деталі пакета">
+        {lessons_count ? (
+          <li>
+            <strong>{lessons_count}</strong> {lessonsWord(lessons_count)}
+            {lesson_duration_min ? ` по ${lesson_duration_min} хв` : ""}
+          </li>
+        ) : null}
+        {group_size_max && format === "group" ? (
+          <li>Група до <strong>{group_size_max}</strong> людей</li>
+        ) : null}
+        {format && FORMAT[format] ? <li>{FORMAT[format].label}</li> : null}
+        {duration_hint ? <li>Триває {duration_hint}</li> : null}
+        {/* Термін дії — те, чим ми кращі за ринок на кожній сходинці */}
+        {validity_days ? <li>Діє <strong>{validity_days} днів</strong> від першого заняття</li> : null}
       </ul>
 
-      <div className="price-card__footer">
-        <div className="guarantee">Не буде прогресу — навчаємо безкоштовно</div>
-        {/* приглушена CTA з яскравим hover */}
-        <button className="btn btn-cta price-card__cta" onClick={onSelect}>
-          Обрати пакет
-        </button>
-      </div>
+      {chast_enabled ? (
+        <div className="chast-note">
+          Можна частинами — до {chast_max_parts} платежів без переплати
+        </div>
+      ) : null}
+
+      <button type="button" className="btn btn-cta price-card__cta" onClick={onSelect}>
+        Обрати
+      </button>
     </article>
   );
 }

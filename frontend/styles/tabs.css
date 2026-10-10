@@ -1,31 +1,35 @@
+/* НЕ ВИКОРИСТОВУЄТЬСЯ
+   PackageTabs тепер малює .opt-group (стилі в builder.css).
+   Ці правила не застосовуються; у main.jsx файл не імпортується.
+*/
+
+/* =========================================================
+   Вкладки. Компонент PackageTabs тепер малює .opt-group
+   (стилі — у builder.css), тож тут лишається лише
+   узагальнений вигляд вкладок для решти сторінок.
+   ========================================================= */
+
 .tabs {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    background: rgba(255, 255, 255, .04);
-    border: 1px solid rgba(255, 255, 255, .06);
-    padding: 8px;
-    border-radius: 14px;
+    display: inline-flex;
+    padding: 5px;
+    border-radius: 999px;
+    gap: 4px;
+    background: rgba(10, 10, 22, .06);
 }
 
 .tab {
-    padding: 10px 14px;
-    border-radius: 12px;
-    color: var(--muted);
+    padding: 11px 22px;
+    border-radius: 999px;
     font-weight: 700;
-    letter-spacing: .2px;
-    background: transparent;
-    border: 1px solid transparent;
+    font-size: 14.5px;
+    color: var(--muted);
+    transition: .3s var(--ease);
 }
 
-.tab:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, .06);
-}
+.tab:hover { color: var(--ink); }
 
 .tab.is-active {
-    color: #fff;
-    background: rgba(139, 92, 246, .16);
-    border-color: rgba(139, 92, 246, .35);
-    box-shadow: inset 0 0 0 1px rgba(139, 92, 246, .25);
+    background: #fff;
+    color: var(--ink);
+    box-shadow: var(--shadow-s);
 }

@@ -1,0 +1,64 @@
+# Локальна розробка.
+#
+#   docker compose -f docker-compose.dev.yml up -d
+#
+# Відрізняється від прод-конфіга (docker-compose.yml) трьома речами:
+#   * немає nginx і certbot — вони потрібні лише для HTTPS на бойовому домені;
+#   * backend слухає безпосередньо на localhost:8000, а Postgres на 5432,
+#     щоб можна було підключитись psql-ом або DBeaver-ом;
+#   * міграції прогоняються автоматично при старті, і працює --reload.
+#
+# Фронт локально запускається окремо через `npm run dev` (Vite, порт 5173),
+# бо всередині контейнера гарячого перезавантаження не буде.
+
+services:
+  db:
+    image: postgres:15
+    container_name: prime_db_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: prime_dev
+    ports:
+      # Назовні 5433, щоб не конфліктувати з нативним PostgreSQL на Windows,
+      # який зазвичай уже займає 5432. Усередині мережі docker порт лишається 5432,
+      # тому backend підключається як db:5432 — його це не стосується.
+      - "5433:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d prime_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: prime_backend_dev
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      # Перебиває значення з .env — щоб локально випадково не влізти в прод-базу.
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/prime_dev
+      AUTO_CREATE_TABLES: "false"
+    volumes:
+      - ./backend:/app
+      - ./certificates:/app/static/certificates
+    ports:
+      # Порт можна перевизначити, якщо 8000 зайнятий:
+      #   PowerShell:  $env:BACKEND_PORT=8001; docker compose -f docker-compose.dev.yml up -d
+      #   bash:        BACKEND_PORT=8001 docker compose -f docker-compose.dev.yml up -d
+      - "${BACKEND_PORT:-8000}:8000"
+    # Спершу міграції, потім сервер. Якщо міграція впаде — контейнер не підніметься,
+    # і це правильно: краще побачити помилку тут, ніж на живій базі.
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_dev_data:

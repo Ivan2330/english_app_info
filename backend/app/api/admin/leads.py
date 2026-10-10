@@ -29,7 +29,10 @@ async def admin_list_leads(
     items = rows.scalars().all()
     return [{"id": l.id, "kind": l.kind.value, "name": l.name, "phone": l.phone, "telegram": l.telegram,
              "email": l.email, "audience": l.audience, "preferred_time": l.preferred_time,
-             "comment": l.comment, "status": l.status.value, "created_at": l.created_at} for l in items]
+             "comment": l.comment, "status": l.status.value, "created_at": l.created_at,
+             # source показує, звідки заявка: site/level-quiz означає,
+             # що в comment лежать відповіді тесту рівня для викладача
+             "source": l.source} for l in items]
 
 @router.patch("/leads/{lead_id}")
 async def admin_update_lead(lead_id: int, data: dict, session: AsyncSession = Depends(get_async_session), admin=Depends(get_current_admin)):

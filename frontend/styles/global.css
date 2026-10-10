@@ -1,114 +1,474 @@
-/* reset & base */
+/* =========================================================
+   Базовий шар: скидання, типографіка, кнопки, спільні блоки
+   ========================================================= */
+
 *,
 *::before,
-*::after {
-    box-sizing: border-box;
-}
+*::after { box-sizing: border-box; }
 
-html,
-body,
-#root {
-    height: 100%;
+html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
 }
 
 body {
     margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-text);
+    font-size: 17px;
     line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
 }
 
-img {
-    max-width: 100%;
-    display: block;
+h1, h2, h3, h4 {
+    font-family: var(--font-head);
+    font-weight: 800;
+    line-height: 1.04;
+    letter-spacing: -.03em;
+    margin: 0;
 }
 
-a {
-    color: inherit;
-    text-decoration: none;
+p { margin: 0; }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+ul { list-style: none; padding: 0; margin: 0; }
+
+button, input, select, textarea { font-family: inherit; font-size: inherit; }
+button { cursor: pointer; border: 0; background: none; color: inherit; }
+
+:focus-visible {
+    outline: 2px solid var(--violet);
+    outline-offset: 3px;
+    border-radius: 6px;
 }
 
-button {
-    font: inherit;
-    cursor: pointer;
-    border: 0;
-}
-
-/* layout helpers */
 .container {
-    width: 100%;
-    max-width: var(--container);
+    width: min(100% - 40px, var(--container));
     margin-inline: auto;
-    padding-inline: 20px;
 }
 
-.section-title {
-    margin: 0 0 var(--space-4);
-    font-family: Poppins, Inter, sans-serif;
-    font-weight: 700;
-    font-size: clamp(24px, 2.6vw, 36px);
-    letter-spacing: .3px;
+main { position: relative; z-index: 1; }
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
 }
 
-.kicker {
-    color: var(--primary-400);
-    font-weight: 600;
-    letter-spacing: .2em;
-    text-transform: uppercase;
-    font-size: 12px;
-    margin: 0 0 var(--space-2);
-    opacity: .9;
+/* ---------- AURORA-ФОН ---------- */
+.aurora {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    overflow: hidden;
+    pointer-events: none;
 }
 
-/* buttons */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 18px;
-    border-radius: 999px;
-    font-weight: 700;
-    transition: transform .12s ease, box-shadow .2s ease, background .2s ease;
+.aurora__blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: .55;
     will-change: transform;
 }
 
-.btn:hover {
-    transform: translateY(-1px);
+.aurora__blob--1 {
+    width: 52vw; height: 52vw; left: -14vw; top: -16vw;
+    background: radial-gradient(circle at 30% 30%, #8B6BFF, #6D4BFF 55%, transparent 70%);
+    animation: auroraFloat1 26s var(--ease) infinite;
+}
+.aurora__blob--2 {
+    width: 46vw; height: 46vw; right: -12vw; top: 4vh;
+    background: radial-gradient(circle at 60% 40%, #5FE8F5, #1FD6E8 50%, transparent 72%);
+    animation: auroraFloat2 32s var(--ease) infinite;
+}
+.aurora__blob--3 {
+    width: 44vw; height: 44vw; left: 22vw; top: 58vh;
+    background: radial-gradient(circle at 50% 50%, #FFB27A, #FF6B4A 50%, transparent 72%);
+    opacity: .34;
+    animation: auroraFloat3 29s var(--ease) infinite;
+}
+.aurora__blob--4 {
+    width: 34vw; height: 34vw; right: 8vw; top: 78vh;
+    background: radial-gradient(circle at 50% 50%, #DFFF9E, #C8F45E 50%, transparent 70%);
+    opacity: .32;
+    animation: auroraFloat1 24s var(--ease) infinite reverse;
 }
 
-.btn-primary {
+@keyframes auroraFloat1 {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    33% { transform: translate3d(8vw, 6vh, 0) scale(1.15); }
+    66% { transform: translate3d(-5vw, 10vh, 0) scale(.9); }
+}
+@keyframes auroraFloat2 {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(-10vw, 12vh, 0) scale(1.2); }
+}
+@keyframes auroraFloat3 {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    40% { transform: translate3d(10vw, -8vh, 0) scale(1.1); }
+    75% { transform: translate3d(-8vw, 4vh, 0) scale(.95); }
+}
+
+.aurora__grain {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: .05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- ТИПОГРАФІКА РОЗДІЛІВ ---------- */
+.section-title {
+    font-size: clamp(30px, 4.4vw, 56px);
+    margin: 18px 0 0;
+    max-width: 17ch;
+}
+
+.section-subtitle {
+    margin-top: 18px;
+    color: var(--muted);
+    font-size: 18px;
+    max-width: 58ch;
+}
+
+.kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    font-weight: 800;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--violet);
+    margin: 0;
+}
+
+.kicker::before {
+    content: "";
+    width: 26px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--violet), transparent);
+    border-radius: 2px;
+}
+
+.accent-bar {
+    width: 64px;
+    height: 4px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--violet), var(--cyan));
+    margin: var(--space-3) 0;
+}
+
+/* ---------- КНОПКИ ---------- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 14px 26px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 15.5px;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+    transition: transform .3s var(--ease), box-shadow .3s var(--ease), background .3s;
+}
+
+.btn-primary,
+.btn-cta {
     color: #fff;
-    background: linear-gradient(135deg, var(--primary-600), var(--primary-400));
-    box-shadow: 0 10px 24px rgba(139, 92, 246, .35);
+    background: linear-gradient(120deg, var(--violet), #8B5CF6 45%, var(--cyan));
+    background-size: 200% 100%;
+    box-shadow: 0 12px 34px rgba(109, 75, 255, .42);
 }
 
-.btn-primary:hover {
-    box-shadow: 0 14px 30px rgba(139, 92, 246, .45);
+.btn-primary:hover,
+.btn-cta:hover {
+    background-position: 100% 0;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 20px 48px rgba(109, 75, 255, .5);
 }
 
 .btn-ghost {
-    color: var(--text);
-    background: rgba(255, 255, 255, .06);
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(255, 255, 255, .08);
+    background: var(--glass);
+    border: 1px solid var(--glass-brd);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    color: var(--ink);
 }
 
 .btn-ghost:hover {
-    background: rgba(255, 255, 255, .12);
+    transform: translateY(-3px);
+    background: #fff;
+    box-shadow: var(--shadow-m);
 }
 
-/* accent bar (thin purple stripe) */
-.accent-bar {
-    height: 6px;
-    background: linear-gradient(90deg, var(--primary-700), var(--primary-400));
+.btn:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
-/* cards */
+.badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 700;
+    background: rgba(109, 75, 255, .1);
+    color: var(--violet);
+}
+
+/* ---------- СКЛЯНА КАРТКА ---------- */
 .card {
-    background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, 0) 60%);
-    border: 1px solid rgba(255, 255, 255, .06);
-    backdrop-filter: blur(6px);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-lg);
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-brd);
+    box-shadow: var(--shadow-s);
+    border-radius: var(--r-l);
+    padding: var(--space-4);
+}
+
+/* ---------- ПОЯВА ПРИ СКРОЛІ ---------- */
+[data-reveal] {
+    opacity: 0;
+    transform: translateY(34px);
+    transition: opacity .9s var(--ease), transform .9s var(--ease);
+}
+
+[data-reveal].is-in {
+    opacity: 1;
+    transform: none;
+}
+
+/* ---------- ФОРМИ ---------- */
+.field { display: block; }
+
+.field__label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 7px;
+}
+
+.input-wrap {
+    position: relative;
+    display: block;
+}
+
+.field__icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: var(--muted);
+    pointer-events: none;
+}
+
+.field__input {
+    width: 100%;
+    padding: 15px 18px 15px 46px;
+    border-radius: var(--r-m);
+    border: 1.5px solid var(--line);
+    background: rgba(255, 255, 255, .75);
+    color: var(--ink);
+    outline: none;
+    transition: border-color .25s, box-shadow .25s, background .25s;
+}
+
+.field__input::placeholder { color: rgba(107, 107, 133, .7); }
+
+.field__input:focus {
+    border-color: var(--violet);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(109, 75, 255, .14);
+}
+
+.form__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+
+.form__footer {
+    margin-top: var(--space-4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+.form__note {
+    font-size: 12.5px;
+    color: var(--muted);
+    max-width: 34ch;
+}
+
+.form__success,
+.form__error {
+    margin-top: var(--space-3);
+    padding: 12px 16px;
+    border-radius: var(--r-m);
+    font-size: 14.5px;
+    font-weight: 600;
+}
+
+.form__success {
+    background: rgba(46, 158, 79, .12);
+    color: #1F6B36;
+}
+
+.form__error {
+    background: rgba(228, 72, 77, .12);
+    color: #A5262A;
+}
+
+/* ---------- СПИСОК ПЕРЕВАГ ---------- */
+.features-list {
+    display: grid;
+    gap: 10px;
+    font-size: 14.5px;
+    color: var(--muted);
+}
+
+/* Маркер абсолютом, не флексом: інакше <strong> усередині рядка
+   стає окремим флекс-елементом і текст розповзається (див. packages.css). */
+.features-list li {
+    position: relative;
+    padding-left: 26px;
+    line-height: 1.5;
+}
+
+.features-list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--violet);
+    font-weight: 800;
+}
+
+.features-list strong { color: var(--ink); }
+
+/* ---------- АДАПТИВ ---------- */
+@media (max-width: 640px) {
+    body { font-size: 16px; }
+    .container { width: min(100% - 32px, var(--container)); }
+    .form__row { grid-template-columns: 1fr; }
+    .btn { padding: 14px 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+    [data-reveal] { opacity: 1; transform: none; }
+}
+
+/* =========================================================
+   Віджет Tidio
+   =========================================================
+   Tidio малює себе фіксовано в правому нижньому куті з власним
+   z-index і не знає нічого про нашу липку панель .mcta, яка стоїть
+   там само. На телефоні вони накладались: кульбаба чату перекривала
+   кнопку «Пробний урок» і кнопки «Обрати» в нижніх картках цін.
+
+   Селектори нижче — це контейнери, які Tidio створює в DOM.
+   Якщо вони колись зміняться, віджет просто повернеться на своє
+   типове місце: !important тут нічого не ламає, лише зсуває. */
+
+#tidio-chat iframe,
+#tidio-chat,
+iframe[title="Tidio Chat"] {
+    z-index: 130 !important;   /* нижче .mcta (140), щоб панель була зверху */
+}
+
+@media (max-width: 920px) {
+    /* Піднімаємо віджет над липкою панеллю: її висота ~62px плюс відступ */
+    #tidio-chat iframe,
+    iframe[title="Tidio Chat"] {
+        bottom: 84px !important;
+    }
+}
+
+/* На сторінці запису чат зайвий: людина вже заповнює форму,
+   а віджет перекриває поле «Телефон» на вузьких екранах. */
+body[data-page="contacts"] #tidio-chat,
+body[data-page="contacts"] iframe[title="Tidio Chat"] {
+    display: none !important;
+}
+
+/* Липка панель враховує «безпечну зону» айфона з вирізом,
+   інакше кнопки частково ховаються за системною смугою. */
+.mcta {
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+}
+
+/* =========================================================
+   Телефони
+   =========================================================
+   Основний трафік іде з Instagram, тобто з телефона. Базова сітка
+   вже гумова, тож тут не переверстка, а усунення конкретних ризиків:
+   горизонтальний скрол, дрібні зони натискання й вирізи екрана. */
+
+/* Жоден блок не має розсувати сторінку вбік. Якщо щось вилізе —
+   воно обріжеться, а не додасть горизонтальний скрол усій сторінці.
+   Живе на html, а не на body, щоб не зламати position: sticky. */
+html { overflow-x: hidden; }
+
+@media (max-width: 480px) {
+    /* Вужчі поля: на 360 px сорок пікселів відступів — це 11% екрана */
+    .container { width: min(100% - 28px, var(--container)); }
+
+    /* Apple вимагає щонайменше 44×44 px на зону натискання.
+       Менші кнопки на телефоні просто не влучаються пальцем. */
+    .btn,
+    .chip,
+    .mobileNav__item,
+    .ladder__item,
+    .quiz__option { min-height: 44px; }
+
+    /* Заголовки: clamp рахує від ширини вікна, і на вузькому екрані
+       нижня межа спрацьовує надто пізно — довгі слова розривають рядок */
+    .section-title { font-size: clamp(24px, 7vw, 32px); }
+    .hero__title { font-size: clamp(30px, 9vw, 44px); }
+
+    /* Довгі слова без пробілів: email, назви курсів, посилання */
+    .price-card__title,
+    .section-subtitle,
+    .footer__contacts a { overflow-wrap: anywhere; }
+
+    /* Таблиця корпоративу скролиться вбік — підказуємо це тінню з краю */
+    .corp-table-wrap {
+        background-image: linear-gradient(to left, rgba(10, 10, 22, .07), transparent 34px);
+        background-repeat: no-repeat;
+        background-position: right;
+        background-size: 34px 100%;
+    }
+}
+
+/* Екрани з вирізом: контент не має ховатись під заокругленнями */
+@supports (padding: env(safe-area-inset-left)) {
+    .container {
+        padding-left: env(safe-area-inset-left, 0px);
+        padding-right: env(safe-area-inset-right, 0px);
+    }
 }

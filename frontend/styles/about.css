@@ -1,257 +1,569 @@
-.about {
-  padding: var(--space-6) 0 var(--space-7);
-  background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, 0));
+/* НЕ ВИКОРИСТОВУЄТЬСЯ
+   Сторінку «Про школу» переписано на спільні компоненти
+   (PageHero + tiles + timeline + teachers). Ці правила більше не застосовуються.
+   Файл лишено на випадок повернення старої розкладки; у main.jsx не імпортується.
+*/
+
+/* =========================================================
+   Сторінка «Про нас»
+   ========================================================= */
+
+.about { padding: 150px 0 var(--space-7); }
+
+.about__inner {
+    display: grid;
+    gap: var(--space-6);
 }
 
-/* HERO */
-.about__hero {
-  text-align: center;
-  max-width: 900px;
-  margin: 0 auto var(--space-6);
-}
+/* ---------- вступ ---------- */
+.about__hero { max-width: 860px; }
+
 .about__title {
-  margin: 8px 0 10px;
-  font-family: Poppins, Inter, sans-serif;
-  font-size: clamp(26px, 3.6vw, 40px);
-  letter-spacing: .2px;
+    font-size: clamp(32px, 5vw, 60px);
+    margin-top: var(--space-3);
+    max-width: 18ch;
 }
+
 .about__lead {
-  margin: 0 auto;
-  color: var(--muted);
-  max-width: 70ch;
+    margin-top: var(--space-4);
+    font-size: 19px;
+    color: var(--muted);
+    max-width: 62ch;
+    line-height: 1.6;
 }
 
-/* BRAND MEDALLION */
+.about__lead strong { color: var(--ink); }
+
+/* ---------- медальйон бренду ---------- */
 .about__brand {
-  text-align: center;
-  margin: var(--space-6) auto var(--space-7);
-  max-width: 760px;
-  padding: 40px 24px;
-  border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(124, 58, 237, 0.08), rgba(255, 255, 255, 0.03));
-  border: 1px solid rgba(124, 58, 237, 0.25);
-  box-shadow: var(--shadow-lg);
-  animation: fadeIn 0.6s ease both;
+    position: relative;
+    padding: clamp(32px, 5vw, 64px);
+    border-radius: var(--r-xl);
+    text-align: center;
+    overflow: hidden;
+    color: #fff;
+    background: linear-gradient(135deg, #6D4BFF, #3A1FC4 45%, #0F8FA8);
+    box-shadow: var(--shadow-l);
 }
+
+.about__brand::before {
+    content: "";
+    position: absolute;
+    inset: -40% -10% auto auto;
+    width: 60%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(200, 244, 94, .4), transparent 62%);
+    filter: blur(40px);
+    animation: auroraFloat2 22s var(--ease) infinite;
+}
+
+.about__brand > * { position: relative; }
+
 .about__brand-logo {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    width: 96px;
+    height: 96px;
+    margin: 0 auto;
+    border-radius: 28px;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, .16);
+    border: 1px solid rgba(255, 255, 255, .3);
+    backdrop-filter: blur(8px);
 }
+
 .about__brand-logo img {
-  width: 110px;
-  height: auto;
-  margin: 0 auto 12px;
-  filter: drop-shadow(0 0 8px rgba(124, 58, 237, 0.3));
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
 }
+
 .about__brand-title {
-  font-family: Poppins, Inter, sans-serif;
-  font-size: clamp(22px, 2.8vw, 32px);
-  margin-bottom: 8px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
+    font-size: clamp(24px, 3.4vw, 38px);
+    margin-top: var(--space-4);
 }
+
 .about__brand-text {
-  color: var(--muted);
-  max-width: 65ch;
-  margin: 0 auto 16px;
-  line-height: 1.6;
+    margin: var(--space-3) auto 0;
+    max-width: 60ch;
+    font-size: 16.5px;
+    color: rgba(255, 255, 255, .82);
+    line-height: 1.65;
 }
+
 .about__brand-tags {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: var(--space-4);
 }
+
 .about__brand-tags span {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 9999px;
-  padding: 6px 14px;
-  font-size: 13px;
-  color: var(--muted);
-  white-space: nowrap;
-  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-}
-.about__brand-tags span:hover {
-  transform: translateY(-1px);
-  background: rgba(124, 58, 237, 0.22);
-  color: #fff;
-  border-color: rgba(124, 58, 237, 0.42);
+    padding: 7px 15px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .2);
 }
 
-/* STUDENT PATH (timeline) */
-.about__steps {
-  margin: var(--space-6) auto var(--space-6);
-  padding: 28px 22px;
-  border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-  border: 1px solid rgba(255,255,255,.08);
-  box-shadow: var(--shadow-lg);
-  max-width: 1000px;
-  text-align: center;
-  position: relative;
-}
-.about__steps-title {
-  font-size: clamp(22px, 2.8vw, 28px);
-  font-weight: 700;
-  margin-bottom: 6px;
-}
+/* ---------- шлях студента ---------- */
+.about__steps-title { font-size: clamp(26px, 3.4vw, 40px); }
+
 .about__steps-lead {
-  color: var(--muted);
-  margin-bottom: 24px;
+    margin-top: var(--space-3);
+    color: var(--muted);
+    font-size: 17px;
+    max-width: 62ch;
 }
 
-/* 3×2 сітка, без номерів */
 .about__steps-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(220px, 1fr));
-  gap: 20px;
-}
-/* декоративна лінія (опційно) */
-.about__steps-list::before {
-  content: "";
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  top: 98px;
-  height: 1px;
-  background: linear-gradient(90deg,
-    rgba(255,255,255,0), rgba(255,255,255,0.08), rgba(255,255,255,0));
-  pointer-events: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-5);
 }
 
 .about__step {
-  position: relative;
-  padding: 16px;
-  border-radius: var(--radius);
-  background: #220a35ab;
-  border: 1px solid rgba(255,255,255,.08);
-  box-shadow: var(--shadow-md);
-  transition: transform .2s ease, background .2s ease, border-color .2s ease;
-  min-height: 152px;
+    padding: 26px 24px;
+    border-radius: var(--r-l);
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-brd);
+    box-shadow: var(--shadow-s);
+    transition: transform .4s var(--ease), box-shadow .4s var(--ease);
 }
+
 .about__step:hover {
-  transform: translateY(-2px);
-  background: rgba(124,58,237,.12);
-  border-color: rgba(124,58,237,.25);
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-m);
 }
+
 .about__step-icon {
-  font-size: 22px;
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    background: linear-gradient(135deg, rgba(109, 75, 255, .14), rgba(31, 214, 232, .14));
+    border: 1px solid var(--line);
+}
+
+.about__step h3 {
+    font-family: var(--font-head);
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -.03em;
+    margin-top: var(--space-3);
+}
+
+.about__step p {
+    margin-top: 8px;
+    font-size: 14.5px;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+/* ---------- дві колонки ---------- */
+.about__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-3);
+}
+
+.about__card {
+    padding: 28px 26px;
+    border-radius: var(--r-l);
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-brd);
+    box-shadow: var(--shadow-s);
+}
+
+.about__card h3 {
+    font-family: var(--font-head);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -.03em;
+}
+
+.about__card p {
+    margin-top: var(--space-3);
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.about__card p strong { color: var(--ink); }
+
+.about__list {
+    display: grid;
+    gap: 10px;
+    margin-top: var(--space-3);
+    font-size: 15px;
+    color: var(--muted);
+}
+
+.about__list li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    line-height: 1.55;
+}
+
+.about__list li::before {
+    content: "✓";
+    color: var(--violet);
+    font-weight: 800;
+    flex: none;
+}
+
+.about__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: var(--space-3);
+}
+
+/* ---------- гарантія ---------- */
+.about__guarantee {
+    display: grid;
+    grid-template-columns: 1.2fr .8fr;
+    gap: var(--space-4);
+    align-items: center;
+    padding: clamp(26px, 4vw, 44px);
+    border-radius: var(--r-xl);
+    background: var(--ink);
+    color: #fff;
+    box-shadow: var(--shadow-l);
+}
+
+.about__g-content h2,
+.about__g-content h3 { font-size: clamp(24px, 3.2vw, 34px); }
+
+.about__g-content p {
+    margin-top: var(--space-3);
+    color: rgba(255, 255, 255, .68);
+    font-size: 16px;
+    line-height: 1.65;
+}
+
+.about__g-stats {
+    display: grid;
+    gap: 10px;
+}
+
+.about__g-stats > * {
+    padding: 16px 18px;
+    border-radius: var(--r-m);
+    background: rgba(255, 255, 255, .07);
+    border: 1px solid rgba(255, 255, 255, .1);
+}
+
+@media (max-width: 900px) {
+    .about { padding: 118px 0 var(--space-6); }
+    .about__guarantee { grid-template-columns: 1fr; }
+}
+
+/* контейнери-обгортки — розкладка задається дочірніми блоками */
+.about__steps { display: block; }
+
+/* =========================================================================
+   ШКАЛА CEFR
+   -------------------------------------------------------------------------
+   Сходи, а не таблиця: підйом видно фізично, і це єдина метафора,
+   яку не треба пояснювати підписом.
+
+   Мобільний макет базовий — трафік іде з Instagram.
+   ========================================================================= */
+
+.cefr {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  counter-reset: cefr;
+}
+
+.cefr__step {
+  position: relative;
+  padding: 20px 20px 20px 22px;
+  border-radius: 18px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+/* Кольорова смуга зліва насичується з рівнем: A1 бліда, C1 повна.
+   Це той самий підйом, прочитаний периферійним зором. */
+.cefr__step::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--violet);
+  opacity: calc(.3 + var(--i) * .14);
+}
+
+.cefr__mark {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
   margin-bottom: 8px;
 }
-.about__step h3 {
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 4px;
+
+.cefr__lvl {
+  font: 800 26px/1 var(--font-head);
+  color: var(--violet);
+  letter-spacing: -.02em;
 }
-.about__step p {
+
+.cefr__name {
   font-size: 13px;
-  color: var(--muted);
-  line-height: 1.45;
-}
-
-/* GRID CONTENT */
-.about__grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-}
-.about__card {
-  padding: 22px;
-  border-radius: var(--radius);
-  background: #16182a9e;
-  border: 1px solid rgba(255, 255, 255, .08);
-  box-shadow: var(--shadow-lg);
-}
-.about__card h3 {
-  margin: 0 0 8px;
-  font-size: 18px;
-  font-weight: 800;
-}
-.about__list {
-  margin: 10px 0 0;
-  padding-left: 18px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
   color: var(--muted);
 }
-.about__badges {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-.about__badges .badge {
-  background: rgba(255, 255, 255, .08);
-  border: 1px solid rgba(255, 255, 255, .12);
+
+.cefr__lead {
+  margin: 0 0 12px;
+  line-height: 1.6;
+  color: var(--muted);
+  font-size: 14.5px;
 }
 
-/* GUARANTEE BANNER */
-.about__guarantee {
-  margin-top: var(--space-6);
+.cefr__can {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
-  gap: 18px;
-  padding: 22px;
-  border-radius: var(--radius);
-  background: #220a35ab;
-  border: 1px solid rgba(139, 92, 246, .35);
-  box-shadow: var(--shadow-lg);
+  gap: 7px;
 }
-.about__g-content h3 {
-  margin: 0 0 6px;
-  font-size: clamp(20px, 2.4vw, 28px);
+
+/* Галочка абсолютним позиціонуванням, а не flex на li:
+   flex робить кожен текстовий фрагмент окремим елементом,
+   і рядок розсипається (та сама пастка, що була в списках на головній). */
+.cefr__can li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 14.5px;
+  line-height: 1.5;
 }
-.about__g-content p {
+
+.cefr__can li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: .55em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--violet);
+  opacity: .45;
+}
+
+.cefr__next {
   margin: 0;
+  font-size: 14px;
   color: var(--muted);
-}
-.about__g-stats {
-  display: flex;
-  justify-content: flex-end;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-.about__g-stats > div {
-  min-width: 140px;
-  text-align: center;
-  background: rgba(255, 255, 255, .08);
-  border: 1px solid rgba(255, 255, 255, .12);
-  border-radius: 12px;
-  padding: 12px;
-}
-.about__g-stats strong {
-  display: block;
-  font-size: 24px;
-  font-weight: 900;
-  font-family: Poppins, Inter, sans-serif;
-}
-.about__g-stats span {
-  color: var(--muted);
-  font-size: 12px;
 }
 
-/* RESPONSIVE */
-@media (max-width: 1024px) {
-  .about__steps-list {
-    grid-template-columns: repeat(2, minmax(200px, 1fr));
+.cefr__next b {
+  color: var(--text);
+}
+
+.cefr__next--top {
+  color: var(--violet);
+  font-weight: 600;
+}
+
+.cefr__foot {
+  margin: 20px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.cefr__foot a {
+  color: var(--violet);
+  font-weight: 600;
+}
+
+@media (min-width: 860px) {
+  /* Сходинка вища за попередню — підйом видно без жодного підпису */
+  .cefr {
+    grid-template-columns: repeat(6, 1fr);
+    align-items: end;
+    gap: 14px;
+  }
+
+  .cefr__step {
+    padding: 22px 18px;
+    margin-bottom: calc(var(--i) * 12px);
+  }
+
+  .cefr__step::before {
+    inset: auto 0 0 0;
+    width: auto;
+    height: 4px;
+  }
+
+  .cefr__can {
+    font-size: 14.5px;
   }
 }
-@media (max-width: 900px) {
-  .about__grid { grid-template-columns: 1fr; }
-  .about__guarantee { grid-template-columns: 1fr; }
-  .about__g-stats { justify-content: flex-start; }
-}
-@media (max-width: 600px) {
-  .about__brand { padding: 30px 18px; }
-  .about__brand-logo img { width: 92px; }
-  .about__steps-list { grid-template-columns: 1fr; }
-  .about__steps-list::before { display: none; }
+
+/* =========================================================================
+   СЕРТИФІКАТ
+   ========================================================================= */
+
+.cert-blk {
+  display: grid;
+  gap: 28px;
+  padding: 28px 22px;
+  border-radius: 24px;
+  background: linear-gradient(140deg, #14142A 0%, #1E1B3C 60%, #2A1E52 100%);
+  color: #fff;
 }
 
-/* Animation */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
+.cert-blk__title {
+  margin: 8px 0 12px;
+  font-size: 26px;
+  line-height: 1.25;
+}
+
+.cert-blk__lead {
+  margin: 0 0 22px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, .78);
+}
+
+.cert-blk__points {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.cert-blk__point h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+
+.cert-blk__point p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, .68);
+}
+
+/* ---------- макет документа ---------- */
+
+.cert-blk__doc {
+  display: grid;
+  place-items: center;
+}
+
+.cert-doc {
+  width: 100%;
+  max-width: 340px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #fff;
+  color: #0A0A16;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 22px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+  /* Легкий нахил: аркуш лежить на столі, а не вклеєний у сторінку */
+  transform: rotate(-2deg);
+}
+
+.cert-doc__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #6D4BFF;
+}
+
+.cert-doc__brand {
+  font: 800 11px/1 var(--font-head);
+  letter-spacing: .04em;
+}
+
+/* Прапорець — інлайновий SVG у розмітці, тут лише розмір.
+   Градієнти на такому розмірі зливалися в темну пляму. */
+.cert-doc__flag {
+  width: 26px;
+  height: 13px;
+  flex: none;
+}
+
+.cert-doc__kind {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 7.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #6D4BFF;
+  font-weight: 700;
+}
+
+.cert-doc__name {
+  margin: 6px 0 0;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 800;
+  color: #B9B6CC;
+}
+
+.cert-doc__levels {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-weight: 800;
+  color: #6D4BFF;
+}
+
+.cert-doc__levels i {
+  font-style: normal;
+  opacity: .5;
+}
+
+.cert-doc__levels .is-target {
+  font-size: 20px;
+}
+
+@media (min-width: 900px) {
+  .cert-blk {
+    padding: 44px;
+  }
+
+  .cert-blk__title {
+    font-size: 34px;
+  }
+
+  .cert-blk__points {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 26px;
+  }
+
+  .cert-doc {
+    max-width: 420px;
+    padding: 20px;
+  }
+
+  .cert-doc__name {
+    font-size: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cert-doc { transform: none; }
 }

@@ -6,15 +6,20 @@ import App from "./App.jsx";
 // Глобальні стилі
 import "../styles/variables.css";
 import "../styles/global.css";
+import "../styles/sections.css";
 import "../styles/home.css";
 import "../styles/navbar.css";
 import "../styles/footer.css";
 import "../styles/tabs.css";
 import "../styles/price-card.css";
 import "../styles/packages.css";
+import "../styles/builder.css";
 import "../styles/about.css";
 import "../styles/contacts.css";
 import "../styles/certificates.css";
+import "../styles/leveltest.css";
+import "../styles/legal.css";
+import "../styles/admin.css";
 
 function Root() {
   return (

@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_async_session
 from app.models.lead import Lead, LeadStatus, LeadKind
 import re
+from app.core.clientip import client_ip
 
 router = APIRouter(prefix="/api", tags=["leads"])
 
@@ -34,7 +35,7 @@ async def create_lead(data: dict, request: Request, session: AsyncSession = Depe
         comment = data.get("comment"),
         source = data.get("source", "site"),
         status = LeadStatus.NEW,
-        ip = request.client.host if request.client else None,
+        ip = client_ip(request),
         user_agent = request.headers.get("user-agent"),
         utm = data.get("utm"),
     )

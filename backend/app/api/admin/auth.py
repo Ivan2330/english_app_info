@@ -3,13 +3,13 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 import jwt
-from passlib.hash import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, Response, Request, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.security import verify_password
 from app.db.database import get_async_session
 from app.models.admin_user import AdminUser
 
@@ -100,7 +100,7 @@ async def admin_login(
     row = await session.execute(select(AdminUser).where(AdminUser.email == email))
     admin = row.scalar_one_or_none()
 
-    if not admin or not bcrypt.verify(password, admin.password_hash):
+    if not admin or not verify_password(password, admin.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
     token = make_token(admin.id)

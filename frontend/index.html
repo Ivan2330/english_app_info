@@ -2,8 +2,58 @@
 <html lang="uk">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Prime Academy — Онлайн школа англійської</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#6D4BFF" />
+
+    <!-- Заголовок у видачі Google. До 60 символів, інакше обрізається.
+         Спершу бренд, далі те, що людина шукає. -->
+    <title>Prime Academy — онлайн школа англійської мови</title>
+
+    <meta
+      name="description"
+      content="Індивідуальні уроки, заняття в парі та міні-групи до 6 людей. Підготовка до IELTS, TOEFL і НМТ, англійська для роботи та подорожей. Перший пробний урок безкоштовний."
+    />
+    <link rel="canonical" href="https://my-prime-academy.com/" />
+
+    <!-- Іконки: .ico для десктопних браузерів, PNG для вкладок,
+         apple-touch-icon для ярлика на iPhone (iOS не вміє прозорість,
+         тому там логотип уже на білому тлі). -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Превʼю при надсиланні посилання в Telegram, Instagram, Viber, Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Prime Academy" />
+    <meta property="og:locale" content="uk_UA" />
+    <meta property="og:url" content="https://my-prime-academy.com/" />
+    <meta property="og:title" content="Prime Academy — онлайн школа англійської мови" />
+    <meta
+      property="og:description"
+      content="Індивідуально, у парі або в міні-групі до 6 людей. Пробний урок безкоштовний, без картки."
+    />
+    <meta property="og:image" content="https://my-prime-academy.com/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Розмітка для Google: показує рейтинг, контакти й тип організації -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "Prime Academy",
+        "description": "Онлайн школа англійської мови: індивідуальні уроки, заняття в парі та міні-групи до 6 людей.",
+        "url": "https://my-prime-academy.com/",
+        "logo": "https://my-prime-academy.com/icon-512.png",
+        "image": "https://my-prime-academy.com/og-image.jpg",
+        "areaServed": "UA",
+        "sameAs": ["https://instagram.com/___prime_academy__"],
+        "availableLanguage": ["uk", "en"]
+      }
+    </script>
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-F01N8FPTZH"></script>
@@ -13,30 +63,14 @@
       gtag('js', new Date());
       gtag('config', 'G-F01N8FPTZH');
     </script>
-
-    <!-- Опис для пошуку -->
-    <meta
-      name="description"
-      content="Prime Academy — сучасна онлайн школа англійської мови. Індивідуальні та групові уроки для дітей і дорослих. Розмовна практика, сертифікати, гарантія результату!"
-    />
-
-    <!-- Фото для превʼю -->
-    <meta property="og:image" content="/assets/icons/logo_circle.png" />
-    <meta property="og:title" content="Prime Academy — Онлайн школа англійської" />
-    <meta
-      property="og:description"
-      content="Онлайн уроки англійської з професійними викладачами. Вчись із комфортом і впевненістю разом із Prime Academy."
-    />
-
-    <link rel="icon" type="image/png" href="/assets/icons/logo_circle.png" />
   </head>
 
   <body>
     <div id="root"></div>
 
-    <!-- === Tidio Chat Widget (єдиний, правильний) === -->
+    <!-- Tidio. Позиціювання віджета правиться в styles/global.css:
+         за замовчуванням він перекриває кнопки на мобільному. -->
     <script src="//code.tidio.co/gfavb4gqqzkizlg8rn1lhpymc2ln3dmt.js" async></script>
-    <!-- === /Tidio Chat Widget === -->
 
     <script type="module" src="/src/main.jsx"></script>
   </body>

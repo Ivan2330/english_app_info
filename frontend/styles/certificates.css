@@ -1,269 +1,270 @@
-/* src/pages/VerifyCertificate.css */
-.vc {
-    padding: 48px 0 64px;
+/* =========================================================
+   Перевірка сертифіката
+   =========================================================
+   Сторінку відкриває не учень, а той, хто перевіряє документ:
+   роботодавець, університет, батько. Він тримає сертифікат
+   перед очима й звіряє його з екраном — тому результат
+   показаний карткою, схожою на сам документ, а не таблицею.
+   ========================================================= */
+
+/* ---------- форма ---------- */
+.cv-form {
+    max-width: 640px;
+    padding: clamp(22px, 3vw, 32px);
+    border-radius: var(--r-l);
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-brd);
+    box-shadow: var(--shadow-s);
 }
 
-.vc .container {
-    max-width: 880px;
-    margin: 0 auto;
-    padding: 0 16px;
+.cv-form__label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
 }
 
-.vc__header {
-    margin-bottom: 24px;
-}
-
-.vc__title {
-    font-size: clamp(28px, 3vw, 36px);
-    line-height: 1.2;
-    margin: 0 0 8px;
-}
-
-.vc__lead {
-    color: rgba(255, 255, 255, 0.7);
-    margin: 0;
-}
-
-.vc-form {
+.cv-form__row {
     display: flex;
-    /* вирівнюємо в один ряд */
-    align-items: center;
-    /* кнопка і інпут по центру */
-    gap: 12px;
-    margin: 20px 0 24px;
+    gap: 10px;
+    margin-top: 12px;
 }
 
-@media (max-width: 640px) {
-    .vc-form {
-        flex-direction: column;
-        align-items: stretch;
-    }
+.cv-form__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 15px 18px;
+    border-radius: var(--r-m);
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, .7);
+    font-size: 17px;
+    font-weight: 700;
+    /* Номер читається символ за символом — моноширинний шрифт
+       і розрядка прибирають половину помилок при звірці з папером. */
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--ink);
+    transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
 }
 
-.vc-field {
-    flex: 1;
-    display: grid;
-    gap: 8px;
+.cv-form__input::placeholder {
+    color: var(--muted);
+    opacity: .55;
+    letter-spacing: .06em;
 }
 
-.vc-field--error .vc-input {
-    border-color: #d92d20;
-    box-shadow: 0 0 0 3px rgba(217, 45, 32, .1);
-}
-
-.vc-label {
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.vc-input-wrap {
-    position: relative;
-}
-
-.vc-input {
-    width: 100%;
-    height: 48px;
-    /* однакова висота з кнопкою */
-    border: 1px solid rgba(0, 0, 0, .12);
-    border-radius: 12px;
-    padding: 0 44px 0 14px;
-    font-size: 16px;
+.cv-form__input:focus {
     outline: none;
-    transition: .2s border-color, .2s box-shadow;
-    background: #fff;
+    border-color: var(--violet);
+    box-shadow: 0 0 0 4px rgba(109, 75, 255, .14);
 }
 
-.vc-input:focus {
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, .12);
+.cv-form__hint {
+    margin-top: 12px;
+    font-size: 13.5px;
+    color: var(--muted);
 }
 
-.vc-clear {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    border: 0;
-    background: transparent;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    line-height: 1;
-    color: rgba(0, 0, 0, .55);
+/* ---------- повідомлення ---------- */
+.cv-msg {
+    max-width: 640px;
+    margin-top: var(--space-4);
+    padding: clamp(20px, 2.6vw, 28px);
+    border-radius: var(--r-l);
+    font-size: 15px;
+    line-height: 1.65;
 }
 
-.vc-clear:hover {
-    background: rgba(0, 0, 0, .05);
-}
-
-.vc-hint {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.55);
-    margin: 0 4px;
-}
-
-.vc-hint--error {
-    color: #d92d20;
-}
-
-.vc-btn {
-    height: 48px;
-    /* однакова висота */
-    line-height: 48px;
-    /* текст по центру */
-    padding: 0 20px;
-    border-radius: 12px;
-    border: 1px solid #4f46e5;
-    background: #4f46e5;
-    color: #fff;
-    font-weight: 600;
-    cursor: pointer;
-    transition: .2s transform, .2s opacity, .2s background;
-}
-
-.vc-btn:hover {
-    opacity: .95;
-}
-
-.vc-btn:disabled {
-    opacity: .6;
-    cursor: not-allowed;
-}
-
-.vc-btn--ghost {
-    background: #fff;
-    color: #111827;
-    border-color: rgba(0, 0, 0, .16);
-}
-
-.vc-btn--ghost:hover {
-    background: rgba(0, 0, 0, .03);
-}
-
-.vc-alert {
-    border-radius: 12px;
-    padding: 12px 14px;
-    margin: 8px 0 24px;
-    font-size: 14px;
-    line-height: 1.45;
-}
-
-.vc-alert--error {
-    background: #fef2f2;
-    color: #7f1d1d;
-    border: 1px solid #fecaca;
-}
-
-.vc-alert--warn {
-    background: #fffbeb;
-    color: #78350f;
-    border: 1px solid #fde68a;
-}
-
-.vc-card {
-    border: 1px solid rgba(0, 0, 0, .08);
-    border-radius: 16px;
-    padding: 18px;
-    background: #fff;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, .05);
-    color: #111;
-    /* тепер чорний текст */
-}
-
-.vc-card__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 10px;
-}
-
-.vc-card__title {
+.cv-msg h3 {
+    font-family: var(--font-text);
     font-size: 18px;
-    margin: 0;
-    color: #111;
-    font-weight: 600;
+    font-weight: 800;
+    letter-spacing: 0;
 }
 
-.vc-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    height: 28px;
-    padding: 0 10px;
+.cv-msg p { margin-top: 10px; color: var(--muted); }
+
+.cv-msg--invalid {
+    background: rgba(255, 255, 255, .6);
+    border: 1px dashed var(--line);
+}
+
+.cv-msg--revoked {
+    background: rgba(255, 122, 89, .1);
+    border: 1px solid rgba(255, 122, 89, .35);
+}
+
+.cv-msg--error {
+    background: rgba(255, 122, 89, .12);
+    border: 1px solid rgba(255, 122, 89, .4);
+    color: var(--ink);
+}
+
+/* ---------- картка сертифіката ---------- */
+.cert {
+    position: relative;
+    max-width: 780px;
+    margin-top: var(--space-5);
+    padding: clamp(26px, 4vw, 44px);
+    border-radius: var(--r-xl);
+    background:
+        linear-gradient(140deg, rgba(109, 75, 255, .06), rgba(31, 214, 232, .06)),
+        rgba(255, 255, 255, .72);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-brd);
+    box-shadow: var(--shadow-m);
+    overflow: hidden;
+}
+
+/* Кольорова смуга зверху — як на бланку документа */
+.cert::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--violet), var(--cyan), var(--lime));
+}
+
+.cert__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.cert__kind {
+    font-size: 12.5px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--violet);
+}
+
+.cert__name {
+    font-family: var(--font-head);
+    font-size: clamp(24px, 3.4vw, 34px);
+    font-weight: 700;
+    letter-spacing: -.035em;
+    line-height: 1.2;
+    margin-top: 10px;
+}
+
+.cert__org { margin-top: 6px; font-size: 15px; color: var(--muted); }
+
+.cert__badge {
+    flex: none;
+    padding: 8px 18px;
     border-radius: 999px;
     font-size: 13px;
+    font-weight: 800;
+    color: var(--ink);
+    background: var(--lime);
+    box-shadow: 0 8px 22px rgba(200, 244, 94, .45);
+}
+
+.cert__course {
+    margin-top: var(--space-4);
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink);
     font-weight: 600;
+}
+
+/* ---------- шкала рівнів ---------- */
+.cert__levels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: var(--space-4);
+}
+
+.cert__lv {
+    padding: 9px 15px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--muted);
+    background: rgba(10, 10, 22, .05);
     border: 1px solid transparent;
 }
 
-.vc-badge--valid {
-    background: #ecfdf5;
-    color: #065f46;
-    border-color: #a7f3d0;
+/* Пройдений діапазон: від стартового рівня до досягнутого */
+.cert__lv.is-on {
+    color: var(--ink);
+    background: rgba(109, 75, 255, .12);
+    border-color: rgba(109, 75, 255, .24);
 }
 
-.vc-badge--revoked {
-    background: #fff7ed;
-    color: #9a3412;
-    border-color: #fed7aa;
+/* Досягнутий рівень — те, заради чого видано документ */
+.cert__lv.is-target {
+    color: #fff;
+    background: linear-gradient(120deg, var(--violet), var(--cyan));
+    border-color: transparent;
+    box-shadow: 0 10px 26px rgba(109, 75, 255, .3);
 }
 
-.vc-badge--invalid {
-    background: #fef2f2;
-    color: #7f1d1d;
-    border-color: #fecaca;
-}
-
-.vc-grid {
+/* ---------- факти ---------- */
+.cert__facts {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px 16px;
-    margin-top: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 16px 24px;
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line);
+}
+
+.cert__facts dt {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.cert__facts dd {
+    margin: 6px 0 0;
+    font-size: 15.5px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+/* Номер — моноширинним, як і в полі вводу: око звіряє символ за символом */
+.cert__facts div:first-child dd {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    letter-spacing: .04em;
+}
+
+.cert__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--muted);
 }
 
 @media (max-width: 560px) {
-    .vc-grid {
-        grid-template-columns: 1fr;
-    }
+    .cv-form__row { flex-direction: column; }
+    .cv-form__row .btn { width: 100%; }
+    .cert__top { flex-direction: column; }
+    .cert__foot { flex-direction: column; align-items: flex-start; }
+    .cert__foot .btn { width: 100%; }
 }
 
-.vc-row {
-    display: grid;
-    grid-template-columns: 160px 1fr;
-    gap: 8px;
-    padding: 8px 0;
-    border-bottom: 1px dashed rgba(0, 0, 0, .06);
-}
-
-.vc-row:last-child {
-    border-bottom: 0;
-}
-
-.vc-key {
-    color: #444;
-    /* темно-сірий для підписів */
-    font-size: 14px;
-}
-
-.vc-val {
-    font-weight: 600;
-    font-size: 15px;
-    color: #111;
-    /* чорний */
-}
-
-.vc-note {
-    margin: 8px 0 4px;
-    color: #111;
-    /* чорний */
-}
-
-.vc-actions {
-    margin-top: 14px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
+/* Друк: людина може роздрукувати результат перевірки як підтвердження */
+@media print {
+    .navbar, .footer, .mcta, .cv-form, .phero__actions { display: none !important; }
+    .cert { box-shadow: none; border: 1px solid #ccc; }
 }

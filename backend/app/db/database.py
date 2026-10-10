@@ -32,10 +32,20 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 async def create_all():
+    """⚠️ НЕ ВИКОРИСТОВУВАТИ. Лишено тільки для локальних експериментів.
+
+    Схемою керує Alembic:  alembic upgrade head
+
+    create_all() вміє лише СТВОРЮВАТИ відсутні таблиці — він не робить ALTER.
+    Тобто нові колонки в існуючій таблиці він мовчки проігнорує, і розбіжність
+    між моделлю та базою випливе вже на проді.
+    """
     # ВАЖЛИВО: імпортуємо моделі, щоб вони зареєструвалися в metadata
     from app.models.package import Package  # noqa
     from app.models.certificate import Certificate  # noqa
     from app.models.lead import Lead  # noqa
     from app.models.admin_user import AdminUser  # noqa
+    from app.models.order import Order, Payment  # noqa
+    from app.models.visit import PageVisit  # noqa
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

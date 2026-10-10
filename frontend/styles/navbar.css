@@ -1,185 +1,260 @@
-/* блокування скролу сторінки, коли меню відкрите */
-.body--lock { overflow: hidden; }
+/* =========================================================
+   Навігація — скляна «пігулка», що прилипає до верху
+   ========================================================= */
 
-/* ===== Sticky glass navbar (десктоп) ===== */
 .navbar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  backdrop-filter: saturate(1.1) blur(8px);
-  background: linear-gradient(180deg, rgba(10, 12, 20, .55), rgba(10, 12, 20, .35));
-}
-@supports (padding: max(0px)) {
-  .navbar { padding-top: max(0px, env(safe-area-inset-top)); }
+    position: fixed;
+    top: 14px;
+    left: 0;
+    right: 0;
+    z-index: 150;
 }
 
 .navbar__inner {
-  height: 68px;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 16px;
-}
-
-/* Brand */
-.navbar__brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 8px;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--text);
-}
-.navbar__brand:hover { background: rgba(255, 255, 255, .06); }
-.navbar__logo { width: 28px; height: 28px; }
-.navbar__title { font-weight: 800; letter-spacing: .2px; font-family: Poppins, Inter, sans-serif; }
-
-/* Links — десктоп */
-.navbar__nav { display: flex; justify-content: center; gap: 18px; }
-.navlink { position: relative; padding: 6px 8px; border-radius: 8px; color: var(--muted); font-weight: 600; }
-.navlink:hover { color: #fff; background: rgba(255, 255, 255, .05); }
-.navlink.active {
-  color: #fff;
-  background: rgba(139, 92, 246, .12);
-  box-shadow: inset 0 0 0 1px rgba(139, 92, 246, .25);
-}
-
-/* Правий блок (CTA + бургер) */
-.navbar__cta { display: flex; align-items: center; gap: 8px; }
-
-/* Бургер прихований на десктопі */
-.navbar__menuBtn { display: none; }
-.navbar__menuBtn:focus-visible { outline: 2px solid rgba(139,92,246,.6); outline-offset: 2px; }
-
-.navbar__menuIcon,
-.navbar__menuIcon::before,
-.navbar__menuIcon::after {
-  display: block; position: relative;
-  width: 18px; height: 2px; background: #fff; border-radius: 2px; margin: auto;
-  transition: transform .25s ease, opacity .2s ease;
-}
-.navbar__menuIcon::before,
-.navbar__menuIcon::after {
-  content: ""; position: absolute; left: 0; right: 0;
-}
-.navbar__menuIcon::before { transform: translateY(-6px); }
-.navbar__menuIcon::after  { transform: translateY(6px); }
-
-/* Анімація при відкритті */
-.navbar--open .navbar__menuIcon { background: transparent; }
-.navbar--open .navbar__menuIcon::before { transform: rotate(45deg); }
-.navbar--open .navbar__menuIcon::after  { transform: rotate(-45deg); }
-
-/* Нижній глоу */
-.navbar__border {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, .45), transparent);
-}
-
-/* ===== Мобільна адаптація ===== */
-@media (max-width: 880px) {
-  .navbar__inner {
-    height: 64px;          /* стало вище */
-    gap: 14px;
-    padding-block: 10px;   /* трохи більше простору */
-  }
-
-  .navbar__logo { width: 26px; height: 26px; }
-  .navbar__title { font-size: 16px; }
-
-  /* ховаємо десктопне меню */
-  .navbar__nav { display: none; }
-
-  /* показуємо бургер і лишаємо CTA */
-  .navbar__menuBtn {
-    display: inline-flex;
-    justify-content: center;
+    display: flex;
     align-items: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    background: rgba(255,255,255,.06);
-    border: 1px solid rgba(255,255,255,.08);
-    margin-top: 2px; /* трохи нижче вирівнює кнопку */
-  }
+    gap: 20px;
+    padding: 10px 10px 10px 20px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .58);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-brd);
+    box-shadow: var(--shadow-s);
+    transition: background .4s var(--ease), box-shadow .4s var(--ease);
+}
 
-  /* ущільнена кнопка CTA */
-  .navbar__ctaBtn :where(button, a),
-  .navbar__cta :where(button, a) {
-    padding: 10px 14px;
-    font-size: 14px;
-    line-height: 1;
-    border-radius: 14px;
+/* Клас вішається зі скролом — див. Navbar.jsx */
+.navbar.is-stuck .navbar__inner {
+    background: rgba(255, 255, 255, .85);
+    box-shadow: var(--shadow-m);
+}
+
+/* Стара тема малювала окрему лінію під шапкою — у скляній вона зайва */
+.navbar__border { display: none; }
+
+.navbar__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     white-space: nowrap;
-  }
 }
 
-@media (max-width: 560px) {
-  .navbar__inner {
-    height: 60px;          /* стало вищим на дуже малих */
-    padding-block: 8px;
-  }
-  .navbar__title { display: none; } /* тільки іконка */
-  .navbar__ctaBtn :where(button, a),
-  .navbar__cta :where(button, a) {
-    padding: 8px 12px;
-    font-size: 13px;
-  }
+.navbar__logo {
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border-radius: 50%;
+    object-fit: contain;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
 }
 
-/* ===== Мобільне меню + бекдроп ===== */
+.navbar__title {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 16.5px;
+    letter-spacing: -.04em;
+    color: var(--ink);
+}
+
+.navbar__nav {
+    display: flex;
+    gap: 2px;
+    margin-left: auto;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* Бренд — це <button>, тож скидаємо кнопкові дефолти */
+.navbar__brand {
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+.navlink {
+    padding: 9px 15px;
+    border-radius: 999px;
+    color: var(--ink);
+    white-space: nowrap;
+    transition: background .25s, color .25s;
+}
+
+.navlink:hover {
+    background: rgba(109, 75, 255, .09);
+    color: var(--violet);
+}
+
+.navlink.active {
+    background: rgba(109, 75, 255, .12);
+    color: var(--violet);
+    font-weight: 700;
+}
+
+/* .navbar__cta — контейнер для CTA і бургера, самі кнопки всередині */
+.navbar__cta {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.navbar__ctaBtn { display: inline-flex; }
+
+/* «Кабінет учня» — текстове посилання, не кнопка: воно не має конкурувати
+   з головною дією «Пробний урок». На планшеті й телефоні ховається,
+   бо там його місце в бургер-меню. */
+.navbar__platform {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--muted);
+    white-space: nowrap;
+    padding: 9px 4px;
+    transition: color .25s var(--ease);
+}
+
+.navbar__platform:hover { color: var(--violet); }
+
+@media (max-width: 1080px) {
+    .navbar__platform { display: none; }
+}
+
+/* компактний варіант кнопки (CTAButton size="sm") */
+.btn--sm {
+    padding: 11px 20px;
+    font-size: 14px;
+}
+
+/* ---------- бургер ---------- */
+.navbar__menuBtn {
+    display: none;
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border-radius: 999px;
+    background: rgba(10, 10, 22, .06);
+    place-items: center;
+    margin-left: auto;
+    color: var(--ink);
+}
+
+.navbar__menuIcon {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    position: relative;
+    transition: background .25s;
+}
+
+.navbar__menuIcon::before,
+.navbar__menuIcon::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 18px;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: transform .3s var(--ease), top .3s var(--ease);
+}
+
+.navbar__menuIcon::before { top: -6px; }
+.navbar__menuIcon::after { top: 6px; }
+
+.navbar__menuBtn[aria-expanded="true"] .navbar__menuIcon { background: transparent; }
+.navbar__menuBtn[aria-expanded="true"] .navbar__menuIcon::before { top: 0; transform: rotate(45deg); }
+.navbar__menuBtn[aria-expanded="true"] .navbar__menuIcon::after { top: 0; transform: rotate(-45deg); }
+
+/* ---------- мобільне меню ----------
+   Видимістю керує клас .navbar--open на <header>, а не власний клас меню:
+   саме так влаштована розмітка в Navbar.jsx. */
+.mobileNav,
 .mobileNav__backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(10,12,20,.5);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .2s ease;
-  z-index: 48;
+    display: none;
 }
-.navbar--open .mobileNav__backdrop { opacity: 1; pointer-events: auto; }
+
+.navbar--open .mobileNav,
+.navbar--open .mobileNav__backdrop {
+    display: block;
+}
 
 .mobileNav {
-  position: fixed;
-  left: 0; right: 0;
-  top: 64px; /* синхронізовано з хедером */
-  transform: translateY(-12px);
-  opacity: 0;
-  pointer-events: none;
-  transition: transform .25s ease, opacity .2s ease;
-  z-index: 49;
+    position: fixed;
+    inset: 0;
+    z-index: 148;
 }
-@supports (padding: max(0px)) {
-  .mobileNav { top: calc(64px + max(0px, env(safe-area-inset-top))); }
-}
-@media (min-width: 880px) { .mobileNav, .mobileNav__backdrop { display: none; } }
 
-.navbar--open .mobileNav {
-  transform: translateY(0);
-  opacity: 1;
-  pointer-events: auto;
+.mobileNav__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 147;
+    background: rgba(246, 244, 255, .94);
+    backdrop-filter: blur(26px);
+    -webkit-backdrop-filter: blur(26px);
 }
 
 .mobileNav__inner {
-  margin: 0 auto;
-  max-width: min(100%, 960px);
-  background: linear-gradient(180deg, rgba(10,12,20,.96), rgba(10,12,20,.9));
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255,255,255,.08);
-  border-bottom: 1px solid rgba(255,255,255,.08);
-  padding: 8px;
+    position: relative;
+    padding: 96px 20px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 100%;
+    overflow-y: auto;
+    animation: mobileNavIn .3s var(--ease);
 }
-.mobileNav__item {
-  width: 100%;
-  text-align: left;
-  padding: 14px 12px;
-  border-radius: 10px;
-  font-weight: 700;
-  color: #fff;
-  background: transparent;
-}
-.mobileNav__item:hover { background: rgba(255,255,255,.06); }
 
-/* гарантія, що CTA всередині меню не з’явиться */
-.mobileNav__cta { display: none !important; }
+/* Блокування скролу за меню — клас вішається на <html> */
+.body--lock { overflow: hidden; }
+
+@keyframes mobileNavIn {
+    from { opacity: 0; transform: translateY(14px); }
+}
+
+.mobileNav__item {
+    padding: 17px 20px;
+    border-radius: var(--r-m);
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--ink);
+    background: rgba(255, 255, 255, .6);
+    border: 1px solid var(--glass-brd);
+}
+
+.mobileNav__item.active {
+    background: linear-gradient(120deg, var(--violet), var(--cyan));
+    color: #fff;
+    border-color: transparent;
+}
+
+/* Посилання, а не кнопка: вирівнюємо так само, як решту пунктів */
+.mobileNav__item--platform {
+    display: block;
+    text-align: left;
+    color: var(--violet);
+    background: rgba(109, 75, 255, .08);
+    border-color: rgba(109, 75, 255, .22);
+}
+
+@media (max-width: 1080px) {
+    .navbar__nav { display: none; }
+    .navbar__ctaBtn { display: none; }
+    .navbar__menuBtn { display: grid; }
+}
+
+@media (max-width: 560px) {
+    .navbar__logo { width: 40px; height: 40px; }
+    .navbar__inner { gap: 10px; }
+    .navbar__brand { gap: 8px; }
+}
+
+@media (max-width: 400px) {
+    .navbar__title { font-size: 15px; }
+    .navbar__inner { padding-left: 14px; }
+}

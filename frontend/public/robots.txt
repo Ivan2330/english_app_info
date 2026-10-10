@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Адмінка не має потрапляти в пошук
+Disallow: /admin
+Disallow: /admin/
+
+Sitemap: https://my-prime-academy.com/sitemap.xml
