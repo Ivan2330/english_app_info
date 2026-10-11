@@ -38,6 +38,7 @@ python-multipart>=0.0.9
 orjson>=3.10        # швидкий JSON-енкодер; FastAPI сам підхопить, якщо встановлено
 email-validator>=2.1 # валідація емейлів у схемах (за бажанням)
 httpx>=0.27          # на майбутнє: вебхуки/зовнішні запити
+cryptography>=43
 # slowapi>=0.1.9     # rate limiting (опційно, коли додаватимемо ліміти)
 aiofiles
 

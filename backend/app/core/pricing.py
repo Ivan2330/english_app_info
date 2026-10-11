@@ -504,26 +504,50 @@ def refund_amount(paid: int, lessons_used: int, base_rate: int,
 # Є в усіх конкурентів, у нас не було. Не знижує ставку в каталозі —
 # застосовується до конкретного замовлення, тому живе тут, а не в пакеті.
 
-REFERRAL_BONUS = 500        # ₴ на рахунок і тому, хто привів, і новому учню
+# Реферальна знижка — ВІДСОТОК, і той самий для обох сторін (рішення власника
+# 10.10.2026). Було 500 ₴ фіксованим бонусом; фіксована сума на малому пакеті
+# означала 15% знижки, а на великому — півтора, тобто працювала рівно навпаки
+# до того, як мала б: найменше заохочувала найбільшу покупку.
+#
+# Дві РІЗНІ підстави, бо це дві різні людини в різні моменти часу:
+#   referral        — новачок прийшов із чужим кодом, знижка на цю покупку;
+#   referral_reward — той, хто привів, купує НАСТУПНОГО разу.
+# Одна підстава на двох не працює: той, хто привів, у момент покупки друга
+# нічого не купує, і дати йому відсоток просто нікуди.
+REFERRAL_PERCENT = 20
+
 FAMILY_DISCOUNT_PERCENT = 10    # другий і кожен наступний член родини
 SECOND_COURSE_DISCOUNT_PERCENT = 10    # тематичний курс поверх активного абонемента
 
-# Стеля на всі знижки разом. Без неї сімейна + другий курс + реферальний бонус
+# Стеля на всі знижки разом. Без неї сімейна + другий курс + реферальна
 # на малому пакеті дають мінус третину ціни, і замовлення йде в збиток.
-# Вважаємо від ціни пакета, а не від ставки: на 6 уроках 500 ₴ бонусу — це 15%,
-# а на 96 — менше ніж півтора.
+#
+# Після переходу реферальної на 20% стеля дорівнює їй: реферальна сама по собі
+# вибирає весь бюджет знижок, і сімейна чи другий курс поверх неї вже нічого
+# не додають. Це свідомо. Підняти стелю означало б −30% і −40% на комбінаціях,
+# а наша маржа на найбільших пакетах такого не витримує: ставка 340 ₴ це вже
+# мінус 38% від вхідної 550.
 MAX_TOTAL_DISCOUNT_PERCENT = 20
 
-# Мінімальний чек, з якого реферальний бонус узагалі має сенс. На пробному
-# чи одному уроці він перетворює замовлення на роздачу.
-REFERRAL_MIN_ORDER = 3000   # ₴
+# REFERRAL_MIN_ORDER прибрано разом із фіксованим бонусом. Він існував рівно
+# тому, що 500 ₴ на пробному чи одному уроці перетворювали замовлення
+# на роздачу. Відсоток масштабується сам: 20% від малого чека — мала сума.
 
 
 #: Людські назви для листів, адмінки й чеків.
 DISCOUNT_LABELS = {
-    "referral": "Реферальний бонус",
+    "referral": "Привів друг",
+    "referral_reward": "Бонус за приведеного друга",
     "family": "Сімейна знижка",
     "second_course": "Другий курс поверх абонемента",
+}
+
+#: Підстави, що дають відсоток, і скільки саме.
+DISCOUNT_PERCENTS = {
+    "referral": REFERRAL_PERCENT,
+    "referral_reward": REFERRAL_PERCENT,
+    "family": FAMILY_DISCOUNT_PERCENT,
+    "second_course": SECOND_COURSE_DISCOUNT_PERCENT,
 }
 
 
@@ -531,55 +555,47 @@ def discount_breakdown(amount_kop: int, kinds: list[str]) -> dict:
     """Порахувати знижку на замовлення.
 
     `amount_kop` — ціна пакета в копійках, `kinds` — перелік підстав
-    («referral», «family», «second_course»).
+    («referral», «referral_reward», «family», «second_course»).
 
-    ПОРЯДОК ЗАСТОСУВАННЯ ВАЖЛИВИЙ. Відсоткові знижки рахуються від
-    **початкової** ціни, а не послідовно одна від одної: 10% і 10% поспіль
-    дають 19%, а не 20, і пояснити клієнту, звідки взявся зайвий відсоток,
-    неможливо. Фіксований реферальний бонус віднімається після відсоткових.
+    ПОРЯДОК ЗАСТОСУВАННЯ ВАЖЛИВИЙ. Відсотки рахуються від **початкової** ціни
+    й підсумовуються, а не накладаються один на одного: 10% і 10% поспіль
+    дають 19%, а не 20, і пояснити клієнту, куди подівся відсоток, неможливо.
+
+    Після переходу реферальної знижки на відсоток фіксованих бонусів не
+    лишилося взагалі, тому гілки з окремим `bonus` більше немає: одна стеля,
+    одне множення, менше місць для розбіжності між чеком і банком.
+
+    `referral` і `referral_reward` разом не підсумовуються до 40% — стеля
+    зрізає. Та й зійтися вони можуть лише в однієї людини, що привела сама
+    себе, а це відпадає ще на перевірці контактів.
 
     Повертає словник з розкладкою — саме він лягає в замовлення й на чек.
     Показувати одну підсумкову цифру без пояснення не можна: людина не може
     перевірити, чи її знижку взагалі врахували.
     """
-    kinds = [k for k in dict.fromkeys(kinds) if k in DISCOUNT_LABELS]
+    kinds = [k for k in dict.fromkeys(kinds) if k in DISCOUNT_PERCENTS]
     lines: list[dict] = []
 
-    percent = 0
-    if "family" in kinds:
-        percent += FAMILY_DISCOUNT_PERCENT
-    if "second_course" in kinds:
-        percent += SECOND_COURSE_DISCOUNT_PERCENT
+    raw_percent = sum(DISCOUNT_PERCENTS[k] for k in kinds)
+    percent = min(raw_percent, MAX_TOTAL_DISCOUNT_PERCENT)
 
-    # стеля застосовується до відсоткової частини
-    percent = min(percent, MAX_TOTAL_DISCOUNT_PERCENT)
+    for k in kinds:
+        lines.append({
+            "kind": k,
+            "label": DISCOUNT_LABELS[k],
+            "percent": DISCOUNT_PERCENTS[k],
+        })
 
-    percent_value = amount_kop * percent // 100
-
-    if "family" in kinds:
-        lines.append({"kind": "family", "label": DISCOUNT_LABELS["family"],
-                      "percent": FAMILY_DISCOUNT_PERCENT})
-    if "second_course" in kinds:
-        lines.append({"kind": "second_course", "label": DISCOUNT_LABELS["second_course"],
-                      "percent": SECOND_COURSE_DISCOUNT_PERCENT})
-
-    bonus = 0
-    if "referral" in kinds and amount_kop >= REFERRAL_MIN_ORDER * 100:
-        bonus = REFERRAL_BONUS * 100
-        lines.append({"kind": "referral", "label": DISCOUNT_LABELS["referral"],
-                      "amount": bonus})
-
-    total = percent_value + bonus
-
-    # Стеля ще раз, уже разом із фіксованим бонусом
-    cap = amount_kop * MAX_TOTAL_DISCOUNT_PERCENT // 100
-    capped = total > cap
-    total = min(total, cap)
+    total = amount_kop * percent // 100
 
     return {
         "lines": lines,
         "percent": percent,
         "total": total,
-        "capped": capped,
+        # `capped` лишається в відповіді: адмінка показує ним, що заявлені
+        # підстави дали б більше, ніж дозволяє стеля. Без цього менеджер
+        # бачив би суму, яка не збігається з переліком чипів, і вважав би
+        # це помилкою розрахунку.
+        "capped": raw_percent > MAX_TOTAL_DISCOUNT_PERCENT,
         "final": amount_kop - total,
     }

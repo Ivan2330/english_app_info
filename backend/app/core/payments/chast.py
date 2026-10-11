@@ -48,6 +48,7 @@ import base64
 import hashlib
 import hmac
 import json
+from datetime import date
 from typing import Any, Dict, Optional
 
 import httpx
@@ -101,7 +102,7 @@ def verify_callback(body_bytes: bytes, received_signature: str) -> bool:
     """
     if not received_signature:
         return False
-    return hmac.compare_digest(_sign(body_bytes), received_signature)
+    return hmac.compare_digest(_sign(body_bytes).encode(), received_signature.encode())
 
 
 def _headers(body_bytes: bytes) -> Dict[str, str]:
@@ -137,9 +138,9 @@ async def create_order(
     payload = {
         "store_order_id": order_id,
         "client_phone": client_phone or "",
-        "title": f"Prime Academy · замовлення {order_id}",
-        "amount": round(amount_kop / 100, 2),   # банк очікує гривні з копійками
-        "parts_count": parts_count,
+        "total_sum": round(amount_kop / 100, 2),
+        "invoice": {"number": order_id, "date": date.today().isoformat(), "source": "INTERNET"},
+        "available_programs": [{"type": "payment_installments", "available_parts_count": [parts_count]}],
         "products": products,
         "result_callback": result_callback or settings.mono_chast_callback_url,
     }
@@ -175,7 +176,7 @@ async def get_state(order_id: str) -> Dict[str, Any]:
     Потрібно тому, що колбеки приходять лише на два статуси з семи.
     Без цього виклику замовлення зависають у проміжних станах назавжди.
     """
-    payload = {"store_order_id": order_id}
+    payload = {"order_id": order_id}
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
 
     async with httpx.AsyncClient(timeout=settings.mono_chast_timeout) as client:
@@ -201,7 +202,7 @@ async def confirm(order_id: str) -> Dict[str, Any]:
     товару» — це зарахування пакета учню. Поки магазин не підтвердив,
     банк не завершує оформлення розстрочки.
     """
-    payload = {"store_order_id": order_id}
+    payload = {"order_id": order_id}
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
 
     async with httpx.AsyncClient(timeout=settings.mono_chast_timeout) as client:

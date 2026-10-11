@@ -11,6 +11,11 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Optional
+import base64
+import binascii
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import ec
 
 import httpx
 
@@ -53,7 +58,7 @@ async def create_invoice(
             "destination": destination,
             "comment": destination,
         },
-        "redirectUrl": redirect_url or settings.mono_plata_redirect_url,
+        "redirectUrl": redirect_url or f"{settings.mono_plata_redirect_url}?order={order_public_id}",
         "webHookUrl": webhook_url or settings.mono_plata_webhook_url,
         # Рахунок не має висіти вічно: покинуті оплати мають закриватися самі,
         # інакше в адмінці накопичуються «вічно очікує оплати».
@@ -77,6 +82,26 @@ async def create_invoice(
         raise PlataError(f"plata відповіла {resp.status_code}", raw=resp.text)
 
     return resp.json()
+
+
+async def verify_webhook(body: bytes, signature: str) -> bool:
+    if not signature:
+        return False
+    try:
+        async with httpx.AsyncClient(timeout=settings.mono_plata_timeout) as client:
+            response = await client.get(
+                f"{settings.mono_plata_base_url}/api/merchant/pubkey", headers=_headers()
+            )
+            response.raise_for_status()
+        key = serialization.load_pem_public_key(base64.b64decode(response.json()["key"], validate=True))
+        if not isinstance(key, ec.EllipticCurvePublicKey):
+            raise PlataError("Unexpected bank public key")
+        key.verify(base64.b64decode(signature, validate=True), body, ec.ECDSA(hashes.SHA256()))
+        return True
+    except (InvalidSignature, binascii.Error):
+        return False
+    except (httpx.HTTPError, ValueError, KeyError) as exc:
+        raise PlataError("Cannot verify bank signature") from exc
 
 
 async def get_invoice_status(invoice_id: str) -> Dict[str, Any]:

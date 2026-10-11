@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import PageHero from "../components/PageHero.jsx";
-import { getOrderState } from "../api/orders.js";
+import { getOrderState, payOrder } from "../api/orders.js";
 import { money } from "../lib/labels.js";
 
 /**
@@ -27,6 +27,8 @@ export default function PaymentResult() {
   const [state, setState] = useState(null);
   const [failed, setFailed] = useState(false);
   const [polling, setPolling] = useState(true);
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState("");
   const attempts = useRef(0);
 
   useEffect(() => {
@@ -39,11 +41,17 @@ export default function PaymentResult() {
         const data = await getOrderState(publicId);
         if (cancelled) return;
         setState(data);
+        setFailed(false);
 
         const status = data?.order?.status;
-        if (status === "paid" || status === "partial") {
+        if (data?.payments?.length && data.payments.every(p => ["failed", "expired"].includes(p.status))) {
+          setPolling(false);
+          return;
+        }
+        if (["paid", "partial", "refunded", "cancelled"].includes(status)) {
           setPolling(false);
           sessionStorage.removeItem("pa_last_order");
+          if (data?.order?.package_slug) sessionStorage.removeItem(`pa_checkout_key:${data.order.package_slug}`);
           return;
         }
       } catch {
@@ -65,12 +73,28 @@ export default function PaymentResult() {
   const order = state?.order;
   const paid = order?.status === "paid";
   const partial = order?.status === "partial";
+  const refunded = order?.status === "refunded";
+  const rejected = state?.payments?.length > 0 && state.payments.every(p => ["failed", "expired"].includes(p.status));
+
+  async function retryCard() {
+    if (retrying) return;
+    setRetrying(true);
+    setRetryError("");
+    try {
+      const result = await payOrder(publicId, { method: "card" });
+      if (result.checkout_url) window.location.assign(result.checkout_url);
+      else window.location.reload();
+    } catch {
+      setRetryError("Не вдалося перевірити оплату. Зверніться до координатора з номером замовлення.");
+      setRetrying(false);
+    }
+  }
 
   return (
     <>
       <PageHero
         crumb="Оплата"
-        title={paid ? "Оплата пройшла" : partial ? "Першу частину отримано" : "Перевіряємо оплату"}
+        title={paid ? "Оплата пройшла" : partial ? "Часткова оплата або повернення" : order?.status === "refunded" ? "Кошти повернуто" : "Перевіряємо оплату"}
       />
 
       <section className="sec sec--tight">
@@ -84,11 +108,11 @@ export default function PaymentResult() {
 
           {publicId && (paid || partial) && (
             <div className="pr pr--ok">
-              <h2>{paid ? "Дякуємо, оплата отримана" : "Перший платіж пройшов"}</h2>
+              <h2>{paid ? "Дякуємо, оплата отримана" : "Потрібне уточнення суми"}</h2>
               <p>
                 Замовлення <b className="adm-mono">{order.public_id}</b> на пакет
                 «{order.package_name}».
-                {partial && " Решту банк спише за графіком, нічого робити не треба."}
+                {partial && " Звʼяжіться з координатором, щоб уточнити залишок після оплати або повернення."}
               </p>
               <dl className="pr__facts">
                 <div><dt>Сума</dt><dd>{money(order.amount_uah)}</dd></div>
@@ -105,6 +129,9 @@ export default function PaymentResult() {
           {publicId && !paid && !partial && polling && (
             <div className="pr">
               <h2>Чекаємо підтвердження від банку</h2>
+              {state?.payments?.some(p => p.method === "chast" && ["processing", "waiting_for_store_confirm"].includes(p.status)) && (
+                <p>Відкрийте застосунок monobank і підтвердьте заявку на Покупку Частинами.</p>
+              )}
               <p>
                 Це може зайняти до хвилини. Сторінку не закривайте — щойно банк
                 відповість, тут зʼявиться результат.
@@ -115,11 +142,14 @@ export default function PaymentResult() {
 
           {publicId && !paid && !partial && !polling && (
             <div className="pr pr--wait">
-              <h2>Підтвердження ще не надійшло</h2>
+              <h2>{refunded ? "Кошти за замовлення повернуто" : rejected ? "Банк не підтвердив оплату" : "Підтвердження ще не надійшло"}</h2>
               <p>
-                Гроші могли бути списані, а повідомлення від банку ще в дорозі —
-                таке буває. Нічого не оплачуйте повторно.
+                {refunded ? "Банк підтвердив повернення. Строк зарахування залежить від банку вашої картки."
+                  : rejected ? "Попередню спробу завершено без успішної оплати. Можна оплатити всю суму карткою."
+                  : "Гроші могли бути списані, а повідомлення від банку ще в дорозі. Нічого не оплачуйте повторно."}
               </p>
+              {rejected && <button className="btn btn-primary" onClick={retryCard} disabled={retrying}>{retrying ? "Перевіряємо…" : "Оплатити всю суму карткою"}</button>}
+              {retryError && <p role="alert">{retryError}</p>}
               <p className="pr__next">
                 Напишіть нам номер замовлення{" "}
                 <b className="adm-mono">{publicId}</b>, і ми перевіримо вручну

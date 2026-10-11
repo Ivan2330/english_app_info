@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import PageHero from "../components/PageHero.jsx";
 import { fetchPackageBySlug } from "../api/packages.js";
@@ -34,6 +34,9 @@ export default function Checkout() {
   const [familyClaim, setFamilyClaim] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const pendingOrder = useRef(null);
+  const submitting = useRef(false);
+  const checkoutKey = useRef(null);
 
   useReveal([pkg]);
 
@@ -56,6 +59,7 @@ export default function Checkout() {
 
   async function submit(e) {
     e.preventDefault();
+    if (submitting.current) return;
     setError(null);
 
     if (!form.customer_name.trim()) {
@@ -68,13 +72,22 @@ export default function Checkout() {
     }
 
     setBusy(true);
+    submitting.current = true;
     try {
-      const { order } = await createOrder({
+      if (!checkoutKey.current) {
+        const storageKey = `pa_checkout_key:${slug}`;
+        checkoutKey.current = sessionStorage.getItem(storageKey) || crypto.randomUUID();
+        sessionStorage.setItem(storageKey, checkoutKey.current);
+      }
+      const order = pendingOrder.current || (await createOrder({
         ...form,
+        checkout_key: checkoutKey.current,
         family_claim: familyClaim,
         package_slug: slug,
         source: "site/checkout",
-      });
+      })).order;
+      pendingOrder.current = order;
+      sessionStorage.setItem("pa_last_order", order.public_id);
 
       /* Знижку рахує БЕКЕНД і повертає в `order.amount`. Фронт її не рахує
          принципово: інакше довелося б повторити правила перевірки коду
@@ -98,6 +111,10 @@ export default function Checkout() {
       }
     } catch (err) {
       const status = err?.response?.status;
+      if (status === 409 && pendingOrder.current) {
+        navigate(`/payment/result?order=${pendingOrder.current.public_id}`);
+        return;
+      }
       if (status === 503) {
         // Оплата вимкнена, поки не внесені реквізити ФОПа в оферту.
         setError(
@@ -105,10 +122,11 @@ export default function Checkout() {
           "Оплата на сайті тимчасово недоступна. Напишіть нам — оформимо вручну."
         );
       } else {
-        setError("Не вдалося створити замовлення. Спробуйте ще раз або напишіть нам.");
+        setError(err?.response?.data?.detail || "Не вдалося створити замовлення. Спробуйте ще раз або напишіть нам.");
       }
     } finally {
       setBusy(false);
+      submitting.current = false;
     }
   }
 

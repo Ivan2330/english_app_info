@@ -101,7 +101,7 @@ async def update_order(
     клієнтський текст менеджер не має права правити, це первинні дані.
     """
     order = (await session.execute(
-        select(Order).where(Order.public_id == public_id)
+        select(Order).where(Order.public_id == public_id).with_for_update()
     )).scalar_one_or_none()
     if order is None:
         raise HTTPException(status_code=404, detail="order not found")
@@ -135,7 +135,7 @@ async def add_manual_payment(
     """
     stmt = (select(Order)
             .options(selectinload(Order.payments))
-            .where(Order.public_id == public_id))
+            .where(Order.public_id == public_id).with_for_update())
     order = (await session.execute(stmt)).scalar_one_or_none()
     if order is None:
         raise HTTPException(status_code=404, detail="order not found")
@@ -165,10 +165,10 @@ async def add_manual_payment(
         fail_message=f"Внесено вручну: {admin.email}. {data.get('note') or ''}".strip(),
     )
     session.add(payment)
-    await session.commit()
+    await session.flush()
 
     await session.refresh(order, ["payments"])
-    paid = sum(p.amount for p in order.payments if p.status == PaymentStatus.SUCCESS)
+    paid = sum(p.amount - (p.refunded_amount or 0) for p in order.payments if p.status == PaymentStatus.SUCCESS)
     order.paid_amount = paid
     if paid >= order.amount:
         order.status = OrderStatus.PAID
@@ -203,7 +203,7 @@ async def set_discount(
     """
     stmt = (select(Order)
             .options(selectinload(Order.payments))
-            .where(Order.public_id == public_id))
+            .where(Order.public_id == public_id).with_for_update())
     order = (await session.execute(stmt)).scalar_one_or_none()
     if order is None:
         raise HTTPException(status_code=404, detail="order not found")
@@ -217,7 +217,7 @@ async def set_discount(
             detail="Замовлення вже оплачене — знижку змінювати пізно. "
                    "Якщо потрібна компенсація, оформіть повернення різниці.",
         )
-    if order.paid_amount:
+    if order.paid_amount or any(p.status in (PaymentStatus.CREATED, PaymentStatus.PROCESSING, PaymentStatus.WAITING_FOR_STORE_CONFIRM) for p in order.payments):
         raise HTTPException(
             status_code=409,
             detail="За замовленням уже є платежі. Спершу поверніть кошти.",

@@ -186,6 +186,7 @@ class Order(Base):
 
 class Payment(Base):
     __tablename__ = "payments"
+    refunded_amount = Column(Integer, nullable=False, default=0, server_default="0")
 
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     order_id = Column(Integer, ForeignKey("orders.id", ondelete="CASCADE"), nullable=False, index=True)
