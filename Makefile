@@ -7,7 +7,7 @@ DC = docker compose -f docker-compose.dev.yml
 # pa_test_* / pa_mig_*, базу prime_dev з вашими даними не чіпають.
 PG_URL = postgresql+asyncpg://postgres:postgres@localhost:5433/postgres
 
-.PHONY: help up down test test-pg cov build check check-all seed logs
+.PHONY: help up down test test-pg cov build check check-all seed logs lock
 
 help:
 	@echo "make up        - підняти dev-стек (тільки docker-compose.dev.yml!)"
@@ -20,6 +20,7 @@ help:
 	@echo "make check-all - cov + build: те саме, що робить CI"
 	@echo "make seed      - застосувати каталог із pricing.py у dev-базу"
 	@echo "make logs      - логи бекенда"
+	@echo "make lock      - перегенерувати backend/requirements.lock (Python 3.12, Docker)"
 
 up:
 	$(DC) up -d
@@ -49,3 +50,8 @@ seed:
 
 logs:
 	$(DC) logs -f backend
+
+# Оновлення залежностей: чисте Linux-середовище тієї ж версії Python, що й прод.
+# Після цього обов'язково `make cov` і PR: нові версії можуть щось зламати.
+lock:
+	docker run --rm -v "$(CURDIR)/backend:/b" python:3.12-slim sh -c "pip install -q --disable-pip-version-check -r /b/requirements.txt && (head -3 /b/requirements.lock; pip freeze) > /tmp/new && cp /tmp/new /b/requirements.lock"
