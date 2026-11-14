@@ -40,8 +40,11 @@ router = APIRouter(prefix="/api/admin", tags=["admin-auth"])
 # =========================
 
 def make_token(sub: int, *, days: int = 7) -> str:
+    # sub — РЯДОК: PyJWT 2.10+ відхиляє числовий sub (InvalidSubjectError), і тоді
+    # кожна кука після входу давала 401. Версії в requirements.txt не зафіксовані,
+    # тож це ламалося б на першій же перезбірці образу.
     payload = {
-        "sub": sub,
+        "sub": str(sub),
         "exp": datetime.utcnow() + timedelta(days=days),
         "iat": datetime.utcnow(),
     }
@@ -64,7 +67,10 @@ async def get_current_admin(
     except Exception:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
-    admin_id: Optional[int] = payload.get("sub")
+    try:
+        admin_id: Optional[int] = int(payload.get("sub"))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     if not admin_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
