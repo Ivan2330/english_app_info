@@ -7,7 +7,7 @@ import {
    бекенд відхиляє невідомі ключі, тож розбіжність вилізе одразу, а не мовчки. */
 const DISCOUNTS = [
   { key: "family", label: "Сімейна", hint: "10% — підтвердити родинний зв'язок" },
-  { key: "referral", label: "Реферальний бонус", hint: "500 ₴, чек від 3 000 ₴" },
+  { key: "referral", label: "Реферальний бонус", hint: "20% — код друга з оплаченого замовлення" },
   { key: "second_course", label: "Другий курс", hint: "10% поверх абонемента" },
 ];
 
@@ -190,6 +190,12 @@ export default function OrdersPage() {
                   )}
                   {o.student_name && <><dt>Учень</dt><dd>{o.student_name}</dd></>}
                   {o.lessons_count && <><dt>Занять</dt><dd>{o.lessons_count}</dd></>}
+                  {/* Бонус зафіксований на момент замовлення (таблиця в pricing.py) */}
+                  <dt>Бонусні уроки</dt>
+                  <dd>
+                    {o.bonus_lessons > 0 ? `+${o.bonus_lessons}` : "немає"}
+                    {o.purchase_index ? ` · покупка №${o.purchase_index} цього клієнта` : ""}
+                  </dd>
                   <dt>Оплачено</dt><dd>{money(o.paid_amount / 100)} з {money(o.amount_uah)}</dd>
                 </dl>
 

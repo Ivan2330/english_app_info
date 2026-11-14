@@ -37,6 +37,17 @@ export async function adminUpdateLead(id, data) {
   return res.data;
 }
 
+/* ---------- заявки на розрахунок (діти, корпоратив) ---------- */
+export async function adminGetQuotes(params = {}) {
+  const res = await apiAuth.get("/api/admin/quote-requests", { params });
+  return res.data;
+}
+
+export async function adminUpdateQuote(id, data) {
+  const res = await apiAuth.patch(`/api/admin/quote-requests/${id}`, data);
+  return res.data;
+}
+
 /* ---------- замовлення ---------- */
 export async function adminGetOrders(params = {}) {
   const res = await apiAuth.get("/api/admin/orders", { params });

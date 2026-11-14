@@ -5,6 +5,7 @@ import AdminLogin from "./AdminLogin.jsx";
 import Dashboard from "./Dashboard.jsx";
 import LeadsPage from "./LeadsPage.jsx";
 import OrdersPage from "./OrdersPage.jsx";
+import QuotesPage from "./QuotesPage.jsx";
 import CertificatesPage from "./CertificatesPage.jsx";
 
 /**
@@ -61,6 +62,7 @@ export default function AdminApp() {
         <nav className="adm__nav">
           <NavLink to="/admin" end className="adm__link">Дашборд</NavLink>
           <NavLink to="/admin/leads" className="adm__link">Заявки</NavLink>
+          <NavLink to="/admin/quotes" className="adm__link">Розрахунки</NavLink>
           <NavLink to="/admin/orders" className="adm__link">Замовлення</NavLink>
           <NavLink to="/admin/certificates" className="adm__link">Сертифікати</NavLink>
         </nav>
@@ -75,6 +77,7 @@ export default function AdminApp() {
         <Routes>
           <Route index element={<Dashboard />} />
           <Route path="leads" element={<LeadsPage />} />
+          <Route path="quotes" element={<QuotesPage />} />
           <Route path="orders" element={<OrdersPage />} />
           <Route path="certificates" element={<CertificatesPage />} />
           <Route path="*" element={<Navigate to="/admin" replace />} />

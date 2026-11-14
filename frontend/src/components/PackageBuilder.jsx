@@ -4,7 +4,8 @@ import PackageTabs from "./PackageTabs.jsx";
 import { fetchPackages } from "../api/packages.js";
 import { AUDIENCE, FORMAT, TRACK, money, lessonsWord } from "../lib/labels.js";
 
-const AUDIENCE_ORDER = ["adults", "teens", "kids"];
+// Діти (5–12) — через форму розрахунку, у конструкторі їх немає: ціну там рахує Іван.
+const AUDIENCE_ORDER = ["adults", "teens"];
 const TRACK_ORDER = ["general", "speaking", "school"];
 const FORMAT_ORDER = ["individual", "pair", "group"];
 
@@ -17,6 +18,12 @@ const FORMAT_ORDER = ["individual", "pair", "group"];
  * Розміри пакетів показані слайдером, а не десятьма картками поруч:
  * десять цін в один ряд читаються як шум, а повзунок дає відчуття вибору.
  */
+const fmtDate = (iso) =>
+  iso ? new Date(`${iso}T12:00:00`).toLocaleDateString("uk-UA", { day: "numeric", month: "long", year: "numeric" }) : "";
+
+/** Підпис кроку слайдера: у групі це назва абонемента, в інших — кількість уроків. */
+const stepLabel = (p) => (p.format === "group" ? p.duration_hint : p.lessons_count);
+
 export default function PackageBuilder({ combos, onSelect }) {
   const navigate = useNavigate();
   const [audience, setAudience] = useState("adults");
@@ -128,7 +135,8 @@ export default function PackageBuilder({ combos, onSelect }) {
                     className={`ladder__item${i === idx ? " is-active" : ""}`}
                     onClick={() => setIdx(i)}
                   >
-                    {p.lessons_count}
+                    {stepLabel(p)}
+                    {p.is_popular ? <span className="ladder__pop">Популярний</span> : null}
                   </button>
                 ))}
               </div>
@@ -163,7 +171,19 @@ export default function PackageBuilder({ combos, onSelect }) {
             </a>
 
             <div className="summary__grid">
-              <Cell label="Уроків" value={`${current.lessons_count} ${lessonsWord(current.lessons_count)}`} />
+              <Cell
+                label={current.format === "group" ? "Занять" : "Уроків"}
+                value={
+                  <>
+                    {current.lessons_count}
+                    {current.bonus_lessons > 0 ? (
+                      <> + <span className="summary__gift">{current.bonus_lessons} у подарунок</span></>
+                    ) : (
+                      <> {lessonsWord(current.lessons_count)}</>
+                    )}
+                  </>
+                }
+              />
               <Cell
                 label="За урок"
                 value={`${money(current.price_per_lesson, current.currency)}${
@@ -179,6 +199,14 @@ export default function PackageBuilder({ combos, onSelect }) {
 
             {current.group_size_max && current.format === "group" ? (
               <p className="summary__note">Група до {current.group_size_max} людей — удвічі менша, ніж у більшості шкіл.</p>
+            ) : null}
+
+            {/* Дати беремо з API (конфіг бекенда), у тексті їх немає. */}
+            {current.starts_on ? (
+              <p className="summary__note">
+                Старт групи — <strong>{fmtDate(current.starts_on)}</strong>
+                {current.enroll_until ? <>, запис до {fmtDate(current.enroll_until)}</> : null}.
+              </p>
             ) : null}
 
             {current.chast_enabled ? (

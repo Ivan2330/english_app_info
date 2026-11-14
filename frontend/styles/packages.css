@@ -775,3 +775,18 @@
     color: var(--violet);
     font-weight: 600;
 }
+
+/* Форма розрахунку (діти, корпоратив): поля парами, на вузькому екрані в колонку */
+.quote__row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+@media (max-width: 560px) { .quote__row { grid-template-columns: 1fr; } }
+.quote-section { margin-top: var(--space-5); }
+
+/* Таблиця бонусів: розмір пакета і скільки уроків у подарунок */
+.bonus-lessons__table { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }
+.bonus-lessons__table li { padding: 8px 14px; border-radius: 999px; background: rgba(255, 255, 255, .1); font-size: 14px; color: #fff; }
+.bonus-lessons__table b { color: var(--lime); }
+
+/* Мітка Популярний біля розміру в конструкторі */
+.ladder__item { position: relative; }
+.ladder__pop { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); padding: 1px 7px; border-radius: 999px; white-space: nowrap; background: var(--lime); color: var(--ink); font-size: 10px; font-weight: 800; }
+.summary__gift { color: var(--violet-d); font-weight: 800; }
