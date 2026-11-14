@@ -15,6 +15,7 @@ import VerifyCertificate from "./pages/VerifyCertificate.jsx";
 import LevelTest from "./pages/LevelTest.jsx";
 import Offer from "./pages/Offer.jsx";
 import Privacy from "./pages/Privacy.jsx";
+import Guarantee from "./pages/Guarantee.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import Checkout from "./pages/Checkout.jsx";
 import PaymentResult from "./pages/PaymentResult.jsx";
@@ -32,6 +33,7 @@ const PAGE_NAMES = {
   "/verify-certificate": "certificate",
   "/offer": "legal",
   "/privacy": "legal",
+  "/guarantee": "legal",
   "/checkout": "checkout",
   "/payment/result": "checkout",
 };
@@ -74,6 +76,7 @@ export default function App() {
           <Route path="/level-test" element={<LevelTest />} />
           <Route path="/offer" element={<Offer />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/guarantee" element={<Guarantee />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/payment/result" element={<PaymentResult />} />
           {/* Кабінет менеджера. Вкладені маршрути — усередині AdminApp. */}

@@ -1,4 +1,20 @@
+import { Link } from "react-router-dom";
 import { money, lessonsWord, FORMAT } from "../lib/labels.js";
+
+/** Маркер у тексті опису, замість якого малюється посилання на умови гарантії. */
+const GUARANTEE_TOKEN = "{{guarantee}}";
+
+function Description({ text }) {
+  const [before, after] = text.split(GUARANTEE_TOKEN);
+  if (after === undefined) return text;
+  return (
+    <>
+      {before}
+      <Link to="/guarantee">Умови гарантії</Link>
+      {after}
+    </>
+  );
+}
 
 /**
  * Картка пакета. Використовується для тематичних курсів, Speaking Club
@@ -49,7 +65,7 @@ export default function PriceCard({ pkg, onSelect }) {
       ) : null}
 
       <h3 className="price-card__title">{name}</h3>
-      {short_description ? <p className="price-card__desc">{short_description}</p> : null}
+      {short_description ? <p className="price-card__desc"><Description text={short_description} /></p> : null}
 
       <div className="price">
         {hasDiscount ? (
