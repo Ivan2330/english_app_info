@@ -233,3 +233,22 @@ async def test_family_claim_leaves_note_for_manager(client, make_package, sessio
     row = (await session.execute(select(Order))).scalar_one()
     assert "сімейн" in row.admin_note.lower()
     assert "10%" in row.admin_note
+
+
+async def test_referrer_reward_is_never_granted_automatically(client, make_package, make_order):
+    """referral_reward - лише ручна підстава: коментарі в коді не обіцяють автоматики,
+    і створення замовлення її сам не нараховує, навіть коли друг привів і оплатив."""
+    pkg = await make_package(slug="pkg", total_price=10000)
+    referrer = await make_order(public_id="PA-REFERRER1", status=OrderStatus.PAID, paid_amount=1,
+                                customer_phone=PHONE_B, package_id=pkg.id)
+    friend = await make_order(status=OrderStatus.PAID, paid_amount=1, promo_code="PA-REFERRER1",
+                              customer_phone="+380993330003", package_id=pkg.id)
+    body = (await post(client, customer_phone=PHONE_B)).json()        # той, хто привів, купує знову
+    assert body["order"]["discount_kinds"] == []
+    assert body["order"]["amount"] == 1_000_000
+
+
+async def test_referral_reward_can_still_be_set_by_hand(admin_client, make_order):
+    o = await make_order(public_id="PA-DIS00099", amount=1_000_000, base_amount=1_000_000)
+    r = await admin_client.post("/api/admin/orders/PA-DIS00099/discount", json={"kinds": ["referral_reward"]})
+    assert r.status_code == 200 and o.amount == 800_000
