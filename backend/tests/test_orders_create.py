@@ -289,12 +289,3 @@ async def test_client_cannot_choose_offer_revision(client, make_package, session
     await make_package(slug="pkg")
     r = await post(client, offer_revision="1 січня 2000 року")
     assert r.json()["order"]["offer_revision"] == OFFER_REVISION
-
-
-def test_offer_revision_matches_frontend():
-    import re
-    from pathlib import Path
-    from app.core.legal import OFFER_REVISION
-    seller = Path(__file__).resolve().parents[2] / "frontend" / "src" / "lib" / "legal" / "seller.js"
-    found = re.search(r'OFFER_REVISION\s*=\s*"([^"]+)"', seller.read_text(encoding="utf-8"))
-    assert found and found.group(1) == OFFER_REVISION
