@@ -178,7 +178,7 @@ export default function PackageBuilder({ combos, onSelect }) {
                     {current.lessons_count}
                     {current.bonus_lessons > 0 ? (
                       <> + <span className="summary__gift">{current.bonus_lessons} у подарунок</span></>
-                    ) : (
+                    ) : current.format === "group" ? null : (
                       <> {lessonsWord(current.lessons_count)}</>
                     )}
                   </>
@@ -205,13 +205,13 @@ export default function PackageBuilder({ combos, onSelect }) {
             {current.starts_on ? (
               <p className="summary__note">
                 Старт групи — <strong>{fmtDate(current.starts_on)}</strong>
-                {current.enroll_until ? <>, запис до {fmtDate(current.enroll_until)}</> : null}.
+                {current.enroll_until ? <>, запис до {fmtDate(current.enroll_until)}</> : null}
               </p>
             ) : null}
 
             {current.chast_enabled ? (
               <p className="summary__note">
-                Можна частинами: {money(Math.round(current.total_price / current.chast_max_parts), current.currency)} ×{" "}
+                Можна частинами: ≈ {money(Math.round(current.total_price / current.chast_max_parts), current.currency)} ×{" "}
                 {current.chast_max_parts} без переплати
               </p>
             ) : null}

@@ -690,3 +690,33 @@ body.admin-mode .adm-disc__promo {
   line-height: 1.5;
   opacity: .7;
 }
+
+/* ---------- нотатка до заявки на розрахунок ---------- */
+.adm-quote-note { display: block; margin-top: 14px; }
+.adm-quote-note span { display: block; margin-bottom: 6px; font-size: 12.5px; color: #8b94a7; }
+.adm-quote-note textarea {
+    width: 100%;
+    min-height: 70px;
+    padding: 10px 12px;
+    border-radius: 9px;
+    border: 1px solid rgba(255, 255, 255, .12);
+    background: #11141d;
+    color: #e6e9f0;
+    font: inherit;
+    font-size: 13.5px;
+    resize: vertical;
+}
+.adm-quote-note textarea:focus { outline: none; border-color: #6d4bff; }
+.adm-quote-note button {
+    margin-top: 8px;
+    padding: 8px 14px;
+    border-radius: 9px;
+    border: 0;
+    background: #262b3a;
+    color: #e6e9f0;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.adm-quote-note button:hover { background: #313748; }
