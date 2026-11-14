@@ -1,13 +1,13 @@
 name: CI
 
-# Запускається на кожному PR і на пуші в main. Публічний репозиторій — безкоштовно,
-# приватний — у межах безкоштовного ліміту хвилин GitHub Actions.
+# Запускається на кожному PR і на пуші в main. Публічний репозиторій безкоштовний,
+# приватний працює в межах безкоштовного ліміту хвилин GitHub Actions.
 on:
   pull_request:
   push:
     branches: [main]
 
-# Новий пуш у ту саму гілку скасовує попередній запуск — не палимо хвилини.
+# Новий пуш у ту саму гілку скасовує попередній запуск: не палимо хвилини.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -19,6 +19,22 @@ jobs:
   backend:
     name: Backend tests
     runs-on: ubuntu-latest
+    services:
+      # Справжній PostgreSQL: на ньому перевіряються міграції, дашборд і пошук.
+      # Тести самі створюють собі окремі бази, ваших даних тут немає.
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/postgres
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -28,11 +44,11 @@ jobs:
           cache-dependency-path: backend/requirements*.txt
       - name: Install
         run: pip install -r backend/requirements-test.txt
-      - name: Test
-        # Тести самі ставлять тестові змінні й працюють на SQLite у памʼяті:
-        # справжніх секретів і банку тут немає й бути не може.
+      - name: Test (parallel, with coverage gate)
+        # -n auto: по воркеру на ядро, кожен має власні бази, тож тести не заважають одне одному.
+        # Нижче 95% покриття (рядки + гілки) збірка падає: нова логіка без тестів не пройде.
         working-directory: backend
-        run: python -W ignore -m unittest discover -s tests -v
+        run: python -m pytest -n auto -q --cov --cov-fail-under=95 --cov-report=term-missing:skip-covered
 
   frontend:
     name: Frontend build
