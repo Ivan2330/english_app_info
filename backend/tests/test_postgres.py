@@ -198,9 +198,9 @@ async def test_lead_status_roundtrip_through_real_enum(pg_app, pg):
 async def test_seed_on_postgres_is_idempotent_and_hides_old(pg):
     first = await seed_packages(pg)
     again = await seed_packages(pg)
-    assert first["created"] == 79 and again["created"] == 0 and again["updated"] == 79
+    assert first["created"] == 80 and again["created"] == 0 and again["updated"] == 80
     total = (await pg.execute(select(Package))).scalars().all()
-    assert len(total) == 79 and all(p.is_active for p in total)
+    assert len(total) == 80 and all(p.is_active for p in total)
     old = Package(slug="legacy-250", name="legacy", family=total[0].family, audience=total[0].audience,
                   fmt=total[0].fmt, track=total[0].track, total_price=1)
     pg.add(old)
@@ -255,7 +255,7 @@ async def test_seed_works_on_a_migrated_database(migrated):
     url, engine = migrated
     maker = async_sessionmaker(engine, expire_on_commit=False)
     async with maker() as session:
-        assert (await seed_packages(session))["total"] == 79
+        assert (await seed_packages(session))["total"] == 80
 
 
 async def test_last_migration_rolls_back_and_forward(migrated):

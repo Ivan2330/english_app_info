@@ -65,7 +65,7 @@ async def test_package_by_slug(client, make_package):
 async def test_seeded_catalogue_is_what_the_site_sells(client, session):
     await seed_packages(session)
     items = (await client.get("/api/packages")).json()
-    assert len(items) == 79
+    assert len(items) == 80
     assert not [i for i in items if i["family"] == "corporate"]
     assert not [i for i in items if i["audience"] == "kids" and i["family"] != "club"]
     assert {i["lessons_count"] for i in items

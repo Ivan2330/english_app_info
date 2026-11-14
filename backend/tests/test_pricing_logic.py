@@ -291,8 +291,8 @@ def test_teens_follow_adult_grid_without_coefficient(catalogue):
 async def test_seed_result_counts(session):
     first = await seed_packages(session)
     second = await seed_packages(session)
-    assert first["created"] == 79 and first["updated"] == 0 and first["total"] == 79
-    assert second == {"created": 0, "updated": 79, "deactivated": 0, "total": 79}
+    assert first["created"] == 80 and first["updated"] == 0 and first["total"] == 80
+    assert second == {"created": 0, "updated": 80, "deactivated": 0, "total": 80}
 
 
 async def test_seed_reactivates_and_restores_prices(session):
@@ -310,7 +310,7 @@ def test_show_catalogue_prints_without_database(capsys):
     cli._show_catalogue()
     out = capsys.readouterr().out
     assert "SUBSCRIPTION" in out and "COURSE" in out and "CLUB" in out
-    assert "CORPORATE" not in out and "Усього: 79 позицій" in out
+    assert "CORPORATE" not in out and "Усього: 80 позицій" in out
 
 
 def test_cli_unknown_command_exits(monkeypatch, capsys):
@@ -333,7 +333,7 @@ async def test_cli_seed_command_end_to_end(session, monkeypatch, capsys):
     maker = async_sessionmaker(session.bind, expire_on_commit=False)
     monkeypatch.setattr(cli, "async_session_maker", maker)
     await cli._seed_packages()
-    assert "створено 79" in capsys.readouterr().out
+    assert "створено 80" in capsys.readouterr().out
 
 
 async def test_cli_waits_for_tables_then_gives_up(monkeypatch, capsys):
