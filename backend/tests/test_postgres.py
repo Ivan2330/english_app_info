@@ -234,7 +234,7 @@ async def test_migrations_build_a_working_schema_from_scratch(migrated):
         version = (await conn.execute(text("select version_num from alembic_version"))).scalar_one()
     assert tables == {"admin_users", "alembic_version", "certificates", "leads", "orders", "packages",
                       "page_visits", "payments", "quote_requests"}
-    assert version == "0009_quote_requests_bonus"
+    assert version == "0010_order_offer_consent"
 
 
 async def test_models_and_migrations_do_not_drift(migrated):
@@ -258,18 +258,34 @@ async def test_seed_works_on_a_migrated_database(migrated):
         assert (await seed_packages(session))["total"] == 79
 
 
-async def test_last_migration_rolls_back_and_forward(migrated):
+async def test_last_migrations_roll_back_and_forward(migrated):
     url, engine = migrated
+
+    async def snapshot():
+        async with engine.connect() as conn:
+            tables = {r[0] for r in await conn.execute(text(
+                "select table_name from information_schema.tables where table_schema='public'"))}
+            cols = {r[0] for r in await conn.execute(text(
+                "select column_name from information_schema.columns where table_name='orders'"))}
+        return tables, cols
+
+    # 0010: згода з офертою зникає, решта лишається
     down = alembic(url, "downgrade", "-1")
     assert down.returncode == 0, down.stderr[-2000:]
-    async with engine.connect() as conn:
-        tables = {r[0] for r in await conn.execute(text(
-            "select table_name from information_schema.tables where table_schema='public'"))}
-        cols = {r[0] for r in await conn.execute(text(
-            "select column_name from information_schema.columns where table_name='orders'"))}
+    tables, cols = await snapshot()
+    assert "offer_accepted_at" not in cols and "offer_revision" not in cols
+    assert "bonus_lessons" in cols and "quote_requests" in tables
+
+    # 0009: заявки на розрахунок і бонуси зникають
+    down = alembic(url, "downgrade", "-1")
+    assert down.returncode == 0, down.stderr[-2000:]
+    tables, cols = await snapshot()
     assert "quote_requests" not in tables and "bonus_lessons" not in cols
+
     up = alembic(url, "upgrade", "head")
     assert up.returncode == 0, up.stderr[-2000:]
+    tables, cols = await snapshot()
+    assert "quote_requests" in tables and {"offer_accepted_at", "offer_revision"} <= cols
 
 
 async def test_new_order_columns_default_for_existing_rows(migrated):
