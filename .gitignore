@@ -63,3 +63,6 @@ backend/.env
 .coverage
 .coverage.*
 htmlcov/
+
+# Тимчасова перевірка збірки (make build)
+.tmp-dist-check/
