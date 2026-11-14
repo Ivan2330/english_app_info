@@ -58,3 +58,8 @@ Thumbs.db
 # Тимчасові файли Vite
 vite.config.js.timestamp-*
 backend/.env
+
+# coverage
+.coverage
+.coverage.*
+htmlcov/
