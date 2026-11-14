@@ -78,7 +78,10 @@ export default function PriceCard({ pkg, onSelect }) {
         {group_size_max && format === "group" ? (
           <li>Група до <strong>{group_size_max}</strong> людей</li>
         ) : null}
-        {format && FORMAT[format] ? <li>{FORMAT[format].label}</li> : null}
+        {/* У групі формат уже сказано рядком «Група до N людей» вище. */}
+        {format && FORMAT[format] && !(format === "group" && group_size_max) ? (
+          <li>{FORMAT[format].label}</li>
+        ) : null}
         {duration_hint ? <li>Триває {duration_hint}</li> : null}
         {/* Термін дії — те, чим ми кращі за ринок на кожній сходинці */}
         {validity_days ? <li>Діє <strong>{validity_days} днів</strong> від першого заняття</li> : null}
