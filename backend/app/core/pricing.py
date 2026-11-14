@@ -693,7 +693,7 @@ def kids_preview(age: Optional[int], fmt: str, lessons: int) -> Dict:
 
 
 def corporate_preview(people: int, fmt: str, months: int,
-                      lesson_minutes: int = 90, sessions_per_month: int = 8) -> Dict:
+                      lesson_minutes: Optional[int] = None, sessions_per_month: int = 8) -> Dict:
     """Попередній розрахунок для компанії (для менеджера).
 
     Групи по 6 (до 6 людей) або по 10; більше десяти ділимо на кілька груп.
@@ -702,6 +702,11 @@ def corporate_preview(people: int, fmt: str, months: int,
     if people < 1 or months < 1:
         raise ValueError("people and months must be positive")
     by_slug = {c["slug"]: c for c in CORPORATE}
+    # Довжина заняття у формі не запитується, тож береться типова для формату:
+    # група 90 хв, індивідуально 50 хв. Інакше індивідуальне рахувалося б за 60-хвилинним
+    # тарифом (600 замість 520 ₴).
+    if lesson_minutes is None:
+        lesson_minutes = 50 if fmt == "individual" else 90
     if fmt == "individual":
         slug = "corp-solo-60" if lesson_minutes >= 60 else "corp-solo-50"
         groups, size = people, 1               # кожен співробітник — окремий слот
