@@ -91,6 +91,13 @@ def _pricing_row(ladder: List[int], prices: List[int], hints: List[str], idx: in
     )
 
 
+def _ordered_courses() -> List[Dict]:
+    """Видимі курси: спершу за P.COURSE_ORDER, решта — в порядку P.COURSES."""
+    visible = [c for c in P.COURSES if c["slug"] in P.VISIBLE_COURSES]
+    rank = {slug: i for i, slug in enumerate(P.COURSE_ORDER)}
+    return sorted(visible, key=lambda c: rank.get(c["slug"], len(rank)))  # sorted стабільний
+
+
 def build_catalogue() -> List[Dict]:
     """Збирає повний каталог зі сітки. Чистa функція — нічого не пише в базу."""
     items: List[Dict] = []
@@ -135,13 +142,13 @@ def build_catalogue() -> List[Dict]:
                     ))
 
     # ================= 2. ТЕМАТИЧНІ КУРСИ =================
-    for c in P.COURSES:
-        if c["slug"] not in P.VISIBLE_COURSES:
-            continue
+    for c in _ordered_courses():
         lessons = c["lessons"]
         fmt = c["fmt"]
         ppl = c.get("ppl") or P.course_rate(lessons, fmt)
-        if c["track"] == "nmt":
+        # Знижковий множник НМТ — лише для ставки з сітки. Явна ppl (інтенсив)
+        # уже є остаточною ціною, її множити не можна.
+        if c["track"] == "nmt" and not c.get("ppl"):
             ppl = P.r10(ppl * P.NMT_COEF)
         total = ppl * lessons
         chast_enabled, chast_parts = P.chast_for(total)

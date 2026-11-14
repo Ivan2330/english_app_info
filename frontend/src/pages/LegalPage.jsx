@@ -11,7 +11,7 @@ import { SELLER, sellerIsConfigured, OFFER_REVISION } from "../lib/legal/seller.
  * Людина відкриває таку сторінку, щоб знайти один конкретний пункт,
  * а не щоб прочитати все.
  */
-export default function LegalPage({ crumb, title, lead, sections, showSeller = true }) {
+export default function LegalPage({ crumb, title, lead, sections, showSeller = true, showRevision = true }) {
   useReveal([sections]);
 
   return (
@@ -82,7 +82,7 @@ export default function LegalPage({ crumb, title, lead, sections, showSeller = t
             )}
 
             <p className="legal__revision" data-reveal>
-              Редакція від {OFFER_REVISION}.{" "}
+              {showRevision ? <>Редакція від {OFFER_REVISION}.{" "}</> : null}
               <Link to="/contacts">Є питання за умовами — напишіть нам</Link>.
             </p>
           </div>

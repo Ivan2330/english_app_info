@@ -152,6 +152,14 @@ def course_rate(lessons: int, fmt: str) -> int:
 # --- перелік курсів -----------------------------------------------------------
 # ppl=None → ставка береться з COURSE_* за довжиною курсу.
 
+# Два речення про гарантію й пробний урок для курсів підготовки до іспиту.
+# {{guarantee}} фронт замінює посиланням на /guarantee.
+EXAM_GUARANTEE = (
+    " Гарантія результату за умови відвідування всіх уроків і виконання всіх завдань."
+    " Якщо ви ще не вчили англійську, спочатку прийдіть на пробний урок: обговоримо план"
+    " вивчення бази, а тоді перейдемо до підготовки до іспиту. {{guarantee}}"
+)
+
 COURSES: List[Dict] = [
     # --- IELTS: ціна залежить від стартового рівня. У Antischool один пакет
     #     на всіх — людині з B2 продають те саме, що людині з A2. Це наша перевага.
@@ -162,11 +170,13 @@ COURSES: List[Dict] = [
     dict(slug="ielts-b1", name="IELTS · старт B1", track="exam", audience="adults",
          fmt="individual", lessons=48, level_from="B1", level_target="6.0 – 6.5",
          hint="≈ 6 місяців", popular=True,
-         desc="Найчастіший старт. Половина курсу — мова, половина — стратегії іспиту."),
+         desc="Найчастіший старт. Половина курсу — мова, половина — стратегії іспиту."
+              + EXAM_GUARANTEE),
     dict(slug="ielts-b2", name="IELTS · старт B2", track="exam", audience="adults",
          fmt="individual", lessons=32, level_from="B2", level_target="7.0",
          hint="≈ 4 місяці",
-         desc="Рівень уже є — працюємо над форматом, таймінгом і критеріями."),
+         desc="Рівень уже є — працюємо над форматом, таймінгом і критеріями."
+              + EXAM_GUARANTEE),
     dict(slug="ielts-b2p", name="IELTS · старт B2+", track="exam", audience="adults",
          fmt="individual", lessons=20, level_from="B2+", level_target="7.5+",
          hint="≈ 2,5 місяця",
@@ -174,7 +184,8 @@ COURSES: List[Dict] = [
     dict(slug="ielts-b1-group", name="IELTS у групі · старт B1", track="exam", audience="adults",
          fmt="group", lessons=32, level_from="B1", level_target="6.0 – 6.5",
          hint="≈ 4 місяці",
-         desc="Той самий курс у міні-групі до 6 людей. Закриває бюджетне вікно."),
+         desc="Той самий курс у міні-групі до 6 людей. Закриває бюджетне вікно."
+              + EXAM_GUARANTEE),
 
     # --- TOEFL
     dict(slug="toefl-b1", name="TOEFL iBT · старт B1", track="exam", audience="adults",
@@ -189,7 +200,7 @@ COURSES: List[Dict] = [
     # --- Робота та кар'єра
     dict(slug="business-48", name="Робота та кар'єра", track="business", audience="adults",
          fmt="individual", lessons=48, hint="≈ 6 місяців",
-         desc="Співбесіди, мітинги, листування й лексика вашої галузі."),
+         desc="Співбесіди, мітинги, листування й лексика вашої галузі. Підходить тим, хто вже працює і хоче вільно спілкуватись з колегами, і тим, хто мріє про міжнародну кар'єру. Розбираємо ситуації, які дійсно трапляються в вашій сфері."),
     dict(slug="business-24", name="Робота та кар'єра · короткий", track="business", audience="adults",
          fmt="individual", lessons=24, hint="≈ 3 місяці",
          desc="Стислий формат, якщо база вже є, а треба швидко зняти робочі бар'єри."),
@@ -200,7 +211,7 @@ COURSES: List[Dict] = [
     # --- English for IT
     dict(slug="it-24", name="English for IT", track="it", audience="adults",
          fmt="individual", lessons=24, hint="≈ 3 місяці",
-         desc="Стендапи, код-рев'ю, документація, спілкування з замовником."),
+         desc="Стендапи, код-рев'ю, документація, спілкування з замовником. Підходить, якщо ви вже працюєте в IT або тільки входите в галузь: тренуємо робочі сценарії та лексику вашої ролі. Є викладачі, які самі працюють в IT та продуктовій розробці."),
     dict(slug="it-36-group", name="English for IT у групі", track="it", audience="adults",
          fmt="group", lessons=36, hint="≈ 4,5 місяця",
          desc="Для команд і тих, хто хоче практику з колегами по цеху."),
@@ -208,12 +219,12 @@ COURSES: List[Dict] = [
     # --- Розмовний інтенсив
     dict(slug="speaking-36-group", name="Розмовний інтенсив", track="speaking", audience="adults",
          fmt="group", lessons=36, hint="≈ 4,5 місяця",
-         desc="Максимум практики говоріння, мінімум теорії."),
+         desc="Максимум практики говоріння, мінімум теорії: говоримо на кожному занятті. Підходить, якщо граматику ви знаєте, а говорити складно."),
 
     # --- Travel
     dict(slug="travel-12", name="Travel English", track="travel", audience="adults",
          fmt="individual", lessons=12, hint="≈ 1,5 місяця",
-         desc="Аеропорт, готель, оренда авто, ресторан, форс-мажори в дорозі."),
+         desc="Аеропорт, готель, оренда авто, ресторан, форс-мажори в дорозі. Розбираємо реальні діалоги і відпрацьовуємо їх вголос, щоб у подорожі не губитися."),
     dict(slug="travel-12-group", name="Travel English у групі", track="travel", audience="adults",
          fmt="group", lessons=12, hint="≈ 1,5 місяця",
          desc="Те саме, але дешевше й з практикою діалогів."),
@@ -238,7 +249,7 @@ COURSES: List[Dict] = [
     dict(slug="job-ready-12", name="Job Ready · резюме та співбесіди", track="job_ready",
          audience="adults", fmt="individual", lessons=12, ppl=750, hint="≈ 1,5 місяця",
          popular=True,
-         desc="CV, LinkedIn, cover letter і три mock-інтерв'ю з письмовим розбором."),
+         desc="Ви вже працюєте або готуєтесь до першої роботи? Складаємо CV, LinkedIn і cover letter і проходимо три mock-інтерв'ю з письмовим розбором. Тренуємось на реальних запитаннях співбесід, щоб на реальній розмові ви вгравалися вже не вперше."),
     dict(slug="job-ready-12-group", name="Job Ready у групі", track="job_ready",
          audience="adults", fmt="group", lessons=12, ppl=450, hint="≈ 1,5 місяця",
          desc="Спільна частина: mock-інтерв'ю, лексика, small talk. Документи — окремо."),
@@ -246,7 +257,12 @@ COURSES: List[Dict] = [
     # --- НМТ (підлітки)
     dict(slug="nmt-year-group", name="НМТ · річний курс у групі", track="nmt", audience="teens",
          fmt="group", lessons=48, hint="вересень – травень", popular=True,
-         desc="Повний навчальний рік. Паралельно тягнемо шкільну програму."),
+         desc="Повний навчальний рік (вересень – травень) у міні-групі до 6 людей. Розбираємо всі типи завдань НМТ з англійської, паралельно тягнемо шкільну програму, щотижня тренуємося на завданнях у форматі тесту та розбираємо помилки. Гарантія результату за умови відвідування всіх уроків і виконання всіх завдань ({{guarantee}}). Якщо ви ще не вчили англійську або база слабка, спочатку прийдіть на пробний урок: обговоримо план вивчення бази, а тоді перейдемо до підготовки до іспиту."),
+    # Інтенсив 16 × 90 хв. Ціна задана явно (ppl): множник NMT_COEF її не чіпає.
+    # ПІДТВЕРДЖЕНО Іваном: 295 ₴/заняття = 4 720 ₴.
+    dict(slug="nmt-intensive-16-group", name="НМТ · інтенсив", track="nmt", audience="teens",
+         fmt="group", lessons=16, ppl=295, hint="кілька місяців",
+         desc="Короткий курс перед іспитом: повторюємо всі теми НМТ і відпрацьовуємо кожен тип завдань на тренувальних тестах. Підходить, якщо база вже є, і треба систематизувати знання та натренувати формат. Не впевнені в рівні? Прийдіть на пробний урок, і ми підкажемо, що вам підходить: інтенсив чи річний курс. Гарантія результату за умови відвідування всіх уроків і виконання всіх завдань ({{guarantee}})."),
     dict(slug="nmt-year-solo", name="НМТ · річний курс індивідуально", track="nmt", audience="teens",
          fmt="individual", lessons=64, hint="вересень – травень",
          desc="Максимальний темп і повна увага до слабких місць."),
@@ -296,7 +312,15 @@ COURSES: List[Dict] = [
 # але в каталог не потрапляють і деактивуються сідом — рядки з бази не видаляємо.
 VISIBLE_COURSES: List[str] = [
     "ielts-b1", "ielts-b2", "ielts-b1-group", "business-48", "it-24",
-    "speaking-36-group", "job-ready-12", "nmt-year-group", "travel-12",
+    "speaking-36-group", "job-ready-12", "nmt-year-group", "nmt-intensive-16-group", "travel-12",
+]
+
+# Порядок карток курсів на сторінці цін (ПІДТВЕРДЖЕНО Іваном). Слаги, яких тут
+# немає, йдуть далі в порядку COURSES. Змінити порядок: правка списку + seed-packages.
+COURSE_ORDER: List[str] = [
+    "nmt-year-group", "nmt-intensive-16-group",
+    "it-24", "travel-12",
+    "ielts-b1", "ielts-b2", "ielts-b1-group",
 ]
 
 

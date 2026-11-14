@@ -98,6 +98,7 @@ export default function Footer() {
             <NavLink to="/offer#p11">Повернення коштів</NavLink>
             <NavLink to="/offer#requisites">Реквізити</NavLink>
             <NavLink to="/privacy">Конфіденційність</NavLink>
+            <NavLink to="/guarantee">Гарантія результату</NavLink>
           </nav>
 
           {/* Вхід для менеджера. Свідомо непомітний: це службове посилання,

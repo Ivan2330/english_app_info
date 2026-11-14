@@ -790,3 +790,12 @@
 .ladder__item { position: relative; }
 .ladder__pop { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); padding: 1px 7px; border-radius: 999px; white-space: nowrap; background: var(--lime); color: var(--ink); font-size: 10px; font-weight: 800; }
 .summary__gift { color: var(--violet-d); font-weight: 800; }
+
+/* Пояснення «абонемент чи курс» над курсами: виділене, щоб не губилось серед підзаголовків. */
+.course-explainer {
+    padding: 14px 18px;
+    border-left: 3px solid var(--violet);
+    border-radius: 0 12px 12px 0;
+    background: rgba(255, 255, 255, 0.55);
+    max-width: 78ch;
+}

@@ -88,10 +88,48 @@ class Catalogue(unittest.TestCase):
         slugs = [i["slug"] for i in self.items]
         self.assertEqual(len(slugs), len(set(slugs)))
 
-    def test_visible_courses_exactly_nine(self):
+    def test_visible_courses_exactly_ten(self):
         courses = sorted(i["slug"] for i in self.items if i["family"].value == "course")
         self.assertEqual(courses, sorted(P.VISIBLE_COURSES))
-        self.assertEqual(len(courses), 9)
+        self.assertEqual(len(courses), 10)
+
+    def _course(self, slug):
+        return next(i for i in self.items if i["slug"] == slug)
+
+    def test_nmt_intensive_price_is_4720(self):
+        c = self._course("nmt-intensive-16-group")
+        self.assertEqual((c["lessons_count"], c["price_per_lesson"], c["total_price"]), (16, 295, 4720))
+        self.assertEqual((c["lesson_duration_min"], c["group_size_max"]), (90, 6))
+        self.assertEqual(c["validity_days"], P.validity_for(16))
+
+    def test_nmt_year_price_unchanged(self):
+        # 320 (група, 48) x NMT_COEF 0.88, округлено до 10 = 280; 280 x 48 = 13 440
+        c = self._course("nmt-year-group")
+        self.assertEqual((c["price_per_lesson"], c["total_price"]), (280, 13_440))
+
+    def test_texts_do_not_change_prices(self):
+        expected = {"ielts-b1": 23_760, "ielts-b2": 16_160, "ielts-b1-group": 10_720,
+                    "business-48": 23_760, "it-24": 12_480, "speaking-36-group": 11_520,
+                    "travel-12": 7_080, "job-ready-12": 9_000}
+        got = {s: self._course(s)["total_price"] for s in expected}
+        self.assertEqual(got, expected)
+
+    def test_course_order_follows_config(self):
+        courses = sorted((i for i in self.items if i["family"].value == "course"),
+                         key=lambda i: i["sort_order"])
+        head = [c["slug"] for c in courses][:len(P.COURSE_ORDER)]
+        self.assertEqual(head, P.COURSE_ORDER)
+
+    def test_guarantee_marker_only_on_exam_prep(self):
+        marked = {i["slug"] for i in self.items
+                  if "{{guarantee}}" in (i["short_description"] or "")}
+        self.assertEqual(marked, {"nmt-year-group", "nmt-intensive-16-group",
+                                  "ielts-b1", "ielts-b2", "ielts-b1-group"})
+
+    def test_teacher_claim_only_in_it_card(self):
+        claim = "Є викладачі, які самі працюють в IT та продуктовій розробці"
+        with_claim = {i["slug"] for i in self.items if claim in (i["short_description"] or "")}
+        self.assertEqual(with_claim, {"it-24"})
 
     def test_five_clubs_prices_unchanged(self):
         clubs = {i["slug"]: i["total_price"] for i in self.items if i["family"].value == "club"}

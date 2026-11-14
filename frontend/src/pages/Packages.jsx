@@ -8,7 +8,7 @@ import { useReveal } from "../lib/motion.js";
 import Faq from "../components/Faq.jsx";
 import BookingForm from "../components/BookingForm.jsx";
 import PageHero from "../components/PageHero.jsx";
-import { FAQ_PAYMENT } from "../lib/content.js";
+import { FAQ_PAYMENT, SUBSCRIPTION_VS_COURSE } from "../lib/content.js";
 import { ChastBadge, ChastLegal } from "../components/ChastBadge.jsx";
 import BonusLessons from "../components/BonusLessons.jsx";
 import QuoteForm from "../components/QuoteForm.jsx";
@@ -174,6 +174,7 @@ export default function Packages() {
         {courses.length > 0 && (
           <div className="packages__group" id="courses" data-reveal>
             <h2 className="packages__group-title">Курси під конкретну ціль</h2>
+            <p className="package-subtitle course-explainer">{SUBSCRIPTION_VS_COURSE}</p>
             <p className="package-subtitle">
               Окремі програми під вашу ціль: іспит, роботу, співбесіду чи подорож.
               Тут ви обираєте готовий курс із визначеною кількістю уроків.
