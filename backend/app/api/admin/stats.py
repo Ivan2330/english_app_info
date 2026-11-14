@@ -13,7 +13,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select, func, distinct
+from sqlalchemy import select, func, distinct, literal_column
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.admin.auth import get_current_admin
@@ -99,11 +99,15 @@ async def dashboard_stats(
     # --- джерела --------------------------------------------------------------
     # Прямі заходи — це переважно Instagram: у застосунку посилання
     # відкриваються без реферера, тож «прямий трафік» тут читати як «соцмережі».
+    # Підпис «прямі заходи» вбудований у SQL літералом, а не параметром. Параметром він
+    # їде двічі ($1 у SELECT і $3 у GROUP BY), і PostgreSQL не може довести, що це один
+    # вираз: весь дашборд падав з GroupingError ще до відповіді.
+    source_expr = func.coalesce(PageVisit.utm_source, PageVisit.referrer_host,
+                                literal_column("'прямі заходи'"))
     src_rows = (await session.execute(
-        select(func.coalesce(PageVisit.utm_source, PageVisit.referrer_host, "прямі заходи"),
-               func.count(distinct(PageVisit.visitor_hash)))
+        select(source_expr, func.count(distinct(PageVisit.visitor_hash)))
         .where(PageVisit.created_at >= since)
-        .group_by(func.coalesce(PageVisit.utm_source, PageVisit.referrer_host, "прямі заходи"))
+        .group_by(source_expr)
         .order_by(func.count(distinct(PageVisit.visitor_hash)).desc()).limit(10)
     )).all()
     sources = [{"source": r[0], "visitors": r[1]} for r in src_rows]
