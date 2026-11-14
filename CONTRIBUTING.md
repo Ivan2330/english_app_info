@@ -60,7 +60,7 @@
 Settings → Branches → Add branch ruleset для `main`:
 
 - Require a pull request before merging
-- Require status checks to pass: **Backend tests**, **Frontend build**, **No secrets in diff**
+- Require status checks to pass: **Backend tests (py3.11)**, **Backend tests (py3.12)**, **Frontend build**, **No secrets in diff**
 - Block force pushes
 
 Settings → General → Pull Requests: увімкнути лише «Allow squash merging»

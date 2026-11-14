@@ -17,8 +17,13 @@ permissions:
 
 jobs:
   backend:
-    name: Backend tests
+    name: Backend tests (py${{ matrix.python }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.11 - як у backend/Dockerfile (прод), 3.12 - як на машині розробки.
+        python: ["3.11", "3.12"]
     services:
       # Справжній PostgreSQL: на ньому перевіряються міграції, дашборд і пошук.
       # Тести самі створюють собі окремі бази, ваших даних тут немає.
@@ -39,7 +44,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"   # як у backend/Dockerfile
+          python-version: ${{ matrix.python }}
           cache: pip
           cache-dependency-path: backend/requirements*.txt
       - name: Install
