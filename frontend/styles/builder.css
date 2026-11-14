@@ -443,3 +443,12 @@
   line-height: 1.5;
   color: var(--muted);
 }
+
+/* Рядок згоди з офертою прямо над кнопкою оплати */
+.co__consent {
+  margin: 4px 0 10px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.co__consent a { color: var(--violet); font-weight: 600; }

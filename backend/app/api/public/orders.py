@@ -241,10 +241,11 @@ async def create_order(
         raise HTTPException(status_code=400, detail="customer_name required")
     if not (data.get("customer_phone") or data.get("customer_email")):
         raise HTTPException(status_code=400, detail="потрібен телефон або email")
-    # Згода з офертою — явна (чекбокс), а не «оформлюючи, ви приймаєте».
-    # Перевіряємо тут, а не лише у формі: запит можна надіслати й без браузера.
-    if data.get("offer_accepted") is not True:
-        raise HTTPException(status_code=400, detail="Потрібна згода з умовами публічної оферти")
+    # Акцепт оферти — натискання «Оплатити» під рядком «Оплачуючи, ви
+    # підтверджуєте…» (оферта, розділ 3), окремого чекбокса немає. Тому прапорця
+    # від форми не вимагаємо: факт акцепту — саме створення замовлення, а його
+    # час і редакцію оферти (п. 3.3) записуємо нижче. Поле `offer_accepted`,
+    # якщо старий клієнт його ще надсилає, просто ігнорується.
 
     res = await session.execute(
         select(Package).where(Package.slug == slug, Package.is_active.is_(True))

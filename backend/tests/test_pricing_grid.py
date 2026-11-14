@@ -219,8 +219,7 @@ class DbTests(unittest.IsolatedAsyncioTestCase):
 
     async def order(self, slug, phone="+380991112233"):
         r = await self.client.post("/api/orders", json={
-            "package_slug": slug, "customer_name": "Тест", "customer_phone": phone,
-            "offer_accepted": True})
+            "package_slug": slug, "customer_name": "Тест", "customer_phone": phone})
         self.assertEqual(r.status_code, 200, r.text)
         return r.json()["order"]
 

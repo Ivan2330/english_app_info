@@ -14,8 +14,8 @@ PHONE_B = "+380992220002"
 
 
 async def post(client, **over):
-    body = {"package_slug": "pkg", "customer_name": "Іван", "customer_phone": PHONE_A,
-            "offer_accepted": True}
+    # Без `offer_accepted`: чекбокса більше немає, акцепт — сам клік «Оплатити».
+    body = {"package_slug": "pkg", "customer_name": "Іван", "customer_phone": PHONE_A}
     body.update(over)
     return await client.post("/api/orders", json=body)
 
@@ -257,15 +257,20 @@ async def test_referral_reward_can_still_be_set_by_hand(admin_client, make_order
 
 # ------------------------------------------------------------------ згода з офертою
 
-@pytest.mark.parametrize("value", [None, False, "true", 1, "yes"])
-async def test_order_requires_explicit_offer_acceptance(client, make_package, session, value):
+@pytest.mark.parametrize("value", ["absent", None, False, True, "yes"])
+async def test_order_without_checkbox_still_records_acceptance(client, make_package, session, value):
+    """Чекбокса немає (оферта, розділ 3): прапорець від форми не потрібен і ні на що
+    не впливає. Старий клієнт, що досі шле `offer_accepted`, теж не ламається."""
+    from app.core.legal import OFFER_REVISION
     await make_package(slug="pkg")
     body = {"package_slug": "pkg", "customer_name": "Іван", "customer_phone": PHONE_A}
-    if value is not None:
+    if value != "absent":
         body["offer_accepted"] = value
     r = await client.post("/api/orders", json=body)
-    assert r.status_code == 400 and "оферт" in r.json()["detail"]
-    assert (await session.execute(select(Order))).scalars().all() == []
+    assert r.status_code == 200, r.text
+    row = (await session.execute(select(Order))).scalar_one()
+    assert row.offer_revision == OFFER_REVISION
+    assert row.offer_accepted_at is not None
 
 
 async def test_order_stores_consent_time_and_revision(client, make_package, session):

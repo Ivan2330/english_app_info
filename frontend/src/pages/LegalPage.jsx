@@ -11,7 +11,56 @@ import { SELLER, sellerIsConfigured, OFFER_REVISION } from "../lib/legal/seller.
  * Людина відкриває таку сторінку, щоб знайти один конкретний пункт,
  * а не щоб прочитати все.
  */
-export default function LegalPage({ crumb, title, lead, sections, showSeller = true, showRevision = true }) {
+/** `**жирний**` усередині пункту → <strong>. Інших розміток у текстах немає. */
+function Rich({ text }) {
+  return text.split(/(\*\*[^*]+\*\*)/).map((part, i) =>
+    part.startsWith("**") && part.endsWith("**") ? (
+      <strong key={i}>{part.slice(2, -2)}</strong>
+    ) : (
+      part
+    )
+  );
+}
+
+function Item({ item, requisites }) {
+  if (typeof item === "string") {
+    return <p className="legal__p"><Rich text={item} /></p>;
+  }
+  if (item.list) {
+    return (
+      <ul className="legal__list">
+        {item.list.map((li, i) => (
+          <li key={i}><Rich text={li} /></li>
+        ))}
+      </ul>
+    );
+  }
+  if (item.requisites && requisites) {
+    return (
+      <dl className="legal__req">
+        {requisites.map(([k, v]) => (
+          <div className="legal__req-row" key={k}>
+            <dt>{k}</dt>
+            <dd>
+              {v.includes("@") ? <a href={`mailto:${v}`}>{v}</a> : v}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    );
+  }
+  return null;
+}
+
+export default function LegalPage({
+  crumb,
+  title,
+  lead,
+  sections,
+  requisites = null,
+  showSeller = true,
+  showRevision = true,
+}) {
   useReveal([sections]);
 
   return (
@@ -36,8 +85,8 @@ export default function LegalPage({ crumb, title, lead, sections, showSeller = t
             {sections.map((s, i) => (
               <section key={s.title} className="legal__section" id={`p${i + 1}`} data-reveal>
                 <h2 className="legal__h2">{s.title}</h2>
-                {s.items.map((text) => (
-                  <p key={text} className="legal__p">{text}</p>
+                {s.items.map((item, j) => (
+                  <Item key={j} item={item} requisites={requisites} />
                 ))}
               </section>
             ))}
