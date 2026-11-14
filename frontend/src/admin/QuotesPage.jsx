@@ -158,7 +158,7 @@ export default function QuotesPage() {
                 </dl>
                 {q.comment && <pre className="adm-comment">{q.comment}</pre>}
                 <Preview q={q} />
-                <label className="adm-note">
+                <label className="adm-quote-note">
                   <span>Нотатка (клієнту не видно)</span>
                   <textarea rows={3} value={notes[q.id] ?? q.admin_note ?? ""}
                             onChange={(e) => setNotes((n) => ({ ...n, [q.id]: e.target.value }))} />
