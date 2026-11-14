@@ -9,6 +9,7 @@ export default function Guarantee() {
       lead="Гарантія діє на курсах підготовки до НМТ та IELTS."
       sections={GUARANTEE_SECTIONS}
       showSeller={false}
+      showRevision={false}
     />
   );
 }
