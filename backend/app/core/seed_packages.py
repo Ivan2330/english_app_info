@@ -52,8 +52,10 @@ TRACK_DESC = {
 SUB_TRACKS = {
     "adults": ["general", "speaking"],
     "teens": ["general", "speaking", "school"],
-    "kids": ["general", "speaking", "school"],
 }
+# Діти (5–12) і корпоратив у каталог не потрапляють: ціни там рахує Іван
+# через форму розрахунку (quote_requests). Їхні рядки в базі лишаються,
+# сід їх деактивує.
 
 # Тривалість уроку у хвилинах: аудиторія → формат
 LESSON_MIN = {
@@ -95,33 +97,30 @@ def build_catalogue() -> List[Dict]:
     order = 0
 
     # ================= 1. АБОНЕМЕНТИ =================
-    for audience in ("adults", "teens", "kids"):
-        is_kids = audience == "kids"
+    for audience in ("adults", "teens"):
         for track in SUB_TRACKS[audience]:
             for fmt in ("individual", "pair", "group"):
-                # яка лінійка й ціни діють для цієї комбінації
-                if is_kids:
-                    if fmt == "group":
-                        ladder, prices, hints = P.KIDS_GROUP_LADDER, P.KIDS_GROUP_PRICE, P.KIDS_GROUP_HINT
-                    elif fmt == "pair":
-                        ladder, prices, hints = P.KIDS_LADDER, P.KIDS_PAIR, P.KIDS_DURATION_HINT
-                    else:
-                        ladder, prices, hints = P.KIDS_LADDER, P.KIDS_INDIVIDUAL, P.KIDS_DURATION_HINT
+                if fmt == "group":
+                    ladder, prices, hints = P.GROUP_LADDER, P.GROUP_PRICE, P.GROUP_DURATION_HINT
+                elif fmt == "pair":
+                    ladder, prices, hints = P.ADULT_LADDER, P.ADULT_PAIR, P.ADULT_DURATION_HINT
                 else:
-                    if fmt == "group":
-                        ladder, prices, hints = P.GROUP_LADDER, P.GROUP_PRICE, P.GROUP_DURATION_HINT
-                    elif fmt == "pair":
-                        ladder, prices, hints = P.ADULT_LADDER, P.ADULT_PAIR, P.ADULT_DURATION_HINT
-                    else:
-                        ladder, prices, hints = P.ADULT_LADDER, P.ADULT_INDIVIDUAL, P.ADULT_DURATION_HINT
+                    ladder, prices, hints = P.ADULT_LADDER, P.ADULT_INDIVIDUAL, P.ADULT_DURATION_HINT
 
                 for idx in range(len(ladder)):
                     row = _pricing_row(ladder, prices, hints, idx)
+                    n = row["lessons_count"]
                     order += 1
+                    if fmt == "group":
+                        title = P.GROUP_PLANS[idx]["title"]
+                        name = (f"{TRACK_LABEL[track]} · {AUDIENCE_LABEL[audience]} · "
+                                f"Група · {title}")
+                    else:
+                        name = (f"{TRACK_LABEL[track]} · {AUDIENCE_LABEL[audience]} · "
+                                f"{FORMAT_LABEL[fmt]} · {n} уроків")
                     items.append(dict(
-                        slug=f"{track}-{audience}-{fmt}-{row['lessons_count']}",
-                        name=(f"{TRACK_LABEL[track]} · {AUDIENCE_LABEL[audience]} · "
-                              f"{FORMAT_LABEL[fmt]} · {row['lessons_count']} уроків"),
+                        slug=f"{track}-{audience}-{fmt}-{n}",
+                        name=name,
                         family=Family.SUBSCRIPTION,
                         audience=Audience(audience),
                         fmt=Format(fmt),
@@ -130,12 +129,15 @@ def build_catalogue() -> List[Dict]:
                         lesson_duration_min=LESSON_MIN[audience][fmt],
                         group_size_max=P.GROUP_SIZE_MAX if fmt == "group" else (2 if fmt == "pair" else None),
                         price_per_person=(fmt == "pair"),
+                        is_popular=(fmt != "group" and n == P.POPULAR_LESSONS),
                         sort_order=order,
                         **row,
                     ))
 
     # ================= 2. ТЕМАТИЧНІ КУРСИ =================
     for c in P.COURSES:
+        if c["slug"] not in P.VISIBLE_COURSES:
+            continue
         lessons = c["lessons"]
         fmt = c["fmt"]
         ppl = c.get("ppl") or P.course_rate(lessons, fmt)
@@ -191,27 +193,9 @@ def build_catalogue() -> List[Dict]:
         ))
 
     # ================= 4. КОРПОРАТИВ =================
-    # ПЧ тут не вмикаємо: оплата йде банківським переказом за рахунком,
-    # і за домовленістю — постоплатою за фактично проведені заняття.
-    for c in P.CORPORATE:
-        order += 1
-        items.append(dict(
-            slug=c["slug"],
-            name=c["name"],
-            family=Family.CORPORATE,
-            audience=Audience.CORPORATE,
-            fmt=Format.INDIVIDUAL if c["size"] == 1 else Format.GROUP,
-            track=Track.BUSINESS,
-            short_description=c.get("desc"),
-            lesson_duration_min=c["duration"],
-            lessons_count=1,
-            group_size_max=c["size"],
-            duration_hint=c.get("unit", "ціна за урок"),
-            price_per_lesson=c["price"],
-            total_price=c["price"],
-            is_popular=c.get("popular", False),
-            sort_order=order,
-        ))
+    # Не в каталозі: ціну за групу за заняття Іван рахує під компанію
+    # через форму розрахунку. P.CORPORATE лишається джерелом для попереднього
+    # розрахунку в заявці (P.corporate_preview).
 
     return items
 

@@ -19,6 +19,7 @@ Englishdom, Cambridge.ua):
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Dict, List, Optional
 
 CURRENCY = "UAH"
@@ -34,35 +35,72 @@ def r10(value: float) -> int:
 # =============================================================================
 
 # Підлітки 13–17 йдуть за дорослою сіткою без коефіцієнта.
-ADULT_LADDER: List[int] = [6, 16, 24, 48, 64, 72, 96, 144, 184, 250]
+# Фаза 1 (14.11.2026): у каталозі лишилося п'ять розмірів. Вузькі (64, 72, 144,
+# 184, 250) прибрані з сайту — вибір з десяти сходинок читався як шум.
+ADULT_LADDER: List[int] = [6, 16, 24, 48, 96]
 
 # Індивідуально, 50 хв. Ставка 6-урочного пакета — якір для всіх знижок.
-ADULT_INDIVIDUAL: List[int] = [550, 470, 450, 430, 415, 405, 390, 370, 355, 340]
+ADULT_INDIVIDUAL: List[int] = [550, 470, 450, 430, 390]
 
 # Парне, 50 хв, ЗА ОДНУ ОСОБУ. Це ADULT_INDIVIDUAL × PAIR_COEF, але виписано
 # руками: коефіцієнт дає 283,5 і 273 — на сайті такі числа виглядають як помилка.
-# Лінійка нижче вирівняна по 5 грн і зберігає монотонність.
 PAIR_COEF = 0.7
-ADULT_PAIR: List[int] = [385, 330, 315, 300, 290, 285, 275, 260, 250, 240]
+ADULT_PAIR: List[int] = [385, 330, 315, 300, 275]
 
 GROUP_SIZE_MAX = 6
 GROUP_SIZE_MIN = 3       # при двох економіка гірша за індивідуальний формат
 
-# Скільки триває пакет при двох уроках на тиждень — щоб «250» щось означало.
+# Скільки триває пакет при двох уроках на тиждень — щоб «96» щось означало.
 ADULT_DURATION_HINT: List[str] = [
-    "≈ 3 тижні", "≈ 2 місяці", "≈ 3 місяці", "≈ 6 місяців", "≈ 8 місяців",
-    "≈ 9 місяців", "≈ 1 рік", "≈ 1,5 роки", "≈ 2 роки", "≈ 2,5 роки",
+    "≈ 3 тижні", "≈ 2 місяці", "≈ 3 місяці", "≈ 6 місяців", "≈ 1 рік",
 ]
 
-# Група, 90 хв, до 6 людей. Своя лінійка: групи ходять курсами, не «пакетами уроків».
-GROUP_LADDER: List[int] = [12, 24, 36, 48, 72, 96, 144]
+# Найпопулярніший розмір (мітка «Популярний»). Групових це не стосується.
+POPULAR_LESSONS = 16
+
+# Група, 90 хв, до 6 людей, 2 рази на тиждень = 8 занять на місяць.
+# Три абонементи замість колишньої лінійки з семи пакетів.
 # Паритет по місячній ціні з Antischool (2 360 і 2 120 ₴/міс при 8 уроках),
 # але група вдвічі менша — до 6 проти до 9. Це і є аргумент продажу.
-GROUP_PRICE: List[int] = [360, 335, 315, 295, 280, 265, 250]
-GROUP_DURATION_HINT: List[str] = [
-    "≈ 1,5 місяця", "≈ 3 місяці", "≈ 4,5 місяця", "≈ 6 місяців",
-    "≈ 9 місяців", "≈ 1 рік", "≈ 1,5 роки",
+GROUP_LESSONS_PER_MONTH = 8
+GROUP_PLANS: List[Dict] = [
+    dict(key="month", title="Місяць",    lessons=8,  price=295, hint="1 місяць"),
+    dict(key="m4",    title="4 місяці",  lessons=32, price=265, hint="4 місяці"),
+    dict(key="m6",    title="6 місяців", lessons=48, price=250, hint="6 місяців"),
 ]
+GROUP_LADDER: List[int] = [g["lessons"] for g in GROUP_PLANS]
+GROUP_PRICE: List[int] = [g["price"] for g in GROUP_PLANS]
+GROUP_DURATION_HINT: List[str] = [g["hint"] for g in GROUP_PLANS]
+
+# Старт групи й дедлайн запису — ТІЛЬКИ тут, у тексти не вшивати.
+GROUP_START_DATE = date(2026, 12, 15)
+GROUP_ENROLL_UNTIL = date(2026, 12, 12)
+
+
+# =============================================================================
+# 1a. БОНУСНІ УРОКИ
+# =============================================================================
+# Таблиця «формат × розмір пакета × порядковий номер покупки клієнта».
+# Кортеж — значення для 1-ї, 2-ї, 3-ї покупки; остання клітинка діє і для всіх
+# наступних. Для 2-ї та 3-ї покупки поки нулі: Іван задасть їх сам, тут же.
+# Групи розділені від індивідуальних: у групі теж є пакет на 48, але бонус інший.
+BONUS_LESSONS: Dict[str, Dict[int, tuple]] = {
+    "individual": {6: (0, 0, 0), 16: (2, 0, 0), 24: (4, 0, 0), 48: (10, 0, 0), 96: (24, 0, 0)},
+    "pair":       {6: (0, 0, 0), 16: (2, 0, 0), 24: (4, 0, 0), 48: (10, 0, 0), 96: (24, 0, 0)},
+    "group":      {8: (0, 0, 0), 32: (0, 0, 0), 48: (0, 0, 0)},
+}
+
+
+def bonus_for(fmt: str, lessons: Optional[int], purchase_index: int = 1) -> int:
+    """Скільки бонусних уроків дає пакет при N-й покупці клієнта.
+
+    purchase_index — порядковий номер покупки (1 = перша). Невідомий формат
+    чи розмір (курси, клуби, нестандартні пакети) бонусу не мають.
+    """
+    row = BONUS_LESSONS.get(fmt, {}).get(lessons or 0)
+    if not row:
+        return 0
+    return row[min(max(purchase_index, 1), len(row)) - 1]
 
 
 # =============================================================================
@@ -254,6 +292,14 @@ COURSES: List[Dict] = [
 ]
 
 
+# Курси, які показуємо на сайті. Решта (вузькі й нішеві) лишаються в COURSES,
+# але в каталог не потрапляють і деактивуються сідом — рядки з бази не видаляємо.
+VISIBLE_COURSES: List[str] = [
+    "ielts-b1", "ielts-b2", "ielts-b1-group", "business-48", "it-24",
+    "speaking-36-group", "job-ready-12", "nmt-year-group", "travel-12",
+]
+
+
 # =============================================================================
 # 4. SPEAKING CLUB
 # =============================================================================
@@ -281,6 +327,10 @@ CLUBS: List[Dict] = [
 # даром своїм студентам — конкурувати з нулем неможливо. Ціни вище стосуються
 # лише тих, хто не вчиться в школі.
 CLUB_FREE_FOR_STUDENTS = True
+
+# Мінімум учасників для старту ПЛАТНОГО клубу. При трьох дитячий клуб іде
+# в мінус (чиста маржа −60 ₴ за зустріч), а підлітковий і «8 зустрічей» — в нуль.
+CLUB_MIN_PARTICIPANTS = 4
 
 
 # =============================================================================
@@ -598,4 +648,82 @@ def discount_breakdown(amount_kop: int, kinds: list[str]) -> dict:
         # це помилкою розрахунку.
         "capped": raw_percent > MAX_TOTAL_DISCOUNT_PERCENT,
         "final": amount_kop - total,
+    }
+
+
+# =============================================================================
+# 10. ЗАЯВКИ НА РОЗРАХУНОК — діти й корпоратив
+# =============================================================================
+# Користувач цін НЕ бачить: заповнює форму, Іван рахує і відписує сам.
+# Функції нижче дають менеджеру ПОПЕРЕДНІЙ розрахунок у заявці, не більше.
+# Наружу (в публічну відповідь) вони не віддаються ніколи.
+
+KIDS_FORMATS = ("individual", "pair", "group")
+KIDS_LESSON_MIN = {"individual": 40, "pair": 40, "group": 60}
+
+
+def _rate_for(ladder: List[int], prices: List[int], lessons: int) -> int:
+    """Ставка першої сходинки, не меншої за задану кількість уроків."""
+    for n, price in zip(ladder, prices):
+        if lessons <= n:
+            return price
+    return prices[-1]
+
+
+def kids_preview(age: Optional[int], fmt: str, lessons: int) -> Dict:
+    """Попередній розрахунок для дитячого пакета (для менеджера)."""
+    if fmt not in KIDS_FORMATS:
+        raise ValueError(f"unknown kids format: {fmt}")
+    if lessons < 1:
+        raise ValueError("lessons must be positive")
+    if fmt == "group":
+        ladder, prices = KIDS_GROUP_LADDER, KIDS_GROUP_PRICE
+    elif fmt == "pair":
+        ladder, prices = KIDS_LADDER, KIDS_PAIR
+    else:
+        ladder, prices = KIDS_LADDER, KIDS_INDIVIDUAL
+    rate = _rate_for(ladder, prices, lessons)
+    return {
+        "kind": "kids", "age": age, "format": fmt, "lessons": lessons,
+        "lesson_minutes": KIDS_LESSON_MIN[fmt],
+        "rate": rate, "total": rate * lessons,
+        "per_person": fmt == "pair",
+        "age_in_range": age is None or 5 <= age <= 12,
+    }
+
+
+def corporate_preview(people: int, fmt: str, months: int,
+                      lesson_minutes: Optional[int] = None, sessions_per_month: int = 8) -> Dict:
+    """Попередній розрахунок для компанії (для менеджера).
+
+    Групи по 6 (до 6 людей) або по 10; більше десяти ділимо на кілька груп.
+    Ціна за групу за заняття, знижка за кількість груп — з CORPORATE_VOLUME_DISCOUNT.
+    """
+    if people < 1 or months < 1:
+        raise ValueError("people and months must be positive")
+    by_slug = {c["slug"]: c for c in CORPORATE}
+    # Довжина заняття у формі не запитується, тож береться типова для формату:
+    # група 90 хв, індивідуально 50 хв. Інакше індивідуальне рахувалося б за 60-хвилинним
+    # тарифом (600 замість 520 ₴).
+    if lesson_minutes is None:
+        lesson_minutes = 50 if fmt == "individual" else 90
+    if fmt == "individual":
+        slug = "corp-solo-60" if lesson_minutes >= 60 else "corp-solo-50"
+        groups, size = people, 1               # кожен співробітник — окремий слот
+    else:
+        size = 6 if people <= GROUP_SIZE_MAX else 10
+        minutes = 90 if lesson_minutes >= 90 else 60
+        slug = f"corp-group{size}-{minutes}"
+        groups = -(-people // size)            # ceil
+    price = by_slug[slug]["price"]
+    sessions = sessions_per_month * months
+    discount = corporate_discount(groups) if fmt != "individual" else 0
+    gross = price * sessions * groups
+    total = gross - gross * discount // 100
+    return {
+        "kind": "corporate", "people": people, "format": fmt, "months": months,
+        "package": slug, "groups": groups, "price_per_session": price,
+        "sessions_per_group": sessions, "discount_percent": discount,
+        "total": total,
+        "assessment_free": groups >= CORPORATE_FREE_ASSESSMENT_FROM_GROUPS,
     }

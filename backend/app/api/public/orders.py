@@ -35,7 +35,7 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import pricing as P
@@ -182,6 +182,30 @@ async def _has_paid_subscription(session, phone: str | None, email: str | None) 
     return res.scalar_one_or_none() is not None
 
 
+async def _count_paid_orders(session, phone: str | None, email: str | None) -> int:
+    """Скільки оплачених замовлень уже має ця людина (за телефоном або поштою).
+
+    Та сама логіка, що в знижці на другий курс. Від цього числа залежить
+    порядковий номер покупки, а отже й кількість бонусних уроків.
+    """
+    if not phone and not email:
+        return 0
+
+    conds = []
+    if phone:
+        conds.append(Order.customer_phone == phone)
+    if email:
+        conds.append(Order.customer_email == email)
+
+    res = await session.execute(
+        select(func.count(Order.id)).where(
+            or_(*conds),
+            Order.status == OrderStatus.PAID,
+        )
+    )
+    return int(res.scalar_one() or 0)
+
+
 # =============================================================================
 # 1. Створення замовлення
 # =============================================================================
@@ -252,9 +276,20 @@ async def create_order(
             f"якщо підтвердиться ({P.FAMILY_DISCOUNT_PERCENT}%)."
         )
 
+    # --- бонусні уроки --------------------------------------------------
+    # Номер покупки = оплачені замовлення цієї людини + 1. Бонус фіксується
+    # копією в замовленні: Іван змінить таблицю в pricing.py, а те, що
+    # обіцяли конкретному клієнтові, не зміниться. На суму бонус НЕ впливає.
+    purchase_index = await _count_paid_orders(session, phone, email) + 1
+    bonus_lessons = 0
+    if package.family == PackageFamily.SUBSCRIPTION:
+        bonus_lessons = P.bonus_for(package.fmt.value, package.lessons_count, purchase_index)
+
     order = Order(
         public_id=public_id,
         package_id=package.id,
+        bonus_lessons=bonus_lessons,
+        purchase_index=purchase_index,
         package_slug=package.slug,
         package_name=package.name,
         lessons_count=package.lessons_count,

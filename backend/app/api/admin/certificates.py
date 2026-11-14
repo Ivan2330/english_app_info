@@ -74,12 +74,19 @@ async def list_certificates(
         like = f"%{q.strip()}%"
         # Менеджер шукає або за прізвищем, або за номером із документа
         normalized = C.normalize(q).replace("-", "")
-        stmt = stmt.where(or_(
+        clauses = [
             Certificate.student_full_name.ilike(like),
             Certificate.course_title.ilike(like),
             Certificate.organization.ilike(like),
-            func.upper(func.replace(Certificate.serial_number, "-", "")).like(f"%{normalized}%"),
-        ))
+        ]
+        # Номер шукаємо, лише якщо в запиті лишилось що шукати. Для кириличного
+        # прізвища normalize() дає порожній рядок, а LIKE '%%' збігається з усім:
+        # пошук за «Марія» повертав усі сертифікати підряд.
+        if normalized:
+            clauses.append(
+                func.upper(func.replace(Certificate.serial_number, "-", "")).like(f"%{normalized}%")
+            )
+        stmt = stmt.where(or_(*clauses))
 
     if revoked is not None:
         stmt = stmt.where(Certificate.is_revoked.is_(revoked))

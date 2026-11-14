@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { fetchPackages, fetchPackageFilters } from "../api/packages.js";
 import PackageBuilder from "../components/PackageBuilder.jsx";
 import PriceCard from "../components/PriceCard.jsx";
-import { TRACK, money } from "../lib/labels.js";
+import { TRACK } from "../lib/labels.js";
 import { useReveal } from "../lib/motion.js";
 import Faq from "../components/Faq.jsx";
 import BookingForm from "../components/BookingForm.jsx";
@@ -11,6 +11,7 @@ import PageHero from "../components/PageHero.jsx";
 import { FAQ_PAYMENT } from "../lib/content.js";
 import { ChastBadge, ChastLegal } from "../components/ChastBadge.jsx";
 import BonusLessons from "../components/BonusLessons.jsx";
+import QuoteForm from "../components/QuoteForm.jsx";
 
 /**
  * Сторінка цін.
@@ -26,7 +27,6 @@ export default function Packages() {
   const [combos, setCombos] = useState([]);
   const [courses, setCourses] = useState([]);
   const [clubs, setClubs] = useState([]);
-  const [corporate, setCorporate] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [courseTrack, setCourseTrack] = useState("all");
@@ -37,14 +37,12 @@ export default function Packages() {
       fetchPackageFilters(),
       fetchPackages({ family: "course" }),
       fetchPackages({ family: "club" }),
-      fetchPackages({ family: "corporate" }),
     ])
-      .then(([c, co, cl, corp]) => {
+      .then(([c, co, cl]) => {
         if (cancelled) return;
         setCombos(c);
         setCourses(co);
         setClubs(cl);
-        setCorporate(corp);
       })
       .catch(() => !cancelled && setError(true))
       .finally(() => !cancelled && setLoading(false));
@@ -54,7 +52,7 @@ export default function Packages() {
   }, []);
 
   // Картки приходять з API, тому reveal переспостерігає їх після завантаження.
-  useReveal([loading, courses.length, clubs.length, corporate.length, courseTrack]);
+  useReveal([loading, courses.length, clubs.length, courseTrack]);
 
   /**
    * Куди веде «Обрати».
@@ -69,10 +67,6 @@ export default function Packages() {
    * всіх підряд і втрачати тих, хто готовий платити зараз.
    */
   const goSelect = (p) => {
-    if (p.family === "corporate") {
-      navigate("/contacts", { state: { selectedPackage: p.slug } });
-      return;
-    }
     navigate(`/checkout?package=${encodeURIComponent(p.slug)}`);
   };
 
@@ -189,15 +183,14 @@ export default function Packages() {
 
             <p className="package-subtitle package-subtitle--aside">
               Ціни можуть бути нижчими завдяки <a href="#benefits">додатковим знижкам</a>,
-              а до пакетів додаються <a href="#lesson-bonuses">бонусні уроки — до 50% зверху</a>.
+              а до пакетів додаються <a href="#lesson-bonuses">бонусні уроки в подарунок</a>.
             </p>
-            {(clubs.length > 0 || corporate.length > 0) && (
-              <nav className="package-section-links" aria-label="Інші пропозиції нижче">
-                <span>Нижче — окремі пропозиції:</span>
-                {clubs.length > 0 && <a href="#club">Speaking Club ↓</a>}
-                {corporate.length > 0 && <a href="#corporate">Навчання для компаній ↓</a>}
-              </nav>
-            )}
+            <nav className="package-section-links" aria-label="Інші пропозиції нижче">
+              <span>Нижче — окремі пропозиції:</span>
+              {clubs.length > 0 && <a href="#club">Speaking Club ↓</a>}
+              <a href="#kids">Для дітей ↓</a>
+              <a href="#corporate">Навчання для компаній ↓</a>
+            </nav>
 
             <div className="course-filter">
               {courseTracks.map((t) => (
@@ -236,95 +229,35 @@ export default function Packages() {
           </div>
         )}
 
+        {/* ---------- ДІТИ ---------- */}
+        {/* Ціну для дітей не показуємо: програма залежить від віку й формату,
+            Іван рахує під конкретну дитину і відписує особисто. */}
+        <div className="packages__group" id="kids" data-reveal>
+          <h2 className="packages__group-title">Для дітей 5–12 років</h2>
+          <p className="package-subtitle">
+            Батьки купують не «уроки», а місяць, семестр чи навчальний рік. Вкажіть вік,
+            формат і скільки занять потрібно — ми розрахуємо програму й напишемо вам.
+          </p>
+          <QuoteForm kind="kids" source="site/quote-kids" />
+        </div>
+
         {/* ---------- КОРПОРАТИВ ---------- */}
-        {corporate.length > 0 && (
-          <div className="packages__group" id="corporate" data-reveal>
-            <h2 className="packages__group-title">Для компаній</h2>
-            <p className="package-subtitle">
-              Тут ціна вказана <strong>за групу за одне заняття</strong>, а не за людину.
-              Рахунок виставляємо наприкінці місяця за фактично проведені заняття,
-              з договором і закривними документами.
-            </p>
-
-            <div className="corp-table-wrap">
-              <table className="corp-table">
-                <thead>
-                  <tr>
-                    <th>Формат</th>
-                    <th>Людей</th>
-                    <th>Урок</th>
-                    <th>Ціна</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {corporate.map((p) => (
-                    <tr key={p.id} className={p.is_popular ? "is-popular" : undefined}>
-                      <td>
-                        <strong>{p.name}</strong>
-                        {p.short_description ? <span className="corp-note">{p.short_description}</span> : null}
-                      </td>
-                      <td>{p.group_size_max === 1 ? "1" : `до ${p.group_size_max}`}</td>
-                      <td>{p.lesson_duration_min} хв</td>
-                      <td className="corp-price">{money(p.total_price, p.currency)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <ul className="shared-included__list corp-terms">
-              <li>Знижки за обсяг: 2 групи −5%, 3–4 −10%, 5–6 −15%, 7+ −20%</li>
-              <li>Безкоштовне вступне тестування рівня співробітників від 2 груп</li>
-              <li>Кабінет для HR: відвідуваність, результати тестів, сертифікати, фінансовий звіт</li>
-              <li>Мінімальний контракт — 3 місяці, із заморозкою на час відпусток</li>
-            </ul>
-
-            {/* Ціни в таблиці вище — верхня межа, а не остаточна пропозиція.
-                Корпоративні умови завжди рахуються під конкретну компанію:
-                кількість груп, графік, тривалість контракту. Сказати про це
-                прямо вигідніше, ніж мовчати: інакше HR порівнює нашу табличну
-                ціну з чужою індивідуальною і йде. */}
-            <div className="corp-offer">
-              <div className="corp-offer__body">
-                <p className="kicker kicker--lime">Індивідуальна пропозиція</p>
-                <h3 className="corp-offer__title">
-                  Напишіть нам — порахуємо вигідніше, ніж у таблиці
-                </h3>
-                <p className="corp-offer__text">
-                  Ціни вище — базові. Під конкретну компанію умови рахуємо окремо
-                  й майже завжди вони кращі за вказані: усе залежить від кількості
-                  груп, графіка та тривалості контракту. Розкажіть, скільки у вас
-                  людей і чого треба досягти — надішлемо прорахунок і програму.
-                </p>
-                <ul className="corp-offer__list">
-                  <li>Додаткові знижки понад сітку за обсяг</li>
-                  <li>Пілотний місяць, щоб перевірити нас без довгих зобовʼязань</li>
-                  <li>Окремі умови для кількох відділів або філій</li>
-                  <li>Гнучкий графік: ранкові, вечірні та обідні слоти</li>
-                </ul>
-                <div className="corp-offer__actions">
-                  <button type="button" className="btn btn-lime" onClick={() => navigate("/contacts")}>
-                    Отримати прорахунок
-                  </button>
-                  <a className="btn btn-outline" href="mailto:my.primeacademy19@gmail.com?subject=Корпоративне навчання">
-                    Написати на пошту
-                  </a>
-                </div>
-              </div>
-
-              <aside className="corp-offer__side">
-                <div className="corp-offer__big">24 год</div>
-                <p>готуємо комерційну пропозицію</p>
-                <ul>
-                  <li>Тест рівня команди</li>
-                  <li>Склад і кількість груп</li>
-                  <li>Кошторис на весь контракт</li>
-                  <li>Договір і закривні документи</li>
-                </ul>
-              </aside>
-            </div>
-          </div>
-        )}
+        {/* Ціна за групу за заняття, постоплата, рахунок на юрособу — купити це
+            кнопкою неможливо в принципі, тому тут форма розрахунку, а не таблиця. */}
+        <div className="packages__group" id="corporate" data-reveal>
+          <h2 className="packages__group-title">Для компаній</h2>
+          <p className="package-subtitle">
+            Рахуємо <strong>за групу за заняття</strong>, а не за людину. Рахунок виставляємо
+            наприкінці місяця за фактично проведені заняття, з договором і закривними документами.
+          </p>
+          <ul className="shared-included__list corp-terms">
+            <li>Знижки за обсяг: 2 групи −5%, 3–4 −10%, 5–6 −15%, 7+ −20%</li>
+            <li>Безкоштовне вступне тестування рівня співробітників від 2 груп</li>
+            <li>Кабінет для HR: відвідуваність, результати тестів, сертифікати, фінансовий звіт</li>
+            <li>Мінімальний контракт — 3 місяці, із заморозкою на час відпусток</li>
+          </ul>
+          <QuoteForm kind="corporate" source="site/quote-corporate" />
+        </div>
 
         {/* ---------- ОПЛАТА ---------- */}
         <section className="shared-included card" id="payment" data-reveal>

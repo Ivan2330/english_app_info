@@ -1,0 +1,88 @@
+name: CI
+
+# Запускається на кожному PR і на пуші в main. Публічний репозиторій безкоштовний,
+# приватний працює в межах безкоштовного ліміту хвилин GitHub Actions.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Новий пуш у ту саму гілку скасовує попередній запуск: не палимо хвилини.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend tests (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.11 - як у backend/Dockerfile (прод), 3.12 - як на машині розробки.
+        python: ["3.11", "3.12"]
+    services:
+      # Справжній PostgreSQL: на ньому перевіряються міграції, дашборд і пошук.
+      # Тести самі створюють собі окремі бази, ваших даних тут немає.
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - name: Install
+        run: pip install -r backend/requirements-test.txt
+      - name: Test (parallel, with coverage gate)
+        # -n auto: по воркеру на ядро, кожен має власні бази, тож тести не заважають одне одному.
+        # Нижче 95% покриття (рядки + гілки) збірка падає: нова логіка без тестів не пройде.
+        working-directory: backend
+        run: python -m pytest -n auto -q --cov --cov-fail-under=95 --cov-report=term-missing:skip-covered
+
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20   # як у frontend/Dockerfile
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install
+        working-directory: frontend
+        run: npm ci --no-audit --no-fund
+      - name: Build
+        working-directory: frontend
+        run: npx vite build --outDir /tmp/dist-check --emptyOutDir
+
+  secrets:
+    name: No secrets in diff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Block .env files
+        # backend/.env уже раз потрапляв у git разом з бойовими ключами.
+        run: |
+          if git ls-files | grep -E '(^|/)\.env$'; then
+            echo "::error::.env не має бути в репозиторії (див. DEPLOY.md, розділ 0)"
+            exit 1
+          fi

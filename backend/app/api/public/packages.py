@@ -25,7 +25,7 @@ async def list_packages(
     format: Format | None = Query(None, alias="format"),
     track: Track | None = Query(None),
     chast: bool | None = Query(None, description="тільки пакети, доступні в Покупці Частинами"),
-    active: int = 1,
+    active: int = 1,   # лишений для сумісності; публічний каталог завжди тільки активний
     session: AsyncSession = Depends(get_async_session),
 ):
     stmt = select(Package)
@@ -39,8 +39,9 @@ async def list_packages(
         stmt = stmt.where(Package.track == track)
     if chast is not None:
         stmt = stmt.where(Package.chast_enabled == chast)
-    if active:
-        stmt = stmt.where(Package.is_active.is_(True))
+    # Приховані пакети (is_active=False) публічно не віддаємо ніколи, навіть
+    # за ?active=0: інакше прибрані з сайту ціни лишалися б видимі в API.
+    stmt = stmt.where(Package.is_active.is_(True))
 
     stmt = stmt.order_by(Package.sort_order.asc(), Package.id.asc())
     rows = await session.execute(stmt)
@@ -67,7 +68,10 @@ async def package_filters(session: AsyncSession = Depends(get_async_session)):
 async def get_package(slug: str, session: AsyncSession = Depends(get_async_session)):
     row = await session.execute(select(Package).where(Package.slug == slug))
     p = row.scalar_one_or_none()
-    if not p:
+    # Прихований пакет (вузький розмір, дитячий, корпоративний) за прямим слагом
+    # теж не віддаємо: інакше ціни, які ми свідомо прибрали з сайту, лишилися б
+    # доступними в API. Старі замовлення це не зачіпає — вони тримають копію.
+    if not p or not p.is_active:
         raise HTTPException(status_code=404, detail="Package not found")
     data = p.as_dict()
     data["long_description"] = p.long_description
