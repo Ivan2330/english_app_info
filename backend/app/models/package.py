@@ -23,6 +23,7 @@ from sqlalchemy import (
     DateTime, Enum as SAEnum,
 )
 
+from app.core import pricing as P
 from app.db.database import Base
 
 
@@ -146,7 +147,15 @@ class Package(Base):
 
     def as_dict(self) -> dict:
         """Публічне представлення. Один формат для списку і для картки."""
+        is_sub = self.family == Family.SUBSCRIPTION
+        # Бонус першої покупки — з конфігу, не з колонки: Іван міняє таблицю
+        # в pricing.py, і міграція за цим не мусить ганятися.
+        bonus = P.bonus_for(self.fmt.value, self.lessons_count, 1) if is_sub else 0
+        is_group_sub = is_sub and self.fmt == Format.GROUP
         return {
+            "bonus_lessons": bonus,
+            "starts_on": P.GROUP_START_DATE.isoformat() if is_group_sub else None,
+            "enroll_until": P.GROUP_ENROLL_UNTIL.isoformat() if is_group_sub else None,
             "id": self.id,
             "slug": self.slug,
             "name": self.name,

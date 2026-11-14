@@ -123,6 +123,13 @@ class Order(Base):
     # хто привів, — тому й індекс: по ньому рахуємо, скільки людина привела.
     promo_code = Column(String(64), nullable=True, index=True)
 
+    # --- бонусні уроки (міграція 0009) ----------------------------------------
+    # Копія на момент замовлення, як і ціна: таблицю бонусів Іван буде міняти,
+    # а вже оформлене замовлення має пам'ятати, що йому обіцяли.
+    # purchase_index — яка це за рахунком ОПЛАЧЕНА покупка клієнта (1 = перша).
+    bonus_lessons  = Column(Integer, nullable=False, default=0, server_default="0")
+    purchase_index = Column(Integer, nullable=True)
+
     # --- хто купує ------------------------------------------------------------
     customer_name  = Column(String(160), nullable=False)
     customer_phone = Column(String(64), nullable=True)
@@ -172,6 +179,8 @@ class Order(Base):
             "discount_amount_uah": round((self.discount_amount or 0) / 100, 2),
             "discount_kinds": [k for k in (self.discount_kinds or "").split(",") if k],
             "promo_code": self.promo_code,
+            "bonus_lessons": self.bonus_lessons or 0,
+            "purchase_index": self.purchase_index,
             "currency": self.currency,
             "status": self.status.value if self.status else None,
             "paid_amount": self.paid_amount,
