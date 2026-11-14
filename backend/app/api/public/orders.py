@@ -472,8 +472,22 @@ async def _pay_with_chast(session: AsyncSession, order: Order, data: dict) -> di
         payment.status = PaymentStatus.FAILED
         payment.fail_code = result.get("fail_reason") or state
         payment.raw_response = str(result)
+        payment.finished_at = datetime.utcnow()
         await session.commit()
-        return {"ok": True, "method": "chast", "checkout_url": None}
+
+        # Мовчазний фолбек на картку. Найчастіша причина - CLIENT_NOT_FOUND:
+        # людина не користується monobank, ПЧ їй недоступна. Це звичайний
+        # результат, а не збій, тож помилку не показуємо - віддаємо посилання
+        # на оплату карткою. Інші відмови (ліміт тощо) обробляємо так само:
+        # FAIL - кінцевий стан, банк гроші не бере, подвійного списання бути не може.
+        #
+        # Сума та сама, що й була: ціна не залежить від способу оплати,
+        # комісію не перекладаємо на покупця (правила monobank).
+        # Таймаут чи мережева помилка сюди не потрапляють: там банк міг
+        # прийняти заявку, і друга спроба карткою ризикувала б подвійним списанням.
+        card = await _pay_with_card(session, order)
+        # fell_back - для аналітики, а не для показу: користувач бачить просто оплату.
+        return {**card, "fell_back": True}
 
     payment.provider_order_id = result.get("order_id")
     if not payment.provider_order_id:

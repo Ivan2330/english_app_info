@@ -235,31 +235,86 @@ async def test_chast_without_bank_order_id_is_502(client, order):
         assert (await pay(client, order, method="chast")).status_code == 502
 
 
-async def test_chast_client_not_found_is_recorded(client, order, session):
-    reply = {"state": "FAIL", "fail_reason": "CLIENT_NOT_FOUND"}
-    with patch.object(chast, "create_order", AsyncMock(return_value=reply)):
-        r = await pay(client, order, method="chast")
+FALLBACK_REPLIES = [
+    {"state": "FAIL", "fail_reason": "CLIENT_NOT_FOUND"},
+    {"state": "FAIL/CLIENT_NOT_FOUND"},
+    {"state": "FAIL", "fail_reason": "LIMIT_EXCEEDED"},
+    {"state": "fail"},
+]
+
+
+@pytest.mark.parametrize("reply", FALLBACK_REPLIES)
+async def test_chast_refusal_falls_back_to_card_link(client, order, session, reply):
+    """Клієнт без monobank отримує посилання на оплату карткою, а не порожню відповідь."""
+    card = AsyncMock(return_value=INVOICE)
+    with patch.object(chast, "create_order", AsyncMock(return_value=reply)),             patch.object(plata, "create_invoice", card):
+        r = await pay(client, order, method="chast", parts_count=3)
+    body = r.json()
     assert r.status_code == 200
-    (p,) = await payments(session)
-    assert p.status == PaymentStatus.FAILED
-    assert p.fail_code == "CLIENT_NOT_FOUND"
-    assert chast.is_client_not_found(p.fail_code)
+    assert body == {"ok": True, "method": "card", "checkout_url": INVOICE["pageUrl"], "fell_back": True}
+    card.assert_awaited_once()
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "ВІДОМА ПРОГАЛИНА: CLAUDE.md і docstring обіцяють мовчазний фолбек на картку при "
-    "CLIENT_NOT_FOUND (fell_back: true), але _pay_with_chast просто повертає checkout_url=None. "
-    "Клієнт не-monobank бачить порожню відповідь. Коли фолбек зʼявиться, тест стане XPASS і "
-    "впаде (strict) — тоді прибрати xfail."))
-async def test_chast_client_not_found_falls_back_to_card(client, order, session):
+async def test_fallback_keeps_history_and_the_same_amount(client, order, session):
     reply = {"state": "FAIL", "fail_reason": "CLIENT_NOT_FOUND"}
-    with patch.object(chast, "create_order", AsyncMock(return_value=reply)), \
-            patch.object(plata, "create_invoice", AsyncMock(return_value=INVOICE)):
+    card = AsyncMock(return_value=INVOICE)
+    with patch.object(chast, "create_order", AsyncMock(return_value=reply)),             patch.object(plata, "create_invoice", card):
+        await pay(client, order, method="chast")
+    first, second = await payments(session)
+    assert (first.method, first.status, first.fail_code) == (PaymentMethod.CHAST, PaymentStatus.FAILED,
+                                                             "CLIENT_NOT_FOUND")
+    assert (second.method, second.status) == (PaymentMethod.CARD, PaymentStatus.PROCESSING)
+    # правило monobank: ціна однакова, комісія не на покупцеві
+    assert first.amount == second.amount == order.amount == card.call_args.kwargs["amount_kop"]
+    assert order.status == OrderStatus.PENDING
+    assert chast.is_client_not_found(first.fail_code)
+
+
+async def test_fallback_card_gets_the_discounted_amount(client, make_package, make_order, session):
+    pkg = await make_package(slug="d", chast_enabled=True, chast_max_parts=3)
+    o = await make_order(package_id=pkg.id, amount=800_000, base_amount=1_000_000, discount_amount=200_000)
+    card = AsyncMock(return_value=INVOICE)
+    with patch.object(chast, "create_order", AsyncMock(return_value={"state": "FAIL"})),             patch.object(plata, "create_invoice", card):
+        await pay(client, o, method="chast")
+    assert card.call_args.kwargs["amount_kop"] == 800_000
+
+
+async def test_fallback_card_error_leaves_order_payable_again(client, order, session):
+    """Банк карток теж не відповів: помилка, але нову спробу зробити можна."""
+    reply = {"state": "FAIL", "fail_reason": "CLIENT_NOT_FOUND"}
+    with patch.object(chast, "create_order", AsyncMock(return_value=reply)),             patch.object(plata, "create_invoice", AsyncMock(side_effect=plata.PlataError("down"))):
+        first = await pay(client, order, method="chast")
+    assert first.status_code == 502
+    with patch.object(plata, "create_invoice", AsyncMock(return_value=INVOICE)):
+        # карткова спроба лишилась CREATED (банк міг прийняти): її фіксує координатор
+        assert (await pay(client, order, method="card")).status_code == 200
+
+
+async def test_plain_card_and_successful_chast_have_no_fallback_flag(client, order):
+    with patch.object(chast, "create_order", AsyncMock(return_value=CHAST_OK)):
+        assert "fell_back" not in (await pay(client, order, method="chast")).json()
+
+
+async def test_card_payment_has_no_fallback_flag(client, make_order):
+    o = await make_order()
+    with patch.object(plata, "create_invoice", AsyncMock(return_value=INVOICE)):
+        assert "fell_back" not in (await pay(client, o)).json()
+
+
+async def test_bank_timeout_does_not_trigger_fallback(client, order, session):
+    """Банк міг прийняти заявку: друга спроба карткою ризикувала б подвійним списанням."""
+    card = AsyncMock(return_value=INVOICE)
+    with patch.object(chast, "create_order", AsyncMock(side_effect=chast.ChastError("timeout"))),             patch.object(plata, "create_invoice", card):
         r = await pay(client, order, method="chast")
-    assert r.json()["checkout_url"] == INVOICE["pageUrl"]
-    assert r.json().get("fell_back") is True
-    methods = [p.method for p in await payments(session)]
-    assert methods == [PaymentMethod.CHAST, PaymentMethod.CARD]
+    assert r.status_code == 503
+    card.assert_not_awaited()
+
+
+async def test_fallback_response_never_names_a_credit_product(client, order):
+    reply = {"state": "FAIL", "fail_reason": "CLIENT_NOT_FOUND"}
+    with patch.object(chast, "create_order", AsyncMock(return_value=reply)),             patch.object(plata, "create_invoice", AsyncMock(return_value=INVOICE)):
+        text = (await pay(client, order, method="chast")).text.lower()
+    assert "кредит" not in text and "credit" not in text
 
 
 # ------------------------------------------------------------------ правила monobank
