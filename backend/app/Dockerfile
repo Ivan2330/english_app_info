@@ -1,5 +1,5 @@
 # 1. Вихідний образ
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # 2. Встановлення робочої директорії
 WORKDIR /app

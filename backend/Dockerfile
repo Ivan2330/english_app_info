@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -18,12 +18,16 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends fonts-dejavu-core \
  && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+COPY requirements.txt requirements.lock ./
 
 # Свідомо НЕ робимо `pip install --upgrade pip`: це підтягує іншу версію pip
 # при кожній збірці, тобто образ перестає бути відтворюваним, а поведінка
 # резолвера може змінитися між двома однаковими білдами.
-RUN pip install -r requirements.txt
+#
+# requirements.lock - точні версії всіх пакетів (включно з транзитивними). Без нього кожна
+# перезбірка образу тягне "найсвіжіше", і так уже ламалися bcrypt, greenlet і PyJWT
+# (вхід в адмінку давав 401). Оновлювати свідомо: `make lock`, потім тести.
+RUN pip install -r requirements.txt -c requirements.lock
 
 COPY . .
 
