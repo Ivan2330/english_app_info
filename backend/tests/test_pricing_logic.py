@@ -53,27 +53,56 @@ def test_every_discount_kind_has_label_and_percent():
 
 # =============================================================== повернення
 
-def test_refund_example_from_claude_md():
-    """96 уроків по 390 = 37 440; проведено 20 за 550 = 11 000; збір 300 → 26 140."""
-    assert P.refund_amount(paid=37_440, lessons_used=20, base_rate=550) == 26_140
+IND = (P.ADULT_LADDER, P.ADULT_INDIVIDUAL)      # 6/16/24/48/96 по 550/470/450/430/390
 
 
-@pytest.mark.parametrize("paid,used,rate,fault,expected", [
-    (10_000, 0, 550, False, 9_700),         # нічого не проведено: мінус збір
-    (10_000, 0, 550, True, 10_000),         # вина школи: без збору
-    (10_000, 20, 550, False, 0),            # проведене перекриває сплачене
-    (10_000, 18, 550, True, 100),
-    (0, 0, 550, False, 0),
+def test_refund_example_from_offer():
+    """Оферта п. 10.2: оплачено 48, проведено 6 — мінус ціна пакета на 6, решта назад."""
+    paid = 48 * 430                                  # 20 640
+    assert P.refund_amount(paid, 6, *IND) == paid - 6 * 550 == 17_340
+
+
+@pytest.mark.parametrize("used,cost", [
+    (0, 0),
+    (1, 6 * 550),        # найближчий не менший пакет — 6 уроків
+    (6, 6 * 550),
+    (7, 16 * 470),       # між сходинками — ціна пакета на 16
+    (16, 16 * 470),
+    (24, 24 * 450),
+    (48, 48 * 430),
+    (96, 96 * 390),
 ])
-def test_refund_amount(paid, used, rate, fault, expected):
-    assert P.refund_amount(paid, used, rate, school_at_fault=fault) == expected
+def test_used_cost_is_price_of_nearest_not_smaller_package(used, cost):
+    assert P.refund_used_cost(used, *IND) == cost
+
+
+def test_no_admin_fee_any_more():
+    """Збір 300 ₴ прибрано: нічого не проведено — повертаємо все до копійки."""
+    assert P.refund_amount(48 * 430, 0, *IND) == 48 * 430
+    assert not hasattr(P, "REFUND_ADMIN_FEE")
+
+
+@pytest.mark.parametrize("paid,used,expected", [
+    (6 * 550, 6, 0),                 # усе відходив
+    (16 * 470, 7, 0),                # проведене за ціною пакета на 16 = сплаченому
+    (1_000, 6, 0),                   # проведене перекриває сплачене — не в мінус
+    (0, 0, 0),
+])
+def test_refund_never_negative(paid, used, expected):
+    assert P.refund_amount(paid, used, *IND) == expected
+
+
+def test_refund_uses_price_list_passed_in_not_current():
+    """«За прайсом на момент оплати»: ставки приходять аргументом, а не з поточної сітки."""
+    old_prices = [600, 500, 480, 460, 420]
+    assert P.refund_amount(48 * 460, 6, P.ADULT_LADDER, old_prices) == 48 * 460 - 6 * 600
 
 
 def test_refund_cannot_be_gamed_by_buying_the_cheapest_rate():
-    """Купити 250 по 340, відходити 10 і забрати решту: проведені рахуються по 550."""
-    paid = 250 * 340
-    back = P.refund_amount(paid, 10, P.ADULT_INDIVIDUAL[0])
-    assert back == paid - 10 * 550 - 300 < paid - 10 * 340
+    """Купити 96 по 390, відходити 10 і забрати решту: проведені рахуються як пакет на 16."""
+    paid = 96 * 390
+    back = P.refund_amount(paid, 10, *IND)
+    assert back == paid - 16 * 470 < paid - 10 * 390
 
 
 # =============================================================== ПЧ, строки, заморозка
