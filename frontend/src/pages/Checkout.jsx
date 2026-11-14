@@ -6,6 +6,7 @@ import { createOrder, payOrder } from "../api/orders.js";
 import { money, lessonsWord } from "../lib/labels.js";
 import { useReveal } from "../lib/motion.js";
 import { ChastBadge, ChastLegal } from "../components/ChastBadge.jsx";
+import { OFFER_REVISION } from "../lib/legal/seller.js";
 
 /**
  * Оформлення замовлення.
@@ -32,6 +33,7 @@ export default function Checkout() {
     student_name: "", comment: "", promo_code: "",
   });
   const [familyClaim, setFamilyClaim] = useState(false);
+  const [offerAccepted, setOfferAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const pendingOrder = useRef(null);
@@ -71,6 +73,11 @@ export default function Checkout() {
       return;
     }
 
+    if (!offerAccepted) {
+      setError("Щоб продовжити, підтвердьте згоду з умовами публічної оферти");
+      return;
+    }
+
     setBusy(true);
     submitting.current = true;
     try {
@@ -83,6 +90,7 @@ export default function Checkout() {
         ...form,
         checkout_key: checkoutKey.current,
         family_claim: familyClaim,
+        offer_accepted: true,
         package_slug: slug,
         source: "site/checkout",
       })).order;
@@ -201,10 +209,6 @@ export default function Checkout() {
               <li>Матеріали й перевірка домашніх у ціні</li>
             </ul>
 
-            <p className="co__fine">
-              Оформлюючи замовлення, ви приймаєте{" "}
-              <Link to="/offer">умови публічної оферти</Link>.
-            </p>
           </aside>
 
           {/* ---------- контакти й оплата ---------- */}
@@ -320,9 +324,25 @@ export default function Checkout() {
               </label>
             )}
 
+            {/* Явна згода, а не «оформлюючи, ви приймаєте»: якщо буде спір,
+                факт згоди й редакцію оферти можна показати. Посилання — у новій
+                вкладці, щоб не втратити заповнену форму. */}
+            <label className="co__check co__offer">
+              <input
+                type="checkbox"
+                checked={offerAccepted}
+                onChange={(e) => setOfferAccepted(e.target.checked)}
+              />
+              <span>
+                Я прочитав(ла) і приймаю{" "}
+                <Link to="/offer" target="_blank" rel="noopener noreferrer">умови публічної оферти</Link>
+                {" "}(редакція від {OFFER_REVISION})
+              </span>
+            </label>
+
             {error && <p className="co__err" role="alert">{error}</p>}
 
-            <button type="submit" className="btn btn-cta co__submit" disabled={busy}>
+            <button type="submit" className="btn btn-cta co__submit" disabled={busy || !offerAccepted}>
               {busy ? "Готуємо оплату…" : `Оплатити ${money(pkg.total_price, pkg.currency)}`}
             </button>
 

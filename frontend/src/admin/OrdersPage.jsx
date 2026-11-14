@@ -196,6 +196,12 @@ export default function OrdersPage() {
                     {o.bonus_lessons > 0 ? `+${o.bonus_lessons}` : "немає"}
                     {o.purchase_index ? ` · покупка №${o.purchase_index} цього клієнта` : ""}
                   </dd>
+                  <dt>Згода з офертою</dt>
+                  <dd>
+                    {o.offer_accepted_at
+                      ? `${new Date(o.offer_accepted_at).toLocaleString("uk-UA")} · редакція від ${o.offer_revision}`
+                      : "не зафіксовано (замовлення до появи чекбокса)"}
+                  </dd>
                   <dt>Оплачено</dt><dd>{money(o.paid_amount / 100)} з {money(o.amount_uah)}</dd>
                 </dl>
 

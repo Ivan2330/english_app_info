@@ -14,7 +14,8 @@ PHONE_B = "+380992220002"
 
 
 async def post(client, **over):
-    body = {"package_slug": "pkg", "customer_name": "Іван", "customer_phone": PHONE_A}
+    body = {"package_slug": "pkg", "customer_name": "Іван", "customer_phone": PHONE_A,
+            "offer_accepted": True}
     body.update(over)
     return await client.post("/api/orders", json=body)
 
@@ -252,3 +253,43 @@ async def test_referral_reward_can_still_be_set_by_hand(admin_client, make_order
     o = await make_order(public_id="PA-DIS00099", amount=1_000_000, base_amount=1_000_000)
     r = await admin_client.post("/api/admin/orders/PA-DIS00099/discount", json={"kinds": ["referral_reward"]})
     assert r.status_code == 200 and o.amount == 800_000
+
+
+# ------------------------------------------------------------------ згода з офертою
+
+@pytest.mark.parametrize("value", [None, False, "true", 1, "yes"])
+async def test_order_requires_explicit_offer_acceptance(client, make_package, session, value):
+    await make_package(slug="pkg")
+    body = {"package_slug": "pkg", "customer_name": "Іван", "customer_phone": PHONE_A}
+    if value is not None:
+        body["offer_accepted"] = value
+    r = await client.post("/api/orders", json=body)
+    assert r.status_code == 400 and "оферт" in r.json()["detail"]
+    assert (await session.execute(select(Order))).scalars().all() == []
+
+
+async def test_order_stores_consent_time_and_revision(client, make_package, session):
+    from app.core.legal import OFFER_REVISION
+    await make_package(slug="pkg")
+    r = await post(client)
+    assert r.status_code == 200
+    order = r.json()["order"]
+    assert order["offer_revision"] == OFFER_REVISION and order["offer_accepted_at"]
+    row = (await session.execute(select(Order))).scalar_one()
+    assert row.offer_accepted_at is not None and row.offer_revision == OFFER_REVISION
+
+
+async def test_client_cannot_choose_offer_revision(client, make_package, session):
+    from app.core.legal import OFFER_REVISION
+    await make_package(slug="pkg")
+    r = await post(client, offer_revision="1 січня 2000 року")
+    assert r.json()["order"]["offer_revision"] == OFFER_REVISION
+
+
+def test_offer_revision_matches_frontend():
+    import re
+    from pathlib import Path
+    from app.core.legal import OFFER_REVISION
+    seller = Path(__file__).resolve().parents[2] / "frontend" / "src" / "lib" / "legal" / "seller.js"
+    found = re.search(r'OFFER_REVISION\s*=\s*"([^"]+)"', seller.read_text(encoding="utf-8"))
+    assert found and found.group(1) == OFFER_REVISION

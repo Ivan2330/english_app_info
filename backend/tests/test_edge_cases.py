@@ -86,7 +86,8 @@ async def test_checkout_key_race_returns_the_winner_not_500(client, make_package
 
     monkeypatch.setattr(session, "commit", racing_commit)
     r = await client.post("/api/orders", json={"package_slug": "pkg", "customer_name": "Я",
-                                               "customer_phone": "+380991112233", "checkout_key": key})
+                                               "customer_phone": "+380991112233", "checkout_key": key,
+                                               "offer_accepted": True})
     assert r.status_code == 200 and r.json()["order"]["public_id"] == pid
     assert len((await session.execute(select(Order))).scalars().all()) == 1
 
@@ -101,7 +102,8 @@ async def test_non_duplicate_integrity_error_is_not_swallowed(client, make_packa
     monkeypatch.setattr(session, "commit", broken_commit)
     with pytest.raises(IntegrityError):
         await client.post("/api/orders", json={"package_slug": "pkg", "customer_name": "Я",
-                                               "customer_phone": "+380991112233"})
+                                               "customer_phone": "+380991112233",
+                                               "offer_accepted": True})
 
 
 # =============================================================== прямі виклики допоміжних функцій

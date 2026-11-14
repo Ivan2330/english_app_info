@@ -130,6 +130,13 @@ class Order(Base):
     bonus_lessons  = Column(Integer, nullable=False, default=0, server_default="0")
     purchase_index = Column(Integer, nullable=True)
 
+    # --- згода з офертою (міграція 0010) --------------------------------------
+    # Момент згоди (UTC) і редакція оферти, яку людина бачила. Без редакції
+    # дата нічого не доводить: оферту міняють. Порожнє лише в замовлень,
+    # створених до появи чекбокса.
+    offer_accepted_at = Column(DateTime(timezone=True), nullable=True)
+    offer_revision    = Column(String(64), nullable=True)
+
     # --- хто купує ------------------------------------------------------------
     customer_name  = Column(String(160), nullable=False)
     customer_phone = Column(String(64), nullable=True)
@@ -180,6 +187,8 @@ class Order(Base):
             "discount_kinds": [k for k in (self.discount_kinds or "").split(",") if k],
             "promo_code": self.promo_code,
             "bonus_lessons": self.bonus_lessons or 0,
+            "offer_accepted_at": self.offer_accepted_at.isoformat() if self.offer_accepted_at else None,
+            "offer_revision": self.offer_revision,
             "purchase_index": self.purchase_index,
             "currency": self.currency,
             "status": self.status.value if self.status else None,

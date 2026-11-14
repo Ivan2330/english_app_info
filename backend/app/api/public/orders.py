@@ -31,6 +31,7 @@ import httpx
 import re
 from uuid import UUID
 from sqlalchemy.exc import IntegrityError
+from app.core.legal import OFFER_REVISION
 from datetime import datetime
 from typing import Optional
 
@@ -240,6 +241,10 @@ async def create_order(
         raise HTTPException(status_code=400, detail="customer_name required")
     if not (data.get("customer_phone") or data.get("customer_email")):
         raise HTTPException(status_code=400, detail="потрібен телефон або email")
+    # Згода з офертою — явна (чекбокс), а не «оформлюючи, ви приймаєте».
+    # Перевіряємо тут, а не лише у формі: запит можна надіслати й без браузера.
+    if data.get("offer_accepted") is not True:
+        raise HTTPException(status_code=400, detail="Потрібна згода з умовами публічної оферти")
 
     res = await session.execute(
         select(Package).where(Package.slug == slug, Package.is_active.is_(True))
@@ -285,11 +290,14 @@ async def create_order(
     if package.family == PackageFamily.SUBSCRIPTION:
         bonus_lessons = P.bonus_for(package.fmt.value, package.lessons_count, purchase_index)
 
+    now_utc = datetime.utcnow()
     order = Order(
         public_id=public_id,
         package_id=package.id,
         bonus_lessons=bonus_lessons,
         purchase_index=purchase_index,
+        offer_accepted_at=now_utc,
+        offer_revision=OFFER_REVISION,
         package_slug=package.slug,
         package_name=package.name,
         lessons_count=package.lessons_count,
