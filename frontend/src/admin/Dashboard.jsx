@@ -32,7 +32,7 @@ export default function Dashboard() {
   return (
     <>
       <header className="adm-head">
-        <h1>Дашборд</h1>
+        <h1>Статистика сайту</h1>
         <div className="adm-tabs">
           {PERIODS.map((p) => (
             <button

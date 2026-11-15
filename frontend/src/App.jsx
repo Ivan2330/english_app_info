@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import Footer from "./components/Footer.jsx";
@@ -19,7 +19,9 @@ import Guarantee from "./pages/Guarantee.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import Checkout from "./pages/Checkout.jsx";
 import PaymentResult from "./pages/PaymentResult.jsx";
-import AdminApp from "./admin/AdminApp.jsx";
+// Кабінет — окремий чанк: markdown, канбан і решта робочого простору не повинні
+// важчати сайт для відвідувачів, які ніколи не відкриють /admin.
+const AdminApp = lazy(() => import("./admin/AdminApp.jsx"));
 import { trackVisit } from "./lib/track.js";
 
 /** Ім'я сторінки для CSS: body[data-page="contacts"] тощо.
@@ -80,7 +82,7 @@ export default function App() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/payment/result" element={<PaymentResult />} />
           {/* Кабінет менеджера. Вкладені маршрути — усередині AdminApp. */}
-          <Route path="/admin/*" element={<AdminApp />} />
+          <Route path="/admin/*" element={<Suspense fallback={<div className="adm-boot">Відкриваємо кабінет…</div>}><AdminApp /></Suspense>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
