@@ -1,6 +1,7 @@
 import { useLocation, Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { createLead } from "../api/leads.js";
+import { trackLead } from "../lib/analytics.js";
 import { fetchPackageBySlug, fetchPackages } from "../api/packages.js";
 import { money, lessonsWord, TRACK, FORMAT, AUDIENCE } from "../lib/labels.js";
 import BonusLessons from "../components/BonusLessons.jsx";
@@ -144,6 +145,7 @@ export default function Contacts() {
           : undefined,
         source: "site/contacts",
       });
+      trackLead(data?.event_id);
       setResult({ ok: true, id: data?.id });
       setForm({ name: "", phone: "", contact: "" });
     } catch (err) {

@@ -125,7 +125,7 @@ export default function Programs() {
                   замість записатись. Ціни й так є в меню та у блоці пакетів
                   вище, тож нічого не втрачено. */}
               <div className="dark__actions">
-                <button type="button" className="btn btn-lime" onClick={() => navigate("/contacts")}>
+                <button type="button" className="btn btn-lime" onClick={() => navigate("/trial")}>
                   Записатись на пробний
                 </button>
               </div>

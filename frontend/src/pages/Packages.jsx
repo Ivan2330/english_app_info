@@ -24,6 +24,10 @@ import QuoteForm from "../components/QuoteForm.jsx";
 export default function Packages() {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    trackViewContent({ ids: ["packages"], name: "Пакети й ціни", type: "product_group" });
+  }, []);
+
   const [combos, setCombos] = useState([]);
   const [courses, setCourses] = useState([]);
   const [clubs, setClubs] = useState([]);

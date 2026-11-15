@@ -78,7 +78,7 @@ export default function Navbar() {
           </a>
 
           <div className="navbar__ctaBtn">
-            <CTAButton size="sm" label="Пробний урок" onClick={() => go("/contacts")} />
+            <CTAButton size="sm" label="Пробний урок" onClick={() => go("/trial")} />
           </div>
 
           <button

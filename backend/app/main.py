@@ -13,6 +13,7 @@ from app.api.public.certificates import router as pub_certs
 from app.api.public.orders import router as pub_orders
 from app.api.public.track import router as pub_track
 from app.api.public.quotes import router as pub_quotes
+from app.api.public.config import router as pub_config
 from app.api.admin.auth import router as admin_auth
 from app.api.admin.leads import router as admin_leads
 from app.api.admin.packages import router as admin_packages
@@ -62,6 +63,7 @@ app.include_router(pub_certs)     # <--- Це твій роутер переві
 app.include_router(pub_orders)    # замовлення та оплати
 app.include_router(pub_track)     # власний лічильник відвідувань
 app.include_router(pub_quotes)    # заявки на розрахунок (діти, корпоратив)
+app.include_router(pub_config)    # публічні налаштування (Pixel ID)
 app.include_router(admin_auth)
 app.include_router(admin_leads)
 app.include_router(admin_packages)

@@ -47,6 +47,7 @@ from app.models.order import (
     Order, OrderStatus, Payment, PaymentMethod, PaymentStatus,
 )
 from app.models.package import Package, Family as PackageFamily
+from app.core import meta
 from app.core.attribution import apply_attribution
 from app.core.clientip import client_ip
 
@@ -92,8 +93,10 @@ async def _sync_order_totals(session: AsyncSession, order: Order) -> None:
     """Перерахувати стан замовлення за його платежами."""
     paid = sum(p.amount - (p.refunded_amount or 0) for p in order.payments if p.status == PaymentStatus.SUCCESS)
     order.paid_amount = paid
+    first_time_paid = False
 
     if paid >= order.amount:
+        first_time_paid = order.paid_at is None
         order.status = OrderStatus.PAID
         order.paid_at = order.paid_at or datetime.utcnow()
     elif paid > 0:
@@ -108,6 +111,9 @@ async def _sync_order_totals(session: AsyncSession, order: Order) -> None:
         order.status = OrderStatus.NEW
 
     await session.commit()
+    if first_time_paid:
+        # Purchase для реклами: тільки тут, після підтвердженої оплати, і лише раз на замовлення
+        meta.track_purchase(order)
 
 
 
@@ -331,6 +337,8 @@ async def create_order(
             raise
         return {"ok": True, "order": existing.as_dict()}
     await session.refresh(order)
+    ic_event_id = data.get("ic_event_id")
+    meta.track_initiate_checkout(order, ic_event_id[:64] if isinstance(ic_event_id, str) else None)
 
     # Розкладку віддаємо окремо: показати одну підсумкову цифру без пояснення
     # не можна — людина не може перевірити, чи знижку взагалі врахували.

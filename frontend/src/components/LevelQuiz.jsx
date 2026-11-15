@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { QUIZ } from "../lib/content.js";
 import { createLead } from "../api/leads.js";
+import { trackLead } from "../lib/analytics.js";
 
 /**
  * Експрес-тест рівня.
@@ -46,13 +47,14 @@ export default function LevelQuiz() {
         .join("\n");
       const score = answers.reduce((s, a) => s + a.score, 0);
 
-      await createLead({
+      const res = await createLead({
         kind: "trial",
         name: name.trim() || "Тест рівня",
         phone: phone.trim(),
         comment: `ЕКСПРЕС-ТЕСТ РІВНЯ (сума балів ${score} з ${total * 3})\n\n${summary}`,
         source: "site/level-quiz",
       });
+      trackLead(res.event_id);
       setDone(true);
     } catch (err) {
       console.error(err);

@@ -5,6 +5,7 @@ import Footer from "./components/Footer.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import AuroraBackground from "./components/AuroraBackground.jsx";
 import StickyCta from "./components/StickyCta.jsx";
+import CookieBanner from "./components/CookieBanner.jsx";
 
 import Home from "./pages/Home.jsx";
 import Packages from "./pages/Packages.jsx";
@@ -19,10 +20,14 @@ import Guarantee from "./pages/Guarantee.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import Checkout from "./pages/Checkout.jsx";
 import PaymentResult from "./pages/PaymentResult.jsx";
+import Trial from "./pages/Trial.jsx";
+import Thanks from "./pages/Thanks.jsx";
 // Кабінет — окремий чанк: markdown, канбан і решта робочого простору не повинні
 // важчати сайт для відвідувачів, які ніколи не відкриють /admin.
 const AdminApp = lazy(() => import("./admin/AdminApp.jsx"));
 import { trackVisit } from "./lib/track.js";
+import { initAnalytics, trackPageView } from "./lib/analytics.js";
+import { useRouteSeo } from "./lib/seo.js";
 
 /** Ім'я сторінки для CSS: body[data-page="contacts"] тощо.
  *  Потрібне, щоб приховувати чат Tidio там, де він заважає формі. */
@@ -32,6 +37,8 @@ const PAGE_NAMES = {
   "/packages": "packages",
   "/about": "about",
   "/contacts": "contacts",
+  "/trial": "trial",
+  "/thanks": "thanks",
   "/verify-certificate": "certificate",
   "/offer": "legal",
   "/privacy": "legal",
@@ -54,12 +61,18 @@ function useVisitTracking() {
   useEffect(() => {
     if (pathname.startsWith("/admin")) return;
     trackVisit(pathname);
+    trackPageView(pathname);      // GA4 / Meta Pixel: лише після згоди на cookie
   }, [pathname]);
 }
+
+// Лічильники GA4 і Meta Pixel стартують тільки після згоди (lib/consent.js).
+// Викликаємо один раз при завантаженні модуля, поза компонентами.
+initAnalytics();
 
 export default function App() {
   usePageName();
   useVisitTracking();
+  useRouteSeo();
 
   return (
     <>
@@ -74,6 +87,8 @@ export default function App() {
           <Route path="/packages" element={<Packages />} />
           <Route path="/about" element={<About />} />
           <Route path="/contacts" element={<Contacts />} />
+          <Route path="/trial" element={<Trial />} />
+          <Route path="/thanks" element={<Thanks />} />
           <Route path="/verify-certificate" element={<VerifyCertificate />} />
           <Route path="/level-test" element={<LevelTest />} />
           <Route path="/offer" element={<Offer />} />
@@ -89,6 +104,7 @@ export default function App() {
 
       <Footer />
       <StickyCta />
+      <CookieBanner />
     </>
   );
 }

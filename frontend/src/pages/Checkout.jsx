@@ -6,6 +6,8 @@ import { createOrder, payOrder } from "../api/orders.js";
 import { money, lessonsWord } from "../lib/labels.js";
 import { useReveal } from "../lib/motion.js";
 import { ChastBadge, ChastLegal } from "../components/ChastBadge.jsx";
+import { newEventId } from "../lib/attribution.js";
+import { trackInitiateCheckout, trackViewContent } from "../lib/analytics.js";
 
 /**
  * Оформлення замовлення.
@@ -37,6 +39,7 @@ export default function Checkout() {
   const pendingOrder = useRef(null);
   const submitting = useRef(false);
   const checkoutKey = useRef(null);
+  const icEventId = useRef(null);       // один id на замовлення: і в Pixel, і в Conversions API
 
   useReveal([pkg]);
 
@@ -45,6 +48,7 @@ export default function Checkout() {
     fetchPackageBySlug(slug)
       .then((p) => {
         setPkg(p);
+        trackViewContent({ ids: [p.slug], name: p.name, value: p.total_price });
         // Якщо для пакета ПЧ недоступна — не показуємо її взагалі,
         // щоб людина не обрала варіант, який одразу відпаде.
         if (!p.chast_enabled) setMethod("card");
@@ -79,15 +83,22 @@ export default function Checkout() {
         checkoutKey.current = sessionStorage.getItem(storageKey) || crypto.randomUUID();
         sessionStorage.setItem(storageKey, checkoutKey.current);
       }
+      const firstAttempt = !pendingOrder.current;
+      icEventId.current = icEventId.current || newEventId();
       const order = pendingOrder.current || (await createOrder({
         ...form,
         checkout_key: checkoutKey.current,
+        ic_event_id: icEventId.current,
         family_claim: familyClaim,
         package_slug: slug,
         source: "site/checkout",
       })).order;
       pendingOrder.current = order;
       sessionStorage.setItem("pa_last_order", order.public_id);
+      if (firstAttempt) {
+        // Те саме InitiateCheckout, що сервер шле в Conversions API за цим event_id
+        trackInitiateCheckout({ eventId: icEventId.current, ids: [slug], value: pkg?.total_price });
+      }
 
       /* Знижку рахує БЕКЕНД і повертає в `order.amount`. Фронт її не рахує
          принципово: інакше довелося б повторити правила перевірки коду
@@ -332,7 +343,7 @@ export default function Checkout() {
             </button>
 
             <p className="co__fine">
-              Не впевнені у виборі? <Link to="/contacts">Запишіться на безкоштовний
+              Не впевнені у виборі? <Link to="/trial">Запишіться на безкоштовний
               пробний урок</Link> — підберемо формат разом.
             </p>
 

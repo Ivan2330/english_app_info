@@ -10,11 +10,12 @@
 """
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core import meta, notify
 from app.core.attribution import apply_attribution
 from app.core.clientip import client_ip
 from app.db.database import get_async_session
@@ -39,8 +40,7 @@ def _s(value, limit: int) -> str | None:
 
 
 @router.post("/leads")
-async def create_lead(data: dict, request: Request, background: BackgroundTasks,
-                      session: AsyncSession = Depends(get_async_session)):
+async def create_lead(data: dict, request: Request, session: AsyncSession = Depends(get_async_session)):
     name = _s(data.get("name"), 120)
     if not name:
         raise HTTPException(status_code=400, detail="name required")
@@ -101,4 +101,6 @@ async def create_lead(data: dict, request: Request, background: BackgroundTasks,
             return {"ok": True, "id": existing.id, "duplicate": True}
         raise
     await session.refresh(lead)
+    meta.track_lead(lead)       # у фоні, лише зі згодою на cookie; відповідь не чекає
+    notify.notify_new_lead(lead)  # лист власнику (якщо налаштовано SMTP), теж у фоні
     return {"ok": True, "id": lead.id}

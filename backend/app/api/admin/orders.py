@@ -15,6 +15,7 @@ from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core import meta
 from app.core.access import require
 from app.core.attribution import attribution_dict
 from app.core import pricing as P
@@ -191,12 +192,16 @@ async def add_manual_payment(
     await session.refresh(order, ["payments"])
     paid = sum(p.amount - (p.refunded_amount or 0) for p in order.payments if p.status == PaymentStatus.SUCCESS)
     order.paid_amount = paid
+    first_time_paid = False
     if paid >= order.amount:
+        first_time_paid = order.paid_at is None
         order.status = OrderStatus.PAID
         order.paid_at = order.paid_at or datetime.utcnow()
     elif paid > 0:
         order.status = OrderStatus.PARTIAL
     await session.commit()
+    if first_time_paid:
+        meta.track_purchase(order)      # оплата підтверджена менеджером: так само, як банком
 
     return {"ok": True, "order": order.as_dict()}
 

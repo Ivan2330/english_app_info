@@ -224,7 +224,7 @@ export default function PackageBuilder({ combos, onSelect }) {
             <button
               type="button"
               className="btn btn-ghost summary__cta"
-              onClick={() => navigate("/contacts")}
+              onClick={() => navigate("/trial")}
             >
               Спершу пробний урок
             </button>

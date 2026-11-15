@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { createLead } from "../api/leads.js";
+import { trackLead } from "../lib/analytics.js";
 
 /**
  * Блок «Пробний урок» — градієнтна плашка з формою.
@@ -30,13 +31,14 @@ export default function BookingForm({
     setSending(true);
     setError("");
     try {
-      await createLead({
+      const res = await createLead({
         kind: "trial",
         name: form.name.trim(),
         phone: form.phone.trim(),
         comment: `Ціль: ${form.goal}`,
         source,
       });
+      trackLead(res.event_id);
       setDone(true);
     } catch (err) {
       console.error(err);

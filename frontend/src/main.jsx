@@ -20,6 +20,7 @@ import "../styles/contacts.css";
 import "../styles/certificates.css";
 import "../styles/leveltest.css";
 import "../styles/legal.css";
+import "../styles/ads.css";
 import "../styles/admin.css";
 import "../styles/workspace.css";
 
