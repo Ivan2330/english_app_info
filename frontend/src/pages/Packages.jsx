@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { trackViewContent } from "../lib/analytics.js";
 import { useNavigate, Link } from "react-router-dom";
 import { fetchPackages, fetchPackageFilters } from "../api/packages.js";
 import PackageBuilder from "../components/PackageBuilder.jsx";
