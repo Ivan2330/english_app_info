@@ -90,8 +90,9 @@ export function getFbc() {
   const fromCookie = cookie("_fbc");
   if (fromCookie) return fromCookie;
   const { first, last } = load();
-  const fbclid = (last && last.fbclid) || (first && first.fbclid);
-  return fbclid ? `fb.1.${(last || first).at}.${fbclid}` : "";
+  // Час і fbclid мають бути з одного й того самого дотику
+  const touch = last && last.fbclid ? last : first && first.fbclid ? first : null;
+  return touch ? `fb.1.${touch.at}.${touch.fbclid}` : "";
 }
 
 export function getFbp() {

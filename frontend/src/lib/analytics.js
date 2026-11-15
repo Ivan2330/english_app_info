@@ -65,10 +65,15 @@ async function fetchPixelId() {
 }
 
 async function start() {
+  // Згоду могли відкликати й дати знову: тоді лічильники вже завантажені, їх треба лише ввімкнути
+  window[`ga-disable-${GA_ID}`] = false;
   loadGa();
   if (!pixelId) pixelId = await fetchPixelId();
+  if (pixelLoaded) {
+    try { window.fbq?.("consent", "grant"); } catch { /* Pixel не завантажено */ }
+  }
   loadPixel();
-  // Людина погодилась уже після відкриття сторінки: показуємо поточну як перший перегляд
+  // Поточну сторінку дошлемо туди, куди вона ще не пішла (Pixel вантажиться пізніше за GA)
   if (lastPath) sendPageView(lastPath);
 }
 
@@ -100,9 +105,20 @@ function fb(name, params, eventId) {
   else window.fbq("track", name, params || {});
 }
 
+// Для якого шляху перегляд уже пішов у кожен лічильник. Без цього перша сторінка
+// потрапляла в GA4 двічі: раз із хука маршруту, раз після завантаження Pixel.
+const sent = { ga: null, fb: null };
+
 function sendPageView(path) {
-  ga("event", "page_view", { page_path: path, page_location: window.location.href });
-  fb("PageView");
+  if (!hasAnalyticsConsent()) return;
+  if (window.gtag && sent.ga !== path) {
+    window.gtag("event", "page_view", { page_path: path, page_location: window.location.href });
+    sent.ga = path;
+  }
+  if (window.fbq && pixelId && sent.fb !== path) {
+    window.fbq("track", "PageView");
+    sent.fb = path;
+  }
 }
 
 /** На кожну зміну маршруту (SPA). Без згоди нічого не робить, але шлях запам'ятовує. */
