@@ -127,3 +127,9 @@
     color: var(--muted);
     font-weight: 600;
 }
+
+/* ---------- чекаут: кількість частин «Покупки Частинами» ---------- */
+.co__parts { display: grid; gap: 8px; margin-top: 4px; padding: 12px 14px; border-radius: 12px; background: rgba(109, 75, 255, .06); }
+.co__parts .co__field { margin: 0; }
+.co__parts-one, .co__parts-total { margin: 0; font-size: 14px; line-height: 1.5; }
+.co__parts-total { color: var(--muted); }

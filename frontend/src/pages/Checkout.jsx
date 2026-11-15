@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import PageHero from "../components/PageHero.jsx";
 import { fetchPackageBySlug } from "../api/packages.js";
 import { createOrder, payOrder } from "../api/orders.js";
-import { money, lessonsWord } from "../lib/labels.js";
+import { money, lessonsWord, paymentsWord, chastPart } from "../lib/labels.js";
 import { useReveal } from "../lib/motion.js";
 import { ChastBadge, ChastLegal } from "../components/ChastBadge.jsx";
 import { newEventId } from "../lib/attribution.js";
@@ -314,17 +314,31 @@ export default function Checkout() {
               </label>
             )}
 
-            {method === "chast" && partOptions.length > 1 && (
-              <label className="co__field co__parts">
-                <span>На скільки платежів</span>
-                <select value={parts} onChange={(e) => setParts(Number(e.target.value))}>
-                  {partOptions.map((n) => (
-                    <option key={n} value={n}>
-                      {n} платежі по {money(Math.round(pkg.total_price / n), pkg.currency)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+            {/* Кількість частин видно завжди, навіть коли варіант один. Сума не змінюється
+                від кількості частин (правило monobank): міняється лише розмір частини. */}
+            {method === "chast" && (
+              <div className="co__parts" data-testid="chast-parts">
+                {partOptions.length > 1 ? (
+                  <label className="co__field">
+                    <span>На скільки платежів</span>
+                    <select value={parts} onChange={(e) => setParts(Number(e.target.value))}>
+                      {partOptions.map((n) => (
+                        <option key={n} value={n}>
+                          {n} {paymentsWord(n)} {chastPart(pkg.total_price, n, pkg.currency)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <p className="co__parts-one">
+                    <b>{parts} {paymentsWord(parts)}</b> {chastPart(pkg.total_price, parts, pkg.currency)}
+                  </p>
+                )}
+                <p className="co__parts-total">
+                  Разом <b>{money(pkg.total_price, pkg.currency)}</b>, так само, як карткою.
+                  Без переплати й комісії для вас; точний графік покаже банк.
+                </p>
+              </div>
             )}
 
             {error && <p className="co__err" role="alert">{error}</p>}

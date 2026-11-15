@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { createLead } from "../api/leads.js";
 import { trackLead } from "../lib/analytics.js";
 import { fetchPackageBySlug, fetchPackages } from "../api/packages.js";
-import { money, lessonsWord, TRACK, FORMAT, AUDIENCE } from "../lib/labels.js";
+import { money, lessonsWord, chastPart, TRACK, FORMAT, AUDIENCE } from "../lib/labels.js";
 import BonusLessons from "../components/BonusLessons.jsx";
 
 // Окрема рекламна пропозиція; базові ціни каталогу не змінюємо.
@@ -215,8 +215,8 @@ export default function Contacts() {
 
                   {pkg.chast_enabled ? (
                     <p className="chosen__chast">
-                      Можна частинами: {money(Math.round(pkg.total_price / pkg.chast_max_parts), pkg.currency)} ×{" "}
-                      {pkg.chast_max_parts} без переплати
+                      Можна частинами: до {pkg.chast_max_parts} платежів {chastPart(pkg.total_price, pkg.chast_max_parts, pkg.currency)},
+                      без переплати
                     </p>
                   ) : null}
                 </div>

@@ -209,3 +209,16 @@ def test_every_trial_button_leads_to_trial_page():
             if "робн" in around:          # «Пробний», «пробний»
                 offenders.append(path.relative_to(SRC).as_posix())
     assert offenders == []
+
+
+# ------------------------------------------------------------- «Покупка Частинами» на чекауті
+
+def test_chast_shows_parts_count_and_approximate_part_without_changing_the_total():
+    """Кількість частин видно завжди; частина лише орієнтовна («≈»), сума та сама, що карткою.
+    Округлене «3 × 2 507 ₴» = 7 521 ₴ читалося б як зміна ціни, що заборонено правилами monobank."""
+    co = read("pages/Checkout.jsx")
+    assert 'data-testid="chast-parts"' in co and "chastPart(" in co and "paymentsWord(" in co
+    assert "платежі по" not in co
+    assert "так само, як карткою" in co
+    assert "≈" in read("lib/labels.js")
+    assert "Math.round(pkg.total_price / pkg.chast_max_parts)" not in read("pages/Contacts.jsx")

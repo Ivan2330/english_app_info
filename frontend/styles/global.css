@@ -412,7 +412,11 @@ iframe[title="Tidio Chat"] {
 /* На сторінці запису чат зайвий: людина вже заповнює форму,
    а віджет перекриває поле «Телефон» на вузьких екранах. */
 body[data-page="contacts"] #tidio-chat,
-body[data-page="contacts"] iframe[title="Tidio Chat"] {
+body[data-page="contacts"] iframe[title="Tidio Chat"],
+body[data-page="trial"] #tidio-chat,
+body[data-page="trial"] iframe[title="Tidio Chat"],
+body[data-page="checkout"] #tidio-chat,
+body[data-page="checkout"] iframe[title="Tidio Chat"] {
     display: none !important;
 }
 
