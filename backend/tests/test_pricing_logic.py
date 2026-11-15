@@ -57,22 +57,32 @@ IND = (P.ADULT_LADDER, P.ADULT_INDIVIDUAL)      # 6/16/24/48/96 по 550/470/450
 
 
 def test_refund_example_from_offer():
-    """Оферта п. 10.2: оплачено 48, проведено 6 — мінус ціна пакета на 6, решта назад."""
+    """Оферта п. 10.2: оплачено 48, проведено 6 — мінус 6 × ставка пакета на 6."""
     paid = 48 * 430                                  # 20 640
     assert P.refund_amount(paid, 6, *IND) == paid - 6 * 550 == 17_340
 
 
+def test_refund_25_of_48_from_offer():
+    """Оферта п. 10.2: проведено 25 з 48 — 25 уроків за ставкою пакета на 48.
+    Перша чернетка рахувала весь пакет на 48 і повертала 0."""
+    paid = 48 * 430
+    assert P.refund_amount(paid, 25, *IND) == paid - 25 * 430 == 23 * 430
+
+
 @pytest.mark.parametrize("used,cost", [
     (0, 0),
-    (1, 6 * 550),        # найближчий не менший пакет — 6 уроків
+    (1, 1 * 550),        # найближчий не менший пакет — 6 уроків, його ставка
     (6, 6 * 550),
-    (7, 16 * 470),       # між сходинками — ціна пакета на 16
+    (7, 7 * 470),        # між сходинками — ставка пакета на 16, але за 7 уроків
     (16, 16 * 470),
+    (17, 17 * 450),
     (24, 24 * 450),
+    (25, 25 * 430),
     (48, 48 * 430),
+    (49, 49 * 390),
     (96, 96 * 390),
 ])
-def test_used_cost_is_price_of_nearest_not_smaller_package(used, cost):
+def test_used_cost_is_n_times_rate_of_nearest_not_smaller_package(used, cost):
     assert P.refund_used_cost(used, *IND) == cost
 
 
@@ -84,7 +94,7 @@ def test_no_admin_fee_any_more():
 
 @pytest.mark.parametrize("paid,used,expected", [
     (6 * 550, 6, 0),                 # усе відходив
-    (16 * 470, 7, 0),                # проведене за ціною пакета на 16 = сплаченому
+    (48 * 430, 48, 0),               # відходив увесь пакет
     (1_000, 6, 0),                   # проведене перекриває сплачене — не в мінус
     (0, 0, 0),
 ])
@@ -99,10 +109,32 @@ def test_refund_uses_price_list_passed_in_not_current():
 
 
 def test_refund_cannot_be_gamed_by_buying_the_cheapest_rate():
-    """Купити 96 по 390, відходити 10 і забрати решту: проведені рахуються як пакет на 16."""
+    """Купити 96 по 390, відходити 10 і забрати решту: 10 уроків рахуються за ставкою 470."""
     paid = 96 * 390
     back = P.refund_amount(paid, 10, *IND)
-    assert back == paid - 16 * 470 < paid - 10 * 390
+    assert back == paid - 10 * 470 < paid - 10 * 390
+
+
+def test_refund_never_exceeds_paid_and_shrinks_within_a_step():
+    """Усередині однієї сходинки кожен проведений урок зменшує повернення."""
+    paid = 96 * 390
+    backs = {n: P.refund_amount(paid, n, *IND) for n in range(0, 97)}
+    assert backs[0] == paid and all(0 <= v <= paid for v in backs.values())
+    bounds = set(P.ADULT_LADDER)
+    for n in range(1, 97):
+        if n - 1 not in bounds:
+            assert backs[n] < backs[n - 1], n
+
+
+def test_refund_jumps_up_right_after_each_package_size():
+    """Відома властивість формули n × ставка (оферта п. 10.2, 15.11.2026):
+    після 6, 24 і 48 ставка падає так, що ще один проведений урок ЗБІЛЬШУЄ
+    повернення. 48 → 49 проведених із 96: +1 530 ₴. Тест фіксує це свідомо:
+    якщо формулу змінять, він має впасти й нагадати переглянути оферту."""
+    paid = 96 * 390
+    jump = {n: P.refund_amount(paid, n + 1, *IND) - P.refund_amount(paid, n, *IND)
+            for n in (6, 16, 24, 48)}
+    assert jump == {6: 3300 - 3290, 16: 7520 - 7650, 24: 10800 - 10750, 48: 20640 - 19110}
 
 
 # =============================================================== ПЧ, строки, заморозка
