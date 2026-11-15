@@ -13,6 +13,9 @@ const STATUSES = [
 
 const STATUS_LABEL = Object.fromEntries(STATUSES.map((s) => [s.value, s.label]));
 
+// Форма /trial шле значення англійською; менеджеру показуємо людською мовою
+const AUDIENCE_LABEL = { adults: "дорослий", teens: "підліток 13–17", kids: "дитина 5–12" };
+
 function fmt(iso) {
   if (!iso) return "—";
   return new Date(iso).toLocaleString("uk-UA", {
@@ -113,8 +116,8 @@ export default function LeadsPage() {
                   {lead.phone && <><dt>Телефон</dt><dd><a href={`tel:${lead.phone}`}>{lead.phone}</a></dd></>}
                   {lead.telegram && <><dt>Telegram</dt><dd>{lead.telegram}</dd></>}
                   {lead.email && <><dt>Email</dt><dd><a href={`mailto:${lead.email}`}>{lead.email}</a></dd></>}
-                  {lead.audience && <><dt>Для кого</dt><dd>{lead.audience}</dd></>}
-                  {lead.level && <><dt>Рівень</dt><dd>{lead.level}</dd></>}
+                  {lead.audience && <><dt>Для кого</dt><dd>{AUDIENCE_LABEL[lead.audience] || lead.audience}</dd></>}
+                  {lead.level && <><dt>Рівень</dt><dd>{lead.level === "unknown" ? "не знає" : lead.level}</dd></>}
                   {lead.preferred_time && <><dt>Зручний час</dt><dd>{lead.preferred_time}</dd></>}
                   <dt>Статус</dt><dd>{STATUS_LABEL[lead.status] || lead.status}</dd>
                   <AttributionBlock a={lead.attribution} />
