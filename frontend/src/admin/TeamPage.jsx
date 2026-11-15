@@ -10,8 +10,9 @@ const ACTIONS = {
   "report.create": "додав звіт", "report.update": "змінив звіт", "report.delete": "видалив звіт",
   "comment.add": "написав коментар", "comment.delete": "видалив коментар",
   "review.save": "оцінив", "file.upload": "завантажив файл", "file.delete": "видалив файл",
+  "daily.create": "здав звіт дня", "daily.update": "виправив звіт дня", "daily.visibility": "змінив, хто бачить звіти дня",
 };
-const ENTITY = { task: "завдання", report: "звіт", admin_user: "акаунт" };
+const ENTITY = { task: "завдання", report: "звіт", daily: "звіт дня", admin_user: "акаунт" };
 
 /** «Команда»: лише для власника. Акаунти, доступ до розділів, журнал дій, місце на диску. */
 export default function TeamPage() {
