@@ -29,7 +29,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.admin.auth import get_current_admin
+from app.core.access import require
 from app.core import certificates as C
 from app.core.certificate_pdf import save_pdf
 from app.core.config import settings
@@ -66,7 +66,7 @@ async def list_certificates(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     session: AsyncSession = Depends(get_async_session),
-    admin: AdminUser = Depends(get_current_admin),
+    admin: AdminUser = Depends(require("certificates")),
 ):
     stmt = select(Certificate)
 
@@ -105,7 +105,7 @@ async def list_certificates(
 async def create_certificate(
     data: dict,
     session: AsyncSession = Depends(get_async_session),
-    admin: AdminUser = Depends(get_current_admin),
+    admin: AdminUser = Depends(require("certificates")),
 ):
     """Видати сертифікат.
 
@@ -170,7 +170,7 @@ async def update_certificate(
     cert_id: int,
     data: dict,
     session: AsyncSession = Depends(get_async_session),
-    admin: AdminUser = Depends(get_current_admin),
+    admin: AdminUser = Depends(require("certificates")),
 ):
     """Правка виданого сертифіката.
 
@@ -220,7 +220,7 @@ async def revoke_certificate(
     cert_id: int,
     data: dict,
     session: AsyncSession = Depends(get_async_session),
-    admin: AdminUser = Depends(get_current_admin),
+    admin: AdminUser = Depends(require("certificates")),
 ):
     """Анулювати сертифікат.
 
@@ -245,7 +245,7 @@ async def revoke_certificate(
 async def restore_certificate(
     cert_id: int,
     session: AsyncSession = Depends(get_async_session),
-    admin: AdminUser = Depends(get_current_admin),
+    admin: AdminUser = Depends(require("certificates")),
 ):
     """Скасувати анулювання — на випадок помилки менеджера."""
     cert = (await session.execute(
@@ -265,7 +265,7 @@ async def restore_certificate(
 async def delete_certificate(
     cert_id: int,
     session: AsyncSession = Depends(get_async_session),
-    admin: AdminUser = Depends(get_current_admin),
+    admin: AdminUser = Depends(require("certificates")),
 ):
     """Видалити фізично — тільки якщо документ ще не пішов людині.
 
@@ -299,7 +299,7 @@ async def delete_certificate(
 async def generate_pdf(
     cert_id: int,
     session: AsyncSession = Depends(get_async_session),
-    admin: AdminUser = Depends(get_current_admin),
+    admin: AdminUser = Depends(require("certificates")),
 ):
     """Згенерувати PDF і прикріпити до сертифіката.
 
@@ -335,7 +335,7 @@ async def generate_pdf(
 @router.get("/certificates/stats")
 async def certificates_stats(
     session: AsyncSession = Depends(get_async_session),
-    admin: AdminUser = Depends(get_current_admin),
+    admin: AdminUser = Depends(require("certificates")),
 ):
     """Зведення для дашборда сертифікатів."""
     total = await session.scalar(select(func.count(Certificate.id))) or 0

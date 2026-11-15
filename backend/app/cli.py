@@ -1,7 +1,7 @@
 """CLI для разових операцій.
 
     python -m app.cli seed-packages     # наповнити каталог із тарифної сітки
-    python -m app.cli ensure-admin      # створити OWNER-адміна, якщо його немає
+    python -m app.cli create-admin      # створити owner-а; пароль вводиться інтерактивно
     python -m app.cli show-catalogue    # надрукувати каталог, нічого не пишучи в базу
 
 У docker:
@@ -56,11 +56,52 @@ async def _seed_packages() -> None:
     )
 
 
-async def _ensure_admin() -> None:
-    from app.core.bootstrap_admin import ensure_owner_admin
+def _ask_owner(ask=input, ask_secret=None) -> tuple[str, str, str]:
+    """Пошта, імʼя й пароль з консолі. Пароль не відображається і не потрапляє в історію shell."""
+    import getpass
+    from app.core.config import settings
+    ask_secret = ask_secret or getpass.getpass
+    email = ask("Пошта (логін): ").strip().lower()
+    if "@" not in email:
+        raise SystemExit("Це не схоже на пошту.")
+    name = ask("Імʼя, як показувати в кабінеті: ").strip() or email.split("@")[0]
+    password = ask_secret(f"Пароль (не коротше {settings.password_min_length} символів): ")
+    if len(password) < settings.password_min_length:
+        raise SystemExit("Пароль закороткий.")
+    if ask_secret("Пароль ще раз: ") != password:
+        raise SystemExit("Паролі не збігаються.")
+    return email, name, password
+
+
+async def _create_admin(ask=input, ask_secret=None) -> None:
+    """Створює owner-а. Якщо пошта вже є — робить цей акаунт owner-ом і ставить новий пароль.
+
+    Друге потрібно на випадок, коли owner забув пароль: інших способів
+    його скинути немає (скидати чужі паролі може лише owner).
+    """
+    from sqlalchemy import select
+    from app.core.access import ALL_SECTIONS
+    from app.core.security import hash_password
+    from app.models.admin_user import AdminRole, AdminUser
+
+    email, name, password = _ask_owner(ask, ask_secret)
     async with async_session_maker() as session:
-        info = await ensure_owner_admin(session)
-    print(f"Адмін: {'створено' if info['created'] else 'вже існує'} — {info['email']}")
+        user = (await session.execute(select(AdminUser).where(AdminUser.email == email))).scalar_one_or_none()
+        if user is None:
+            user = AdminUser(email=email, name=name, role=AdminRole.OWNER, is_active=True,
+                             sections=list(ALL_SECTIONS), password_hash=hash_password(password))
+            session.add(user)
+            verb = "створено"
+        else:
+            user.role = AdminRole.OWNER
+            user.is_active = True
+            user.name = user.name or name
+            user.password_hash = hash_password(password)
+            user.must_change_password = False
+            user.token_version = int(user.token_version or 0) + 1
+            verb = "оновлено (тепер owner, пароль змінено)"
+        await session.commit()
+    print(f"Owner {verb}: {email}")
 
 
 def _show_catalogue() -> None:
@@ -85,7 +126,7 @@ def _show_catalogue() -> None:
 
 COMMANDS = {
     "seed-packages": lambda: asyncio.run(_seed_packages()),
-    "ensure-admin": lambda: asyncio.run(_ensure_admin()),
+    "create-admin": lambda: asyncio.run(_create_admin()),
     "show-catalogue": _show_catalogue,
 }
 

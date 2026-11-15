@@ -15,7 +15,7 @@ from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.api.admin.auth import get_current_admin
+from app.core.access import require
 from app.core import pricing as P
 from app.db.database import get_async_session
 from app.models.admin_user import AdminUser
@@ -33,7 +33,7 @@ async def list_orders(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     session: AsyncSession = Depends(get_async_session),
-    admin: AdminUser = Depends(get_current_admin),
+    admin: AdminUser = Depends(require("orders")),
 ):
     stmt = select(Order).options(selectinload(Order.payments))
 
@@ -70,7 +70,7 @@ async def list_orders(
 async def get_order(
     public_id: str,
     session: AsyncSession = Depends(get_async_session),
-    admin: AdminUser = Depends(get_current_admin),
+    admin: AdminUser = Depends(require("orders")),
 ):
     stmt = (select(Order)
             .options(selectinload(Order.payments))
@@ -93,7 +93,7 @@ async def update_order(
     public_id: str,
     data: dict,
     session: AsyncSession = Depends(get_async_session),
-    admin: AdminUser = Depends(get_current_admin),
+    admin: AdminUser = Depends(require("orders")),
 ):
     """Змінити статус або дописати нотатку.
 
@@ -125,7 +125,7 @@ async def add_manual_payment(
     public_id: str,
     data: dict,
     session: AsyncSession = Depends(get_async_session),
-    admin: AdminUser = Depends(get_current_admin),
+    admin: AdminUser = Depends(require("orders")),
 ):
     """Зафіксувати оплату, яка пройшла повз сайт.
 
@@ -185,7 +185,7 @@ async def set_discount(
     public_id: str,
     data: dict,
     session: AsyncSession = Depends(get_async_session),
-    admin: AdminUser = Depends(get_current_admin),
+    admin: AdminUser = Depends(require("orders")),
 ):
     """Проставити або зняти знижку.
 

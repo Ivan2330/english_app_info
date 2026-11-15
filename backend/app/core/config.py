@@ -8,9 +8,33 @@ class Settings(BaseSettings):
     debug_sql: bool = False
     auto_create_tables: bool = True
 
-    # ↓↓↓ дефолти для ініціалізації адміна (можеш задати в .env)
-    admin_email: str
-    admin_password: str
+    # =========================================================================
+    # КАБІНЕТ: ВХІД І СЕСІЇ
+    # =========================================================================
+    # Перший owner створюється ТІЛЬКИ командою `python -m app.cli create-admin`
+    # (пароль вводиться інтерактивно). ADMIN_EMAIL / ADMIN_PASSWORD у .env
+    # більше не читаються: extra="ignore" їх мовчки пропускає, тож старий .env
+    # нічого не ламає.
+    #
+    # Secure: кука ходить лише по HTTPS. Браузери вважають http://localhost
+    # безпечним контекстом, тож у dev теж працює; вимкнути можна COOKIE_SECURE=false.
+    cookie_secure: bool = True
+    csrf_cookie_name: str = "admin_csrf"
+    session_hours: int = 12                 # сесія без активності живе 12 годин
+    session_refresh_minutes: int = 10       # як часто продовжувати куку при активності
+    login_max_failures: int = 5             # невдалих спроб на одну пошту…
+    login_window_minutes: int = 15          # …за стільки хвилин, далі 429
+    login_max_failures_per_ip: int = 20     # і з однієї IP-адреси за те саме вікно
+    password_min_length: int = 10
+
+    # =========================================================================
+    # ФАЙЛИ КАБІНЕТУ
+    # =========================================================================
+    # Окремий docker-том поза кодом і поза веб-коренем; nginx їх не бачить,
+    # віддає лише API після перевірки прав.
+    upload_dir: str = "/data/uploads"
+    upload_max_mb: int = 20                 # картинки й документи
+    upload_video_max_mb: int = 300          # mp4, mov
 
     # Публічна адреса сайту — потрібна, щоб зібрати посилання повернення
     # та вебхуків. На проді задається в .env.

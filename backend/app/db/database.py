@@ -47,5 +47,7 @@ async def create_all():
     from app.models.admin_user import AdminUser  # noqa
     from app.models.order import Order, Payment  # noqa
     from app.models.visit import PageVisit  # noqa
+    from app.models.quote_request import QuoteRequest  # noqa
+    from app.models import workspace  # noqa
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

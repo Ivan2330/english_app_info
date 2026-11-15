@@ -17,8 +17,6 @@ from pathlib import Path
 # Ці змінні мають бути виставлені ДО імпорту app.*: конфіг читається при імпорті.
 os.environ.update(
     DATABASE_URL="sqlite+aiosqlite:///:memory:",
-    ADMIN_EMAIL="admin@example.com",
-    ADMIN_PASSWORD="test-admin-pass",
     PAYMENTS_ENABLED="true",
     SECRET_KEY="test-secret-key-for-tests-only-0123456789",
 )
@@ -31,14 +29,16 @@ from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.api.admin import (
-    auth as admin_auth, certificates as admin_certs, leads as admin_leads,
-    orders as admin_orders, packages as admin_packages, quotes as admin_quotes,
-    stats as admin_stats,
+    auth as admin_auth, certificates as admin_certs, home as admin_home, leads as admin_leads,
+    notes as admin_notes, orders as admin_orders, packages as admin_packages, quotes as admin_quotes,
+    reports as admin_reports, social as admin_social, stats as admin_stats, tasks as admin_tasks,
+    team as admin_team,
 )
 from app.api.public import (
     certificates as pub_certs, leads as pub_leads, orders as pub_orders,
     packages as pub_packages, quotes as pub_quotes, track as pub_track,
 )
+from app.core.access import ALL_SECTIONS, make_token
 from app.core.config import settings
 from app.core.security import hash_password
 from app.db.database import Base, get_async_session
@@ -54,6 +54,8 @@ ALL_ROUTERS = [
     pub_track.router, pub_quotes.router,
     admin_auth.router, admin_leads.router, admin_packages.router,
     admin_certs.router, admin_orders.router, admin_stats.router, admin_quotes.router,
+    admin_team.router, admin_social.router, admin_tasks.router, admin_notes.router,
+    admin_reports.router, admin_home.router,
 ]
 
 
@@ -69,6 +71,13 @@ def _test_settings(monkeypatch):
     monkeypatch.setattr(settings, "mono_chast_min_parts", 3)
     monkeypatch.setattr(settings, "site_url", "https://site.test")
     monkeypatch.setattr(settings, "secret_key", "test-secret-key-for-tests-only-0123456789")
+
+
+@pytest.fixture(autouse=True)
+def _upload_dir(tmp_path, monkeypatch):
+    """Файли кожного тесту — у власній тимчасовій теці, не в /data/uploads."""
+    monkeypatch.setattr(settings, "upload_dir", str(tmp_path / "uploads"))
+    return tmp_path / "uploads"
 
 
 @pytest_asyncio.fixture
@@ -103,20 +112,51 @@ async def client(app):
 
 @pytest_asyncio.fixture
 async def admin(session):
-    row = AdminUser(email="admin@example.com", password_hash=hash_password("test-admin-pass"),
-                    role=AdminRole.OWNER, is_active=True)
+    """Власник (owner): відкрито все."""
+    row = AdminUser(email="admin@example.com", name="Іван", password_hash=hash_password("test-admin-pass"),
+                    role=AdminRole.OWNER, is_active=True, sections=list(ALL_SECTIONS))
     session.add(row)
     await session.commit()
     return row
 
 
+def session_client(app, user):
+    """Клієнт із чинною сесією користувача і CSRF-заголовком, як у браузері."""
+    token, csrf = make_token(user)
+    return RealAsyncClient(transport=httpx.ASGITransport(app=app), base_url="https://test",
+                           cookies={settings.cookie_name: token, settings.csrf_cookie_name: csrf},
+                           headers={"X-CSRF-Token": csrf})
+
+
 @pytest_asyncio.fixture
 async def admin_client(app, admin):
-    """Клієнт із чинною кукою адміна."""
-    token = admin_auth.make_token(admin.id)
-    async with RealAsyncClient(transport=httpx.ASGITransport(app=app), base_url="https://test",
-                               cookies={settings.cookie_name: token}) as c:
+    async with session_client(app, admin) as c:
         yield c
+
+
+@pytest.fixture
+def make_admin(session):
+    """Звичайний admin із заданими розділами (за замовчуванням усі)."""
+    counter = {"n": 0}
+
+    async def factory(sections=None, **kw):
+        counter["n"] += 1
+        data = dict(email=f"user{counter['n']}@example.com", name=f"Адмін {counter['n']}",
+                    password_hash=hash_password("user-pass-12345"), role=AdminRole.ADMIN, is_active=True,
+                    sections=list(ALL_SECTIONS) if sections is None else list(sections))
+        data.update(kw)
+        user = AdminUser(**data)
+        session.add(user)
+        await session.commit()
+        return user
+
+    return factory
+
+
+@pytest.fixture
+def client_for(app):
+    """`async with client_for(user) as c:` — клієнт від імені будь-якого користувача."""
+    return lambda user: session_client(app, user)
 
 
 # --------------------------------------------------------------------------- фабрики
