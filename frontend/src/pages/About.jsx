@@ -206,7 +206,7 @@ export default function About() {
 
             <p className="lg__fine">
               {LEVEL_GUARANTEE.excluded}{" "}
-              <Link to="/offer#p10">Повні умови — в оферті</Link>.
+              <Link to="/offer#p9">Повні умови — в оферті</Link>.
             </p>
           </div>
         </div>

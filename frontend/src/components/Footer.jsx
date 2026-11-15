@@ -94,9 +94,9 @@ export default function Footer() {
               йому хвилини, а нам — питання у відповіді. */}
           <nav className="footer__legal" aria-label="Юридичні документи">
             <NavLink to="/offer">Публічна оферта</NavLink>
-            <NavLink to="/offer#p4">Умови оплати</NavLink>
-            <NavLink to="/offer#p11">Повернення коштів</NavLink>
-            <NavLink to="/offer#requisites">Реквізити</NavLink>
+            <NavLink to="/offer#p5">Умови оплати</NavLink>
+            <NavLink to="/offer#p10">Повернення коштів</NavLink>
+            <NavLink to="/offer#p15">Реквізити</NavLink>
             <NavLink to="/privacy">Конфіденційність</NavLink>
             <NavLink to="/guarantee">Гарантія результату</NavLink>
           </nav>

@@ -95,8 +95,29 @@
     font-size: 15px;
 }
 
+.legal__req-row { display: contents; }
 .legal__req dt { color: var(--muted); }
-.legal__req dd { margin: 0; color: var(--ink); font-weight: 600; }
+.legal__req dd { margin: 0; color: var(--ink); font-weight: 600; overflow-wrap: anywhere; }
+
+/* Маркований список усередині пункту оферти (3.1, 9.1) */
+.legal__list {
+    margin: 8px 0 0;
+    padding-left: 1.3em;
+    list-style: disc;        /* глобальний reset знімає маркери з ul */
+    max-width: 74ch;
+    font-size: 15.5px;
+    line-height: 1.7;
+    color: var(--muted);
+}
+.legal__list li { margin: 4px 0; }
+.legal__list li::marker { color: var(--violet); }
+
+/* На вузькому екрані дві колонки «назва — значення» тиснуть IBAN
+   у кашу: кладемо назву над значенням. */
+@media (max-width: 560px) {
+    .legal__req { grid-template-columns: 1fr; gap: 4px; }
+    .legal__req dd { margin-bottom: 10px; }
+}
 .legal__req a { color: var(--violet); }
 
 /* Попередження, що реквізити ще не заповнені */
