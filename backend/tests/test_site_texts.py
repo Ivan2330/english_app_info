@@ -144,3 +144,68 @@ def test_home_stats_have_no_unverified_results():
 
 def test_group_size_in_stats_matches_the_code():
     assert P.GROUP_SIZE_MAX == 6
+
+
+# ------------------------------------------------------------- SEO (src/lib/seoData.js, scripts/prerender.mjs)
+
+def seo_routes() -> dict[str, str]:
+    """Маршрут → блок його опису в seoData.js."""
+    text = read("lib/seoData.js")
+    body = text[text.index("export const ROUTES = {"):text.index("export const NOT_FOUND")]
+    return {m.group(1): m.group(2) for m in re.finditer(r'^\s+"(/[^"]*)": \{(.*?)\n?\s*\},?$', body, re.M | re.S)}
+
+
+def app_routes() -> set[str]:
+    paths = set(re.findall(r'<Route path="([^"]+)"', read("App.jsx")))
+    return {p for p in paths if p != "*" and not p.startswith("/admin")}
+
+
+def test_every_site_route_has_its_own_title_and_description():
+    routes = seo_routes()
+    missing = app_routes() - set(routes)
+    assert missing == set(), f"маршрути без SEO-тегів у seoData.js: {missing}"
+    titles = re.findall(r'title: "([^"]+)"', read("lib/seoData.js"))
+    assert len(titles) == len(set(titles)), "однакові title на різних сторінках"
+
+
+def test_service_pages_are_noindex_and_landing_pages_are_not():
+    routes = seo_routes()
+    for path in ("/thanks", "/checkout", "/payment/result"):
+        assert "noindex: true" in routes[path], path
+    for path in ("/", "/trial", "/packages", "/programs"):
+        assert "noindex" not in routes[path], path
+
+
+def test_index_html_has_the_tags_prerender_replaces():
+    """scripts/prerender.mjs шукає ці теги регулярками; без них збірка в Docker падає."""
+    html = (ROOT / "frontend" / "index.html").read_text(encoding="utf-8")
+    for pattern in (r"<title>[\s\S]*?</title>", r'<meta\s+name="description"[\s\S]*?/>', r'<link rel="canonical"[^>]*/>',
+                    r'<meta property="og:url"[^>]*/>', r'<meta property="og:title"[^>]*/>',
+                    r'<meta\s+property="og:description"[\s\S]*?/>'):
+        assert re.search(pattern, html), pattern
+
+
+def test_no_counters_load_before_consent():
+    """GA4 і Meta Pixel вантажить лише lib/analytics.js після згоди; у HTML їх бути не повинно."""
+    html = (ROOT / "frontend" / "index.html").read_text(encoding="utf-8")
+    assert "googletagmanager.com/gtag" not in html and "fbevents.js" not in html
+
+
+def test_robots_closes_service_pages_and_points_to_sitemap():
+    robots = (ROOT / "frontend" / "public" / "robots.txt").read_text(encoding="utf-8")
+    for line in ("Disallow: /admin", "Disallow: /thanks", "Disallow: /checkout",
+                 "Sitemap: https://my-prime-academy.com/sitemap.xml"):
+        assert line in robots, line
+    # sitemap.xml генерується зі seoData під час збірки, статичної копії бути не повинно
+    assert not (ROOT / "frontend" / "public" / "sitemap.xml").exists()
+
+
+def test_every_trial_button_leads_to_trial_page():
+    """Усі кнопки «Пробний урок» ведуть на /trial, не на /contacts."""
+    offenders = []
+    for path, text in frontend_sources():
+        for m in re.finditer(r'navigate\("/contacts"\)|to="/contacts"', text):
+            around = text[m.start():m.start() + 260]
+            if "робн" in around:          # «Пробний», «пробний»
+                offenders.append(path.relative_to(SRC).as_posix())
+    assert offenders == []

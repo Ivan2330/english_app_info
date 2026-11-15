@@ -65,7 +65,9 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Build
         working-directory: frontend
-        run: npx vite build --outDir /tmp/dist-check --emptyOutDir
+        # prerender пише SEO-теги кожного маршруту й sitemap.xml; якщо index.html
+        # зміниться так, що теги не знайдуться, падає тут, а не на деплої в Docker
+        run: npx vite build --outDir /tmp/dist-check --emptyOutDir && node scripts/prerender.mjs /tmp/dist-check
 
   secrets:
     name: No secrets in diff
