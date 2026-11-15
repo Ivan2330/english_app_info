@@ -128,3 +128,19 @@ def test_iban_only_in_offer():
 def test_groups_from_two_to_six():
     assert (P.GROUP_SIZE_MIN, P.GROUP_SIZE_MAX) == (2, 6)
     assert P.CLUB_MIN_PARTICIPANTS == 4
+
+
+# ------------------------------------------------------------- цифри на головній (реклама в Meta)
+
+def test_home_stats_have_no_unverified_results():
+    """Перед рекламою прибрано «500+ студентів», «95% з першого разу» і «4 місяці до розмов».
+    Тест не дає їм непомітно повернутись у блок цифр."""
+    content = read("lib/content.js")
+    block = content[content.index("export const STATS"):content.index("/* ============ НАПРЯМКИ")]
+    for forbidden in ("500", "95", "студентів", "з першого разу", "місяці до"):
+        assert forbidden not in block, forbidden
+    assert "до " in block and "90" in block and "CEFR" in block        # перевірювані: CEFR, група до 6, 90 хв
+
+
+def test_group_size_in_stats_matches_the_code():
+    assert P.GROUP_SIZE_MAX == 6
