@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  adminGetOrders, adminUpdateOrder, adminManualPayment, adminSetDiscount,
+  adminGetOrders, adminUpdateOrder, adminManualPayment, adminSetDiscount, adminOrderSources,
 } from "../api/admin.js";
+import { AttributionBlock, SourceFilter, sourceLabel } from "./SourceBits.jsx";
 
 /* Підстави для знижки. Мають збігатися з DISCOUNT_LABELS у pricing.py —
    бекенд відхиляє невідомі ключі, тож розбіжність вилізе одразу, а не мовчки. */
@@ -42,6 +43,7 @@ export default function OrdersPage() {
   const [items, setItems] = useState([]);
   const [status, setStatus] = useState("");
   const [q, setQ] = useState("");
+  const [source, setSource] = useState("");
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(null);
 
@@ -51,6 +53,7 @@ export default function OrdersPage() {
       const data = await adminGetOrders({
         ...(status ? { status } : {}),
         ...(q.trim() ? { q: q.trim() } : {}),
+        ...(source ? { utm_source: source } : {}),
       });
       setItems(data.items || []);
     } catch {
@@ -58,9 +61,9 @@ export default function OrdersPage() {
     } finally {
       setLoading(false);
     }
-  }, [status, q]);
+  }, [status, q, source]);
 
-  useEffect(() => { load(); }, [status]);   // пошук — по Enter, не на кожну літеру
+  useEffect(() => { load(); }, [status, source]);   // пошук — по Enter, не на кожну літеру
 
   async function changeStatus(order, value) {
     setItems((list) =>
@@ -122,6 +125,7 @@ export default function OrdersPage() {
           />
           <button type="submit">Знайти</button>
         </form>
+        <SourceFilter load={adminOrderSources} value={source} onChange={setSource} />
       </header>
 
       <div className="adm-tabs adm-tabs--wide">
@@ -157,6 +161,7 @@ export default function OrdersPage() {
 
               <div className="adm-row__meta">
                 <span className="adm-tag">{o.package_name}</span>
+                {sourceLabel(o.attribution) && <span className="adm-tag adm-tag--ad">{sourceLabel(o.attribution)}</span>}
                 <span className="adm-date">{fmt(o.created_at)}</span>
               </div>
 
@@ -189,6 +194,7 @@ export default function OrdersPage() {
                     <><dt>Email</dt><dd><a href={`mailto:${o.customer_email}`}>{o.customer_email}</a></dd></>
                   )}
                   {o.student_name && <><dt>Учень</dt><dd>{o.student_name}</dd></>}
+                  <AttributionBlock a={o.attribution} />
                   {o.lessons_count && <><dt>Занять</dt><dd>{o.lessons_count}</dd></>}
                   {/* Бонус зафіксований на момент замовлення (таблиця в pricing.py) */}
                   <dt>Бонусні уроки</dt>

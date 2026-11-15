@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
+import { captureAttribution } from "./lib/attribution.js";
 
 // Глобальні стилі
 import "../styles/variables.css";
@@ -21,6 +22,9 @@ import "../styles/leveltest.css";
 import "../styles/legal.css";
 import "../styles/admin.css";
 import "../styles/workspace.css";
+
+// Джерело трафіку фіксуємо до першого рендеру: сторінка може одразу перейти на інший маршрут
+captureAttribution();
 
 function Root() {
   return (

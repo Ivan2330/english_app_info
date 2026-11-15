@@ -29,6 +29,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from app.db.database import Base
+from app.models.attribution import AttributionColumns
 
 
 def _pg_enum(enum_cls, type_name: str) -> SAEnum:
@@ -84,7 +85,7 @@ class PaymentStatus(str, enum.Enum):
     REVERSED                  = "reversed"    # повернення
 
 
-class Order(Base):
+class Order(AttributionColumns, Base):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)

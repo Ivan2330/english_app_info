@@ -47,6 +47,7 @@ from app.models.order import (
     Order, OrderStatus, Payment, PaymentMethod, PaymentStatus,
 )
 from app.models.package import Package, Family as PackageFamily
+from app.core.attribution import apply_attribution
 from app.core.clientip import client_ip
 
 router = APIRouter(prefix="/api", tags=["orders"])
@@ -319,6 +320,7 @@ async def create_order(
         ip=client_ip(request),
         user_agent=request.headers.get("user-agent"),
     )
+    apply_attribution(order, data)
     session.add(order)
     try:
         await session.commit()
