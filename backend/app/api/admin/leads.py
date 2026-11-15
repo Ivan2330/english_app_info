@@ -4,7 +4,7 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_async_session
-from app.api.admin.auth import get_current_admin
+from app.core.access import require
 from app.models.lead import Lead, LeadStatus, LeadKind
 
 router = APIRouter(prefix="/api/admin", tags=["admin-leads"])
@@ -15,7 +15,7 @@ async def admin_list_leads(
     kind: LeadKind | None = None,
     q: str | None = None,
     session: AsyncSession = Depends(get_async_session),
-    admin=Depends(get_current_admin),
+    admin=Depends(require("leads")),
 ):
     stmt = select(Lead).order_by(Lead.created_at.desc())
     if status:
@@ -35,7 +35,7 @@ async def admin_list_leads(
              "source": l.source} for l in items]
 
 @router.patch("/leads/{lead_id}")
-async def admin_update_lead(lead_id: int, data: dict, session: AsyncSession = Depends(get_async_session), admin=Depends(get_current_admin)):
+async def admin_update_lead(lead_id: int, data: dict, session: AsyncSession = Depends(get_async_session), admin=Depends(require("leads"))):
     row = await session.execute(select(Lead).where(Lead.id == lead_id))
     lead = row.scalar_one_or_none()
     if not lead:

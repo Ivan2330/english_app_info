@@ -77,20 +77,23 @@ async def pg_app(pg, admin_token):
 
     application.dependency_overrides[get_async_session] = override
     async with RealAsyncClient(transport=httpx.ASGITransport(app=application), base_url="https://test",
-                               cookies=admin_token) as client:
+                               cookies=admin_token, headers={"X-CSRF-Token": pg.csrf}) as client:
         yield client
 
 
 @pytest_asyncio.fixture
 async def admin_token(pg):
-    from app.api.admin.auth import make_token
+    from app.core.access import make_token
     from app.core.config import settings
     from app.core.security import hash_password
     from app.models.admin_user import AdminRole, AdminUser
-    row = AdminUser(email="admin@example.com", password_hash=hash_password("x" * 8), role=AdminRole.OWNER)
+    row = AdminUser(email="admin@example.com", name="Іван", password_hash=hash_password("x" * 8),
+                    role=AdminRole.OWNER)
     pg.add(row)
     await pg.commit()
-    return {settings.cookie_name: make_token(row.id)}
+    token, csrf = make_token(row)
+    pg.csrf = csrf
+    return {settings.cookie_name: token, settings.csrf_cookie_name: csrf}
 
 
 # =============================================================== статистика (date_trunc лише в PG)
@@ -233,8 +236,10 @@ async def test_migrations_build_a_working_schema_from_scratch(migrated):
             "select table_name from information_schema.tables where table_schema='public'"))}
         version = (await conn.execute(text("select version_num from alembic_version"))).scalar_one()
     assert tables == {"admin_users", "alembic_version", "certificates", "leads", "orders", "packages",
-                      "page_visits", "payments", "quote_requests"}
-    assert version == "0010_order_offer_consent"
+                      "page_visits", "payments", "quote_requests", "admin_login_attempts",
+                      "ws_comments", "ws_reviews", "ws_attachments", "ws_audit_log", "ws_read_marks",
+                      "ws_tasks", "ws_notes", "ws_reports"}
+    assert version == "0012_workspace"
 
 
 async def test_models_and_migrations_do_not_drift(migrated):
@@ -269,6 +274,12 @@ async def test_last_migrations_roll_back_and_forward(migrated):
                 "select column_name from information_schema.columns where table_name='orders'"))}
         return tables, cols
 
+    # 0012, 0011: робочий простір і нові акаунти зникають
+    down = alembic(url, "downgrade", "0010_order_offer_consent")
+    assert down.returncode == 0, down.stderr[-2000:]
+    tables, _ = await snapshot()
+    assert "ws_tasks" not in tables and "admin_login_attempts" not in tables
+
     # 0010: згода з офертою зникає, решта лишається
     down = alembic(url, "downgrade", "-1")
     assert down.returncode == 0, down.stderr[-2000:]
@@ -291,7 +302,7 @@ async def test_last_migrations_roll_back_and_forward(migrated):
 async def test_new_order_columns_default_for_existing_rows(migrated):
     """Старі замовлення після міграції 0009 мають bonus_lessons = 0, а не NULL."""
     url, engine = migrated
-    down = alembic(url, "downgrade", "-1")
+    down = alembic(url, "downgrade", "0009_quote_requests_bonus")
     assert down.returncode == 0
     async with engine.begin() as conn:
         await conn.execute(text(
@@ -302,3 +313,59 @@ async def test_new_order_columns_default_for_existing_rows(migrated):
     async with engine.connect() as conn:
         row = (await conn.execute(text("select bonus_lessons, purchase_index from orders"))).one()
     assert tuple(row) == (0, None)
+
+
+# =============================================================== кабінет: міграція входу (0011)
+
+async def test_existing_admins_survive_the_role_migration(migrated):
+    """Прод: owner і старі manager/editor після 0011 — owner/admin з тими самими хешами,
+    з усіма розділами, з іменем із пошти. І назад."""
+    url, engine = migrated
+    assert alembic(url, "downgrade", "0010_order_offer_consent").returncode == 0
+    async with engine.begin() as conn:
+        await conn.execute(text(
+            "insert into admin_users (email, password_hash, role, is_active, created_at) values "
+            "('ivan@x.com','$2b$hash1','OWNER',true,now()), ('dan@x.com','$2b$hash2','MANAGER',true,now()),"
+            "('ed@x.com','$2b$hash3','EDITOR',false,now())"))
+    up = alembic(url, "upgrade", "head")
+    assert up.returncode == 0, up.stderr[-2000:]
+    async with engine.connect() as conn:
+        rows = (await conn.execute(text(
+            "select email, role, name, password_hash, sections::text, must_change_password, token_version "
+            "from admin_users order by email"))).all()
+    from app.core.access import ALL_SECTIONS
+    import json
+    assert [(r[0], r[1], r[2], r[3]) for r in rows] == [
+        ("dan@x.com", "admin", "dan", "$2b$hash2"), ("ed@x.com", "admin", "ed", "$2b$hash3"),
+        ("ivan@x.com", "owner", "ivan", "$2b$hash1")]
+    assert all(json.loads(r[4]) == ALL_SECTIONS and r[5] is False and r[6] == 0 for r in rows)
+
+    async with engine.begin() as conn:
+        bad = conn.execute(text("update admin_users set role='root' where email='dan@x.com'"))
+        with pytest.raises(Exception):
+            await bad
+
+    assert alembic(url, "downgrade", "0010_order_offer_consent").returncode == 0
+    async with engine.connect() as conn:
+        roles = (await conn.execute(text("select role::text from admin_users order by email"))).scalars().all()
+    assert roles == ["MANAGER", "MANAGER", "OWNER"]
+
+
+async def test_workspace_on_postgres(pg_app, pg):
+    """Те, що SQLite перевіряє неточно: кириличний пошук без регістру, JSON-теги, CHECK-и."""
+    from app.models.admin_user import AdminUser
+    me = (await pg.execute(select(AdminUser))).scalar_one()
+    r = await pg_app.post("/api/admin/tasks", json={"title": "Зняти РІЛС", "assignee_id": me.id,
+                                                    "tags": ["інста"]})
+    assert r.status_code == 201
+    found = (await pg_app.get("/api/admin/tasks", params={"q": "рілс", "tag": "ІНСТА"})).json()
+    assert [t["title"] for t in found] == ["Зняти РІЛС"]
+    rep = (await pg_app.post("/api/admin/reports", json={"title": "Звіт", "body": "Конкуренти"})).json()
+    await pg_app.put("/api/admin/reviews", json={"entity_type": "report", "entity_id": rep["id"], "score": 7})
+    listed = (await pg_app.get("/api/admin/reports", params={"q": "КОНКУР"})).json()
+    assert listed[0]["average_score"] == 7.0
+    await pg_app.post("/api/admin/notes", json={"title": "Нотатка", "body": "Бюджет"})
+    assert len((await pg_app.get("/api/admin/notes", params={"q": "бюджет"})).json()) == 1
+    home = (await pg_app.get("/api/admin/home")).json()
+    assert "tasks_today" in home
+    assert (await pg_app.get("/api/admin/audit")).status_code == 200

@@ -16,7 +16,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select, func, distinct, literal_column
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.admin.auth import get_current_admin
+from app.core.access import require
 from app.db.database import get_async_session
 from app.models.admin_user import AdminUser
 from app.models.lead import Lead, LeadStatus
@@ -30,7 +30,7 @@ router = APIRouter(prefix="/api/admin", tags=["admin-stats"])
 async def dashboard_stats(
     days: int = Query(30, ge=1, le=365),
     session: AsyncSession = Depends(get_async_session),
-    admin: AdminUser = Depends(get_current_admin),
+    admin: AdminUser = Depends(require("dashboard")),
 ):
     since = datetime.utcnow() - timedelta(days=days)
     prev_since = since - timedelta(days=days)

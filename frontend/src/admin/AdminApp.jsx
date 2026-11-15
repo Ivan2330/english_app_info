@@ -1,41 +1,97 @@
-import { useEffect, useState } from "react";
-import { Routes, Route, NavLink, Navigate, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { Routes, Route, NavLink, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { adminMe, adminLogout } from "../api/admin.js";
+import { getCounters } from "../api/workspace.js";
 import AdminLogin from "./AdminLogin.jsx";
+import ChangePassword from "./ChangePassword.jsx";
 import Dashboard from "./Dashboard.jsx";
 import LeadsPage from "./LeadsPage.jsx";
 import OrdersPage from "./OrdersPage.jsx";
 import QuotesPage from "./QuotesPage.jsx";
 import CertificatesPage from "./CertificatesPage.jsx";
+import HomePage from "./HomePage.jsx";
+import TasksPage from "./TasksPage.jsx";
+import NotesPage from "./NotesPage.jsx";
+import ReportsPage from "./ReportsPage.jsx";
+import TeamPage from "./TeamPage.jsx";
+import { AdminContext } from "./ws/ui.jsx";
 
 /**
- * Кабінет менеджера.
+ * Робочий простір школи.
  *
- * Живе під /admin у тому самому застосунку, що й сайт — окремої збірки
- * не заводимо: код спільний, компонентів мало, а два деплої на один
- * невеликий проєкт коштують дорожче, ніж дають.
+ * Живе під /admin у тому самому застосунку, що й сайт. Візуально навмисно
+ * не схожий на сайт: темний і спокійний, бо тут працюють годинами.
  *
- * Візуально навмисно НЕ схожий на сайт: темний, щільний, без анімацій.
- * Це робоче середовище, в якому людина проводить години, а не вітрина.
- * Aurora Glass тут заважав би читати таблиці.
+ * Меню будується з `sections`, які віддає бекенд. Але це лише зручність:
+ * доступ до кожного розділу перевіряє бекенд, і набрана руками адреса
+ * закритого розділу дасть 403, а не дані.
  */
+
+// Порядок і групи меню. section: null — відкрито завжди.
+const MENU = [
+  { group: "Робота", items: [
+    { to: "/admin", label: "Головна", end: true, section: null },
+    { to: "/admin/tasks", label: "Завдання", section: "tasks", counter: "tasks" },
+    { to: "/admin/reports", label: "Звіти", section: "reports", counter: "reports" },
+    { to: "/admin/notes", label: "Нотатки", section: null },
+  ] },
+  { group: "Сайт", items: [
+    { to: "/admin/stats", label: "Статистика сайту", section: "dashboard" },
+    { to: "/admin/leads", label: "Заявки", section: "leads" },
+    { to: "/admin/quotes", label: "Розрахунки", section: "quotes" },
+    { to: "/admin/orders", label: "Замовлення", section: "orders" },
+    { to: "/admin/certificates", label: "Сертифікати", section: "certificates" },
+  ] },
+];
+
+const PAGES = {
+  tasks: TasksPage, reports: ReportsPage, dashboard: Dashboard, leads: LeadsPage,
+  quotes: QuotesPage, orders: OrdersPage, certificates: CertificatesPage,
+};
+const PATHS = { tasks: "tasks", reports: "reports", dashboard: "stats", leads: "leads", quotes: "quotes",
+                orders: "orders", certificates: "certificates" };
+
 export default function AdminApp() {
   const [admin, setAdmin] = useState(null);
   const [checking, setChecking] = useState(true);
+  const [counters, setCounters] = useState({});
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  useEffect(() => {
-    adminMe()
-      .then(setAdmin)
-      .catch(() => setAdmin(null))
-      .finally(() => setChecking(false));
-  }, []);
+  const refreshMe = useCallback(() => adminMe().then(setAdmin).catch(() => setAdmin(null)), []);
 
-  // Тема вмикається на body, щоб перекрити глобальні стилі сайту
+  useEffect(() => { refreshMe().finally(() => setChecking(false)); }, [refreshMe]);
+
   useEffect(() => {
     document.body.classList.add("admin-mode");
     return () => document.body.classList.remove("admin-mode");
   }, []);
+
+  // Сесія завершилась (або пароль треба змінити) — бекенд каже це будь-якому запиту.
+  useEffect(() => {
+    const expired = () => setAdmin(null);
+    const mustChange = () => setAdmin((a) => (a ? { ...a, must_change_password: true } : a));
+    window.addEventListener("admin:session-expired", expired);
+    window.addEventListener("admin:must-change-password", mustChange);
+    return () => {
+      window.removeEventListener("admin:session-expired", expired);
+      window.removeEventListener("admin:must-change-password", mustChange);
+    };
+  }, []);
+
+  // Лічильники непрочитаного: при зміні сторінки і раз на хвилину.
+  const refreshCounters = useCallback(() => {
+    if (!admin || admin.must_change_password) return;
+    getCounters().then(setCounters).catch(() => {});
+  }, [admin]);
+  useEffect(() => { refreshCounters(); }, [refreshCounters, location.pathname]);
+  useEffect(() => {
+    const t = setInterval(refreshCounters, 60_000);
+    return () => clearInterval(t);
+  }, [refreshCounters]);
+
+  useEffect(() => { setMenuOpen(false); }, [location.pathname]);
 
   async function onLogout() {
     try { await adminLogout(); } catch { /* вийти маємо в будь-якому разі */ }
@@ -43,46 +99,90 @@ export default function AdminApp() {
     navigate("/admin", { replace: true });
   }
 
-  if (checking) {
-    return <div className="adm-boot">Перевіряємо сесію…</div>;
+  if (checking) return <div className="adm-boot">Перевіряємо вхід…</div>;
+  if (!admin) return <AdminLogin onSuccess={setAdmin} />;
+  if (admin.must_change_password) {
+    return <ChangePassword forced admin={admin} onDone={setAdmin} onLogout={onLogout} />;
   }
 
-  if (!admin) {
-    return <AdminLogin onSuccess={setAdmin} />;
-  }
+  const open = new Set(admin.sections);
+  const isOwner = admin.role === "owner";
+  const ctx = { ...admin, refreshCounters, refreshMe };
 
   return (
-    <div className="adm">
-      <aside className="adm__side">
-        <div className="adm__brand">
-          Prime Academy
-          <span>кабінет менеджера</span>
-        </div>
+    <AdminContext.Provider value={ctx}>
+      <div className={`adm ws${menuOpen ? " is-menu-open" : ""}`}>
+        <header className="ws-topbar">
+          <span className="ws-topbar__brand">Prime Academy</span>
+          <button type="button" className="ws-btn" aria-expanded={menuOpen} onClick={() => setMenuOpen((v) => !v)}>
+            {menuOpen ? "Закрити меню" : "Меню"}
+            {!menuOpen && (counters.tasks || 0) + (counters.reports || 0) > 0 && <i className="ws-dot" />}
+          </button>
+        </header>
 
-        <nav className="adm__nav">
-          <NavLink to="/admin" end className="adm__link">Дашборд</NavLink>
-          <NavLink to="/admin/leads" className="adm__link">Заявки</NavLink>
-          <NavLink to="/admin/quotes" className="adm__link">Розрахунки</NavLink>
-          <NavLink to="/admin/orders" className="adm__link">Замовлення</NavLink>
-          <NavLink to="/admin/certificates" className="adm__link">Сертифікати</NavLink>
-        </nav>
+        <aside className="adm__side ws-side">
+          <div className="adm__brand">
+            Prime Academy
+            <span>робочий простір</span>
+          </div>
 
-        <div className="adm__user">
-          <span title={admin.email}>{admin.email}</span>
-          <button type="button" onClick={onLogout}>Вийти</button>
-        </div>
-      </aside>
+          <nav className="ws-nav" aria-label="Розділи кабінету">
+            {MENU.map((g) => {
+              const items = g.items.filter((i) => i.section === null || open.has(i.section));
+              if (!items.length) return null;
+              return (
+                <div key={g.group} className="ws-nav__group">
+                  <span className="ws-nav__title">{g.group}</span>
+                  {items.map((i) => (
+                    <NavLink key={i.to} to={i.to} end={i.end} className="adm__link ws-nav__link">
+                      {i.label}
+                      {i.counter && counters[i.counter] > 0 && (
+                        <span className="ws-badge" aria-label={`нових: ${counters[i.counter]}`}>{counters[i.counter]}</span>
+                      )}
+                    </NavLink>
+                  ))}
+                </div>
+              );
+            })}
+            {isOwner && (
+              <div className="ws-nav__group">
+                <span className="ws-nav__title">Керування</span>
+                <NavLink to="/admin/team" className="adm__link ws-nav__link">Команда</NavLink>
+              </div>
+            )}
+          </nav>
 
-      <main className="adm__main">
-        <Routes>
-          <Route index element={<Dashboard />} />
-          <Route path="leads" element={<LeadsPage />} />
-          <Route path="quotes" element={<QuotesPage />} />
-          <Route path="orders" element={<OrdersPage />} />
-          <Route path="certificates" element={<CertificatesPage />} />
-          <Route path="*" element={<Navigate to="/admin" replace />} />
-        </Routes>
-      </main>
+          <div className="ws-user">
+            <b>{admin.name}</b>
+            <span>{isOwner ? "Власник" : "Адміністратор"}</span>
+            <NavLink to="/admin/password" className="ws-user__link">Змінити пароль</NavLink>
+            <button type="button" className="ws-btn" onClick={onLogout}>Вийти</button>
+          </div>
+        </aside>
+
+        <main className="adm__main ws-main">
+          <Routes>
+            <Route index element={<HomePage />} />
+            <Route path="notes" element={<NotesPage />} />
+            <Route path="password" element={<ChangePassword admin={admin} onDone={setAdmin} />} />
+            {Object.entries(PAGES).map(([section, Page]) => (
+              <Route key={section} path={`${PATHS[section]}/*`}
+                     element={open.has(section) ? <Page /> : <Closed />} />
+            ))}
+            <Route path="team" element={isOwner ? <TeamPage /> : <Closed />} />
+            <Route path="*" element={<Navigate to="/admin" replace />} />
+          </Routes>
+        </main>
+      </div>
+    </AdminContext.Provider>
+  );
+}
+
+function Closed() {
+  return (
+    <div className="ws-empty">
+      <b>Цей розділ для вас вимкнено</b>
+      <p>Доступ до розділів вмикає власник у меню «Команда». Якщо він вам потрібен, напишіть власнику.</p>
     </div>
   );
 }

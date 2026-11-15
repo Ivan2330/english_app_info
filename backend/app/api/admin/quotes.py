@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.admin.auth import get_current_admin
+from app.core.access import require
 from app.db.database import get_async_session
 from app.models.quote_request import QuoteRequest, QuoteKind, QuoteStatus
 
@@ -16,7 +16,7 @@ async def list_quotes(
     status: QuoteStatus | None = None,
     kind: QuoteKind | None = None,
     session: AsyncSession = Depends(get_async_session),
-    admin=Depends(get_current_admin),
+    admin=Depends(require("quotes")),
 ):
     stmt = select(QuoteRequest).order_by(QuoteRequest.created_at.desc())
     if status:
@@ -32,7 +32,7 @@ async def update_quote(
     quote_id: int,
     data: dict,
     session: AsyncSession = Depends(get_async_session),
-    admin=Depends(get_current_admin),
+    admin=Depends(require("quotes")),
 ):
     quote = (await session.execute(
         select(QuoteRequest).where(QuoteRequest.id == quote_id)

@@ -196,13 +196,43 @@ async def test_create_all_helper_builds_tables(monkeypatch):
     await engine.dispose()
 
 
-async def test_cli_ensure_admin_is_idempotent(session, monkeypatch, capsys):
+def _answers(*values):
+    it = iter(values)
+    return lambda prompt="": next(it)
+
+
+async def test_cli_create_admin_makes_owner_from_interactive_input(session, monkeypatch, capsys):
+    from sqlalchemy import select
     from sqlalchemy.ext.asyncio import async_sessionmaker
+    from app.core.security import verify_password
+    from app.models.admin_user import AdminUser
     monkeypatch.setattr(cli, "async_session_maker", async_sessionmaker(session.bind, expire_on_commit=False))
-    await cli._ensure_admin()
-    await cli._ensure_admin()
-    out = capsys.readouterr().out
-    assert "створено" in out and "вже існує" in out
+    await cli._create_admin(_answers("Ivan@Example.com", "Іван"), _answers("owner-pass-123", "owner-pass-123"))
+    assert "Owner створено: ivan@example.com" in capsys.readouterr().out
+    user = (await session.execute(select(AdminUser))).scalar_one()
+    assert user.role == "owner" and user.name == "Іван" and verify_password("owner-pass-123", user.password_hash)
+
+
+async def test_cli_create_admin_promotes_existing_and_resets_password(session, monkeypatch, capsys, make_admin):
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+    from app.core.security import verify_password
+    user = await make_admin(email="dan@example.com", must_change_password=True)
+    monkeypatch.setattr(cli, "async_session_maker", async_sessionmaker(session.bind, expire_on_commit=False))
+    await cli._create_admin(_answers("dan@example.com", ""), _answers("new-owner-pass", "new-owner-pass"))
+    assert "оновлено" in capsys.readouterr().out
+    await session.refresh(user)
+    assert user.role == "owner" and not user.must_change_password and user.token_version == 1
+    assert verify_password("new-owner-pass", user.password_hash)
+
+
+@pytest.mark.parametrize("email,secrets_,message", [
+    ("not-an-email", ["x" * 12, "x" * 12], "пошту"),
+    ("a@b.c", ["short", "short"], "закороткий"),
+    ("a@b.c", ["x" * 12, "y" * 12], "не збігаються"),
+])
+def test_cli_create_admin_rejects_bad_input(email, secrets_, message):
+    with pytest.raises(SystemExit, match=message):
+        cli._ask_owner(_answers(email, ""), _answers(*secrets_))
 
 
 async def test_wait_for_tables_retries_until_ready(monkeypatch, capsys):

@@ -5,7 +5,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles  # <--- Додав для файлів
 from app.core.config import settings  # noqa: F401  (лишається для інших модулів)
-from app.db.database import get_async_session
 
 # Routers
 from app.api.public.packages import router as pub_packages
@@ -21,8 +20,13 @@ from app.api.admin.certificates import router as admin_certs
 from app.api.admin.orders import router as admin_orders
 from app.api.admin.stats import router as admin_stats
 from app.api.admin.quotes import router as admin_quotes
+from app.api.admin.team import router as admin_team
+from app.api.admin.social import router as admin_social
+from app.api.admin.tasks import router as admin_tasks
+from app.api.admin.notes import router as admin_notes
+from app.api.admin.reports import router as admin_reports
+from app.api.admin.home import router as admin_home
 
-from sqlalchemy.ext.asyncio import AsyncSession
 
 # --- АВТОМАТИЧНЕ СТВОРЕННЯ ПАПКИ ДЛЯ СЕРТИФІКАТІВ ---
 # Це гарантує, що папка існує перед запуску, щоб не було помилок
@@ -65,55 +69,22 @@ app.include_router(admin_certs)   # <--- Це адмінський, хай бу�
 app.include_router(admin_orders)
 app.include_router(admin_stats)
 app.include_router(admin_quotes)
+app.include_router(admin_team)
+app.include_router(admin_social)
+app.include_router(admin_tasks)
+app.include_router(admin_notes)
+app.include_router(admin_reports)
+app.include_router(admin_home)
 
-@app.on_event("startup")
-async def startup():
-    """
-    Схема бази більше НЕ створюється тут — цим займається Alembic:
-        alembic upgrade head
-
-    Каталог пакетів більше НЕ перегенеровується при старті. Раніше тут стояв
-    ensure_*_packages(purge_existing=True), який стирав таблицю при кожному
-    рестарті контейнера — через це будь-яка правка в адмінці зникала.
-    Тепер наповнення каталогу — окрема команда:
-        python -m app.cli seed-packages
-
-    Лишаємо тільки створення OWNER-адміна: воно ідемпотентне й нічого не видаляє.
-
-    ЧОМУ ТУТ try/except
-    -------------------
-    На порожній базі (новий том, перший запуск, `docker compose down -v`)
-    таблиці `admins` ще немає — міграції не проганялись. Виняток у startup
-    валить увесь застосунок: uvicorn не піднімається, контейнер падає,
-    compose каже «container backend is unhealthy», а nginx слідом не
-    стартує взагалі.
-
-    Повідомлення при цьому розповідає про `relation "admins" does not
-    exist`, тож шукати починають зламану модель чи міграцію — хоча
-    насправді база просто порожня.
-
-    Гірше інше: з мертвим контейнером `docker compose exec backend alembic
-    upgrade head` виконати НЕМОЖЛИВО, тобто застосунок падає саме через
-    те, що лагодиться всередині нього ж. Тому тут помилка не фатальна:
-    API піднімається, віддає 500 на запити до бази — і дає себе полагодити.
-    """
-    try:
-        async for session in get_async_session():
-            assert isinstance(session, AsyncSession)
-            from app.core.bootstrap_admin import ensure_owner_admin
-            info_admin = await ensure_owner_admin(session)
-            print(f"Admin bootstrap: {info_admin}")
-            break
-    except Exception as exc:  # noqa: BLE001 — старт важливіший за адміна
-        print(
-            "\n"
-            "!!! Адміна створити не вдалося, застосунок стартує без нього.\n"
-            f"    Причина: {type(exc).__name__}: {exc}\n"
-            "    Найчастіше це порожня база. Прожени міграції й перезапусти:\n"
-            "        docker compose exec backend alembic upgrade head\n"
-            "        docker compose exec backend python -m app.cli seed-packages\n"
-            "        docker compose restart backend\n"
-        )
+# Startup більше нічого не робить з базою.
+#
+# Раніше тут створювався OWNER-адмін з ADMIN_EMAIL / ADMIN_PASSWORD у .env.
+# Прибрано (15.11.2026): пароль власника не повинен жити у файлі на сервері.
+# Перший owner тепер створюється тільки руками, пароль вводиться інтерактивно:
+#
+#     docker compose exec backend python -m app.cli create-admin
+#
+# Існуючі акаунти на проді не зачіпаються.
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

@@ -11,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_async_session
-from app.api.admin.auth import get_current_admin
+from app.core.access import require_owner
 from app.models.package import Package, Family, Audience, Format, Track
 
 router = APIRouter(prefix="/api/admin", tags=["admin-packages"])
@@ -52,7 +52,7 @@ def _apply_enums(data: dict, target: Package) -> None:
 async def admin_list_packages(
     active: int | None = None,
     session: AsyncSession = Depends(get_async_session),
-    admin=Depends(get_current_admin),
+    admin=Depends(require_owner),
 ):
     stmt = select(Package)
     if active is not None:
@@ -65,7 +65,7 @@ async def admin_list_packages(
 async def admin_create_package(
     data: dict,
     session: AsyncSession = Depends(get_async_session),
-    admin=Depends(get_current_admin),
+    admin=Depends(require_owner),
 ):
     required = ["slug", "name", "family", "audience", "format", "track"]
     missing = [k for k in required if not data.get(k)]
@@ -93,7 +93,7 @@ async def admin_update_package(
     pkg_id: int,
     data: dict,
     session: AsyncSession = Depends(get_async_session),
-    admin=Depends(get_current_admin),
+    admin=Depends(require_owner),
 ):
     row = await session.execute(select(Package).where(Package.id == pkg_id))
     p = row.scalar_one_or_none()
@@ -113,7 +113,7 @@ async def admin_update_package(
 async def admin_deactivate_package(
     pkg_id: int,
     session: AsyncSession = Depends(get_async_session),
-    admin=Depends(get_current_admin),
+    admin=Depends(require_owner),
 ):
     """М'яке видалення: пакет ховається з каталогу, але лишається в базі —
     щоб не ламати посилання та історію замовлень."""

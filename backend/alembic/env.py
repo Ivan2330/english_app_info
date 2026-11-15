@@ -20,6 +20,7 @@ from app.models.lead import Lead  # noqa: F401
 from app.models.certificate import Certificate  # noqa: F401
 from app.models.admin_user import AdminUser  # noqa: F401
 from app.models.quote_request import QuoteRequest  # noqa: F401
+from app.models import workspace  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)

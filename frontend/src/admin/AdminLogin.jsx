@@ -17,9 +17,11 @@ export default function AdminLogin({ onSuccess }) {
     } catch (err) {
       // Не уточнюємо, що саме не так — пошта чи пароль. Така підказка
       // дозволяє перебором з'ясувати, які адреси існують у системі.
+      const status = err?.response?.status;
       setError(
-        err?.response?.status === 401
-          ? "Невірна пошта або пароль"
+        status === 401 ? "Невірна пошта або пароль"
+          : status === 429 ? err.response.data.detail      // «Забагато невдалих спроб…»
+          : !err?.response ? "Немає звʼязку із сервером. Перевірте інтернет."
           : "Не вдалося увійти. Спробуйте ще раз."
       );
     } finally {
@@ -31,7 +33,7 @@ export default function AdminLogin({ onSuccess }) {
     <div className="adm-login">
       <form className="adm-login__box" onSubmit={submit}>
         <h1>Вхід для персоналу</h1>
-        <p className="adm-login__sub">Кабінет менеджера Prime Academy</p>
+        <p className="adm-login__sub">Робочий простір Prime Academy</p>
 
         <label>
           <span>Електронна пошта</span>
@@ -60,6 +62,10 @@ export default function AdminLogin({ onSuccess }) {
         <button type="submit" disabled={busy}>
           {busy ? "Входимо…" : "Увійти"}
         </button>
+        <p className="adm-login__help">
+          Немає акаунта або забули пароль? Попросіть власника школи створити акаунт
+          чи скинути пароль у розділі «Команда».
+        </p>
       </form>
     </div>
   );
