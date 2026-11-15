@@ -63,26 +63,30 @@ def test_refund_example_from_offer():
 
 
 def test_refund_25_of_48_from_offer():
-    """Оферта п. 10.2: проведено 25 з 48 — 25 уроків за ставкою пакета на 48.
-    Перша чернетка рахувала весь пакет на 48 і повертала 0."""
+    """Оферта п. 10.2: 25 з 48 — 25 × 430 = 10 750, але не менше за пакет на 24
+    (10 800). Перша чернетка рахувала весь пакет на 48 і повертала 0."""
     paid = 48 * 430
-    assert P.refund_amount(paid, 25, *IND) == paid - 25 * 430 == 23 * 430
+    assert P.refund_amount(paid, 25, *IND) == paid - 24 * 450 == 9_840
 
 
 @pytest.mark.parametrize("used,cost", [
     (0, 0),
     (1, 1 * 550),        # найближчий не менший пакет — 6 уроків, його ставка
     (6, 6 * 550),
-    (7, 7 * 470),        # між сходинками — ставка пакета на 16, але за 7 уроків
+    (7, 6 * 550),        # 7 × 470 = 3 290 < пакет на 6 (3 300) — спрацьовує межа
+    (8, 8 * 470),
     (16, 16 * 470),
-    (17, 17 * 450),
+    (17, 17 * 450),      # 7 650 > пакет на 16 (7 520) — межа не потрібна
     (24, 24 * 450),
-    (25, 25 * 430),
+    (25, 24 * 450),      # 10 750 < 10 800
+    (26, 26 * 430),
     (48, 48 * 430),
-    (49, 49 * 390),
+    (49, 48 * 430),      # 19 110 < 20 640 — межа тримає до 52 уроків
+    (52, 48 * 430),
+    (53, 53 * 390),
     (96, 96 * 390),
 ])
-def test_used_cost_is_n_times_rate_of_nearest_not_smaller_package(used, cost):
+def test_used_cost_is_max_of_rate_and_previous_package(used, cost):
     assert P.refund_used_cost(used, *IND) == cost
 
 
@@ -115,26 +119,32 @@ def test_refund_cannot_be_gamed_by_buying_the_cheapest_rate():
     assert back == paid - 10 * 470 < paid - 10 * 390
 
 
-def test_refund_never_exceeds_paid_and_shrinks_within_a_step():
-    """Усередині однієї сходинки кожен проведений урок зменшує повернення."""
-    paid = 96 * 390
-    backs = {n: P.refund_amount(paid, n, *IND) for n in range(0, 97)}
-    assert backs[0] == paid and all(0 <= v <= paid for v in backs.values())
-    bounds = set(P.ADULT_LADDER)
-    for n in range(1, 97):
-        if n - 1 not in bounds:
-            assert backs[n] < backs[n - 1], n
+LINES = {
+    "individual": (P.ADULT_LADDER, P.ADULT_INDIVIDUAL),
+    "pair": (P.ADULT_LADDER, P.ADULT_PAIR),
+}
 
 
-def test_refund_jumps_up_right_after_each_package_size():
-    """Відома властивість формули n × ставка (оферта п. 10.2, 15.11.2026):
-    після 6, 24 і 48 ставка падає так, що ще один проведений урок ЗБІЛЬШУЄ
-    повернення. 48 → 49 проведених із 96: +1 530 ₴. Тест фіксує це свідомо:
-    якщо формулу змінять, він має впасти й нагадати переглянути оферту."""
-    paid = 96 * 390
-    jump = {n: P.refund_amount(paid, n + 1, *IND) - P.refund_amount(paid, n, *IND)
-            for n in (6, 16, 24, 48)}
-    assert jump == {6: 3300 - 3290, 16: 7520 - 7650, 24: 10800 - 10750, 48: 20640 - 19110}
+@pytest.mark.parametrize("line", sorted(LINES))
+def test_refund_is_monotonic(line):
+    """Кожен наступний проведений урок не збільшує повернення (оферта п. 10.2,
+    остання фраза). Без нижньої межі тут були стрибки: 48 → 49 із 96 давало +1 530 ₴."""
+    ladder, prices = LINES[line]
+    paid = ladder[-1] * prices[-1]
+    backs = [P.refund_amount(paid, n, ladder, prices) for n in range(0, ladder[-1] + 1)]
+    assert backs[0] == paid and backs[-1] == 0
+    assert all(0 <= b <= paid for b in backs)
+    jumps = [(n, backs[n] - backs[n - 1]) for n in range(1, len(backs)) if backs[n] > backs[n - 1]]
+    assert jumps == []
+
+
+@pytest.mark.parametrize("line", sorted(LINES))
+def test_used_cost_never_below_previous_package(line):
+    ladder, prices = LINES[line]
+    for k in range(1, len(ladder)):
+        prev = ladder[k - 1] * prices[k - 1]
+        for n in range(ladder[k - 1] + 1, ladder[k] + 1):
+            assert P.refund_used_cost(n, ladder, prices) >= prev, (n, prev)
 
 
 # =============================================================== ПЧ, строки, заморозка
