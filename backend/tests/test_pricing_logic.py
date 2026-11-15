@@ -57,36 +57,38 @@ IND = (P.ADULT_LADDER, P.ADULT_INDIVIDUAL)      # 6/16/24/48/96 по 550/470/450
 
 
 def test_refund_example_from_offer():
-    """Оферта п. 10.2: оплачено 48, проведено 6 — мінус 6 × ставка пакета на 6."""
+    """Оферта п. 10.2: оплачено 48, проведено 6 — мінус ціна пакета на 6."""
     paid = 48 * 430                                  # 20 640
     assert P.refund_amount(paid, 6, *IND) == paid - 6 * 550 == 17_340
 
 
-def test_refund_25_of_48_from_offer():
-    """Оферта п. 10.2: 25 з 48 — 25 × 430 = 10 750, але не менше за пакет на 24
-    (10 800). Перша чернетка рахувала весь пакет на 48 і повертала 0."""
+def test_refund_30_of_48_from_offer():
+    """Оферта п. 10.2: 30 з 48 — 30 уроків за ціною уроку в пакеті на 24."""
     paid = 48 * 430
-    assert P.refund_amount(paid, 25, *IND) == paid - 24 * 450 == 9_840
+    assert P.refund_amount(paid, 30, *IND) == paid - 30 * 450 == 7_140
 
 
 @pytest.mark.parametrize("used,cost", [
     (0, 0),
-    (1, 1 * 550),        # найближчий не менший пакет — 6 уроків, його ставка
+    (1, 1 * 550),        # менше найменшого пакета — ставка найменшого
+    (5, 5 * 550),
     (6, 6 * 550),
-    (7, 6 * 550),        # 7 × 470 = 3 290 < пакет на 6 (3 300) — спрацьовує межа
-    (8, 8 * 470),
-    (16, 16 * 470),
-    (17, 17 * 450),      # 7 650 > пакет на 16 (7 520) — межа не потрібна
-    (24, 24 * 450),
-    (25, 24 * 450),      # 10 750 < 10 800
-    (26, 26 * 430),
-    (48, 48 * 430),
-    (49, 48 * 430),      # 19 110 < 20 640 — межа тримає до 52 уроків
-    (52, 48 * 430),
-    (53, 53 * 390),
-    (96, 96 * 390),
+    (15, 15 * 550),      # між 6 і 16 — ставка пакета на 6
+    (16, 15 * 550),      # 16 × 470 = 7 520 < 8 250: не менше, ніж для 15
+    (17, 15 * 550),
+    (18, 18 * 470),      # 8 460 — нова ставка наздогнала
+    (23, 23 * 470),
+    (24, 23 * 470),      # 10 800 < 10 810
+    (25, 25 * 450),
+    (30, 30 * 450),
+    (47, 47 * 450),
+    (48, 47 * 450),      # 20 640 < 21 150 — тримається до 49
+    (49, 47 * 450),
+    (50, 50 * 430),
+    (95, 95 * 430),
+    (96, 95 * 430),      # 37 440 < 40 850
 ])
-def test_used_cost_is_max_of_rate_and_previous_package(used, cost):
+def test_used_cost_rate_of_largest_package_not_above_n(used, cost):
     assert P.refund_used_cost(used, *IND) == cost
 
 
@@ -113,10 +115,11 @@ def test_refund_uses_price_list_passed_in_not_current():
 
 
 def test_refund_cannot_be_gamed_by_buying_the_cheapest_rate():
-    """Купити 96 по 390, відходити 10 і забрати решту: 10 уроків рахуються за ставкою 470."""
+    """Купити 96 по 390, відходити 10 і забрати решту: 10 уроків рахуються
+    за ставкою пакета на 6 (550), бо до 16 людина не дійшла."""
     paid = 96 * 390
     back = P.refund_amount(paid, 10, *IND)
-    assert back == paid - 10 * 470 < paid - 10 * 390
+    assert back == paid - 10 * 550 < paid - 10 * 390
 
 
 LINES = {
@@ -125,10 +128,17 @@ LINES = {
 }
 
 
+def _rate_le(n, ladder, prices):
+    """Незалежна від коду ставка: найбільший пакет ≤ n, інакше найменший."""
+    fit = [r for size, r in zip(ladder, prices) if size <= n]
+    return fit[-1] if fit else prices[0]
+
+
 @pytest.mark.parametrize("line", sorted(LINES))
 def test_refund_is_monotonic(line):
-    """Кожен наступний проведений урок не збільшує повернення (оферта п. 10.2,
-    остання фраза). Без нижньої межі тут були стрибки: 48 → 49 із 96 давало +1 530 ₴."""
+    """Кожен наступний проведений урок не збільшує повернення (оферта п. 10.2:
+    «сума відрахування не може зменшуватися»). Без правила «не менше, ніж
+    для n−1» тут були б стрибки на кожній сходинці: 47 → 48 давало +510 ₴."""
     ladder, prices = LINES[line]
     paid = ladder[-1] * prices[-1]
     backs = [P.refund_amount(paid, n, ladder, prices) for n in range(0, ladder[-1] + 1)]
@@ -139,15 +149,15 @@ def test_refund_is_monotonic(line):
 
 
 @pytest.mark.parametrize("line", sorted(LINES))
-def test_used_cost_never_below_previous_package(line):
+def test_used_cost_is_running_max_of_n_times_rate(line):
+    """f(n) = max(n × ставка найбільшого пакета ≤ n, f(n−1)) — дослівно п. 10.2."""
     ladder, prices = LINES[line]
-    for k in range(1, len(ladder)):
-        prev = ladder[k - 1] * prices[k - 1]
-        for n in range(ladder[k - 1] + 1, ladder[k] + 1):
-            assert P.refund_used_cost(n, ladder, prices) >= prev, (n, prev)
+    prev = 0
+    for n in range(0, ladder[-1] + 30):
+        expected = max(n * _rate_le(n, ladder, prices), prev)
+        assert P.refund_used_cost(n, ladder, prices) == expected, n
+        prev = expected
 
-
-# =============================================================== ПЧ, строки, заморозка
 
 @pytest.mark.parametrize("total,expected", [
     (0, (False, None)), (None, (False, None)),
