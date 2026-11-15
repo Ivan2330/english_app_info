@@ -222,3 +222,9 @@ def test_chast_shows_parts_count_and_approximate_part_without_changing_the_total
     assert "так само, як карткою" in co
     assert "≈" in read("lib/labels.js")
     assert "Math.round(pkg.total_price / pkg.chast_max_parts)" not in read("pages/Contacts.jsx")
+
+
+def test_cookie_banner_is_not_shown_in_the_cabinet():
+    """Кабінет — службова частина: банер там перекривав кнопки форм на телефоні."""
+    banner = read("components/CookieBanner.jsx")
+    assert 'pathname.startsWith("/admin/")' in banner and 'pathname === "/admin"' in banner

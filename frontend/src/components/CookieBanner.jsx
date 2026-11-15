@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { getAnalyticsConsent, setAnalyticsConsent } from "../lib/consent.js";
 
 /** Подія, якою футер знову відкриває банер («Налаштування cookie»). */
@@ -11,6 +11,7 @@ export const OPEN_COOKIE_SETTINGS = "pa:cookie-settings";
  * «Лише необхідні» нічого стороннього не вмикає.
  */
 export default function CookieBanner() {
+  const { pathname } = useLocation();
   const [open, setOpen] = useState(() => getAnalyticsConsent() === null);
 
   useEffect(() => {
@@ -19,7 +20,9 @@ export default function CookieBanner() {
     return () => window.removeEventListener(OPEN_COOKIE_SETTINGS, reopen);
   }, []);
 
-  if (!open) return null;
+  // У кабінеті банер не потрібен: це службова частина, лічильників там немає,
+  // а на телефоні банер перекривав кнопки форм («Здати звіт», «Зберегти»).
+  if (!open || pathname === "/admin" || pathname.startsWith("/admin/")) return null;
 
   function choose(allow) {
     setAnalyticsConsent(allow);
