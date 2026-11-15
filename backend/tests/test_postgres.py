@@ -238,8 +238,8 @@ async def test_migrations_build_a_working_schema_from_scratch(migrated):
     assert tables == {"admin_users", "alembic_version", "certificates", "leads", "orders", "packages",
                       "page_visits", "payments", "quote_requests", "admin_login_attempts",
                       "ws_comments", "ws_reviews", "ws_attachments", "ws_audit_log", "ws_read_marks",
-                      "ws_tasks", "ws_notes", "ws_reports"}
-    assert version == "0013_attribution"
+                      "ws_tasks", "ws_notes", "ws_reports", "ws_settings", "ws_daily_reports"}
+    assert version == "0014_daily_reports"
 
 
 async def test_models_and_migrations_do_not_drift(migrated):
@@ -333,12 +333,12 @@ async def test_existing_admins_survive_the_role_migration(migrated):
         rows = (await conn.execute(text(
             "select email, role, name, password_hash, sections::text, must_change_password, token_version "
             "from admin_users order by email"))).all()
-    from app.core.access import ALL_SECTIONS
+    from app.core.access import ALL_SECTIONS, clean_sections
     import json
     assert [(r[0], r[1], r[2], r[3]) for r in rows] == [
         ("dan@x.com", "admin", "dan", "$2b$hash2"), ("ed@x.com", "admin", "ed", "$2b$hash3"),
         ("ivan@x.com", "owner", "ivan", "$2b$hash1")]
-    assert all(json.loads(r[4]) == ALL_SECTIONS and r[5] is False and r[6] == 0 for r in rows)
+    assert all(clean_sections(json.loads(r[4])) == ALL_SECTIONS and r[5] is False and r[6] == 0 for r in rows)
 
     async with engine.begin() as conn:
         bad = conn.execute(text("update admin_users set role='root' where email='dan@x.com'"))
@@ -413,3 +413,56 @@ async def test_attribution_filters_and_idempotency_on_postgres(pg_app, pg):
     assert (await pg_app.get("/api/admin/leads", params={"status": "trial_scheduled"})).json()[0]["name"] == "Марія"
     sources = (await pg_app.get("/api/admin/leads/sources")).json()
     assert sources == [{"value": "facebook", "label": "facebook", "count": 1}]
+
+
+# =============================================================== «Звіт дня» (0014)
+
+async def test_daily_reports_migration_enables_section_for_existing_accounts(migrated):
+    import json
+    url, engine = migrated
+    assert alembic(url, "downgrade", "0013_attribution").returncode == 0
+    async with engine.begin() as conn:
+        await conn.execute(text(
+            "insert into admin_users (email, name, password_hash, role, is_active, created_at, sections) values "
+            "('dan@x.com','Данило','$2b$h','admin',true,now(),'[\"tasks\", \"reports\"]'::json),"
+            "('ivan@x.com','Іван','$2b$h','owner',true,now(),'[]'::json)"))
+    up = alembic(url, "upgrade", "head")
+    assert up.returncode == 0, up.stderr[-2000:]
+    async with engine.begin() as conn:
+        rows = dict((await conn.execute(text("select email, sections::text from admin_users"))).all())
+        assert json.loads(rows["dan@x.com"]) == ["tasks", "reports", "daily"]
+        assert json.loads(rows["ivan@x.com"]) == ["daily"]
+        uid = (await conn.execute(text("select id from admin_users where email='dan@x.com'"))).scalar_one()
+        await conn.execute(text(
+            "insert into ws_daily_reports (author_id, date, done, created_at, updated_at, activity_at) "
+            f"values ({uid}, '2026-11-18', 'Зроблено', now(), now(), now())"))
+        dup = conn.execute(text(
+            "insert into ws_daily_reports (author_id, date, done, created_at, updated_at, activity_at) "
+            f"values ({uid}, '2026-11-18', 'Ще раз', now(), now(), now())"))
+        with pytest.raises(Exception):
+            await dup                                   # один звіт на людину на день — і на рівні бази
+    # Повторний upgrade не дублює "daily", відкат прибирає його
+    assert alembic(url, "downgrade", "0013_attribution").returncode == 0
+    async with engine.connect() as conn:
+        rows = dict((await conn.execute(text("select email, sections::text from admin_users"))).all())
+        tables = {r[0] for r in await conn.execute(text(
+            "select table_name from information_schema.tables where table_schema='public'"))}
+    assert json.loads(rows["dan@x.com"]) == ["tasks", "reports"] and "ws_daily_reports" not in tables
+    assert alembic(url, "upgrade", "head").returncode == 0
+
+
+async def test_daily_reports_on_postgres(pg_app, pg, monkeypatch):
+    from datetime import datetime, timedelta, timezone
+    from app.core import kyiv
+    monkeypatch.setattr(kyiv, "kyiv_now", lambda: datetime(2026, 11, 18, 18, 0, tzinfo=timezone(timedelta(hours=2))))
+    monkeypatch.setattr(kyiv, "kyiv_today", lambda: datetime(2026, 11, 18).date())
+    assert (await pg_app.get("/api/admin/home")).json()["daily_reminder"] is True
+    r = await pg_app.post("/api/admin/daily-reports", json={"done": "Звіт", "hours": 7.5, "links": ["https://a.b"],
+                                                            "blockers": "Блокер"})
+    assert r.status_code == 201, r.text
+    assert (await pg_app.post("/api/admin/daily-reports", json={"done": "x", "hours": 1})).status_code == 409
+    w = (await pg_app.get("/api/admin/daily-reports/week")).json()
+    assert w["hours_total"] == 7.5 and [b["text"] for b in w["blockers"]] == ["Блокер"]
+    assert (await pg_app.put("/api/admin/daily-reports/settings", json={"visibility": "own"})).status_code == 200
+    assert len((await pg_app.get("/api/admin/daily-reports")).json()["items"]) == 1     # owner бачить і так
+    assert (await pg_app.get("/api/admin/home")).json()["daily_reminder"] is False

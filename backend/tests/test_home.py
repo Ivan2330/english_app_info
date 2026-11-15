@@ -24,7 +24,7 @@ async def test_home_summary(admin_client, client_for, make_admin, admin):
         assert [t["title"] for t in h["tasks_overdue"]] == ["Вчора"]
         assert [r["title"] for r in h["reports_to_review"]] == ["Звіт"]
         assert [c["body"] for c in h["new_comments"]] == ["глянь"] and h["new_comments_total"] == 1
-        assert h["counters"] == {"tasks": 1, "reports": 1, "leads": 0}     # «Сьогодні» востаннє чіпав сам Данило
+        assert h["counters"] == {"tasks": 1, "reports": 1, "daily": 0, "leads": 0}     # «Сьогодні» востаннє чіпав сам Данило
 
         await d.put("/api/admin/reviews", json={"entity_type": "report", "entity_id": rep["id"], "score": 8})
         await d.get(f"/api/admin/reports/{rep['id']}")
