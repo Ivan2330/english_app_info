@@ -118,3 +118,12 @@
     .hero__form { margin-top: 14px; padding: 14px; }
     .hero__actions { margin-top: 14px; }
 }
+
+/* ---------- сторінка цін: резерв висоти на час завантаження каталогу ----------
+   Без нього футер піднімався під шапку, а коли приходили пакети, «стрибав» униз (CLS). */
+.packages__skeleton {
+    min-height: 140vh;
+    padding-top: 24px;
+    color: var(--muted);
+    font-weight: 600;
+}

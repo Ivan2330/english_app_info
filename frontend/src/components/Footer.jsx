@@ -10,7 +10,7 @@ export default function Footer() {
       <div className="container footer__top">
         {/* Бренд */}
         <div className="footer__brand">
-          <img src={logo} alt="Prime Academy" className="footer__logo" />
+          <img src={logo} alt="Prime Academy" className="footer__logo" width="46" height="46" loading="lazy" decoding="async" />
           <p className="footer__tagline">
             Онлайн школа англійської мови. Індивідуальні заняття, уроки в парі
             та міні-групи до 6 людей — для дітей, підлітків і дорослих.

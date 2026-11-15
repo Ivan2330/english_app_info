@@ -85,10 +85,28 @@ export default function Packages() {
     [courses, courseTrack]
   );
 
+  // Шапку показуємо одразу, ще до відповіді API: інакше на час завантаження сторінка
+  // складалась із одного рядка «Завантаження…», а потім усе розсувалось, і футер
+  // «стрибав» (CLS). Тепер висота зарезервована, див. .packages__skeleton.
+  const heroEl = (
+    <PageHero
+      crumb="Ціни та пакети"
+      title="Три типи продуктів. Оберіть свій"
+      lead={<>
+        <b>Абонемент</b> — пакет уроків, які ви витрачаєте у своєму темпі.{" "}
+        <b>Курс</b> — готова програма з фіксованою тривалістю під конкретну ціль.{" "}
+        <b>Speaking Club</b> — помісячна підписка на розмовну практику.
+      </>}
+    />
+  );
+
   if (loading) {
     return (
-      <section className="packages">
-        <div className="container"><p>Завантаження…</p></div>
+      <section className="packages packages--catalog">
+        {heroEl}
+        <div className="container">
+          <div className="packages__skeleton" role="status" aria-busy="true">Завантажуємо пакети…</div>
+        </div>
       </section>
     );
   }
@@ -106,15 +124,7 @@ export default function Packages() {
 
   return (
     <section className="packages packages--catalog">
-      <PageHero
-        crumb="Ціни та пакети"
-        title="Три типи продуктів. Оберіть свій"
-        lead={<>
-          <b>Абонемент</b> — пакет уроків, які ви витрачаєте у своєму темпі.{" "}
-          <b>Курс</b> — готова програма з фіксованою тривалістю під конкретну ціль.{" "}
-          <b>Speaking Club</b> — помісячна підписка на розмовну практику.
-        </>}
-      />
+      {heroEl}
 
       <div className="container">
 

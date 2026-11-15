@@ -1,7 +1,8 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import CTAButton from "./CTAButton";
-import logo from "../assets/icons/prime-academy-logo.png";
+// 96×96 WebP (4,4 КБ) замість 300×300 PNG (57 КБ): логотип показується 44px, з запасом для retina
+import logo from "../assets/icons/prime-academy-logo-96.webp";
 import { PLATFORM_URL } from "../config.js";
 
 
@@ -47,7 +48,7 @@ export default function Navbar() {
           onClick={() => go("/")}
           aria-label="Prime Academy — на головну"
         >
-          <img src={logo} alt="" className="navbar__logo" />
+          <img src={logo} alt="" className="navbar__logo" width="44" height="44" decoding="async" />
           <span className="navbar__title">Prime Academy</span>
         </button>
 
