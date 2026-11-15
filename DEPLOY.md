@@ -136,6 +136,107 @@ docker compose exec backend alembic current
 
 ---
 
+## 4а. Робочий простір кабінету (міграції 0011–0012)
+
+Порядок важливий: **бекап → міграції → перезапуск**. Новий код без міграції 0011
+не пустить у кабінет (сайт і оплати при цьому працюють).
+
+```bash
+sh scripts/backup.sh                                  # див. «Бекапи» нижче
+git pull
+docker compose build backend nginx
+docker compose up -d                                  # створить том uploads_data
+docker compose exec backend alembic upgrade head      # 0011, 0012
+docker compose restart backend nginx
+```
+
+| Міграція | Що робить |
+|---|---|
+| 0011 | акаунти: роль `owner/admin` замість enum, `name`, `sections`, `must_change_password`, `token_version`, `last_login_at`, місце під 2FA; таблиця спроб входу |
+| 0012 | коментарі, оцінки, файли, журнал дій, «прочитано», завдання, нотатки, звіти |
+
+**Що станеться з входом.** Існуючий owner лишається owner-ом з тим самим паролем
+(хеші не чіпаються). Старі ролі `MANAGER`/`EDITOR` стають `admin` з усіма розділами.
+Імʼя береться з частини пошти до `@`, перейменувати можна в «Команді».
+Після оновлення всі мусять увійти заново: стару куку новий код не приймає.
+
+**`ADMIN_EMAIL` / `ADMIN_PASSWORD` у `.env` більше не читаються**, автостворення
+owner-а при старті прибрано. Рядки в `.env` нічого не ламають, але їх можна видалити.
+Новий owner або відновлення доступу, якщо owner забув пароль:
+
+```bash
+docker compose exec backend python -m app.cli create-admin   # пароль вводиться інтерактивно
+```
+
+Якщо пошта вже є — акаунт стає owner-ом і отримує новий пароль, старі сесії закриваються.
+
+**nginx.** У `nginx.conf` додано `client_max_body_size 25m` і окремий
+`location = /api/admin/files` до 310 МБ (відео). Без цього файли понад 1 МБ
+отримували б 413. Перевірити конфіг до перезапуску:
+
+```bash
+docker compose exec nginx nginx -t
+```
+
+**Налаштування (необовʼязково, є значення за замовчуванням)** — у `backend/.env`:
+`UPLOAD_MAX_MB=20`, `UPLOAD_VIDEO_MAX_MB=300`, `SESSION_HOURS=12`,
+`LOGIN_MAX_FAILURES=5`, `LOGIN_WINDOW_MINUTES=15`. Якщо міняєте ліміт відео,
+змініть і `client_max_body_size` у `location = /api/admin/files`.
+
+Перевірка після підйому: увійти власником → «Команда» → видно вільне місце
+на диску → створити тестовий акаунт → увійти ним з тимчасовим паролем →
+система вимагає змінити пароль.
+
+---
+
+## Бекапи
+
+До 15.11.2026 бекапів не було взагалі. `scripts/backup.sh` робить три файли
+в `/var/backups/prime` (змінна `BACKUP_DIR`):
+
+- `prime-db-ДАТА.dump` — `pg_dump -Fc` бази;
+- `prime-uploads-ДАТА.tar.gz` — том файлів кабінету;
+- `prime-certificates-ДАТА.tar.gz` — PDF сертифікатів.
+
+Копії старші за 14 днів (`KEEP_DAYS`) видаляються. Паролів у скрипті немає:
+дамп робиться всередині контейнера `db` з його ж змінних.
+
+**Cron** (щодня о 03:30, на сервері):
+
+```bash
+crontab -e
+30 3 * * * cd /шлях/до/english_app_info && sh scripts/backup.sh >> /var/log/prime-backup.log 2>&1
+```
+
+Перший раз запустити руками й переконатися, що в теці три непорожні файли.
+
+**Відновлення:**
+
+```bash
+# база (УВАГА: перезаписує поточну)
+docker compose exec -T db sh -c 'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists' < prime-db-ДАТА.dump
+# файли кабінету
+docker compose exec -T backend tar -C /data -xzf - < prime-uploads-ДАТА.tar.gz
+# сертифікати
+tar -xzf prime-certificates-ДАТА.tar.gz
+```
+
+**Копія поза сервером — обовʼязково.** Бекап на тому самому диску не рятує,
+якщо зник сервер чи диск. Найпростіше — `rclone` у будь-яке хмарне сховище:
+
+```bash
+apt install rclone
+rclone config                       # створити remote, напр. "gdrive" (Google Drive) або S3/Backblaze B2
+# у cron перед командою:
+30 3 * * * cd /шлях/до/english_app_info && BACKUP_REMOTE=gdrive:prime-backups sh scripts/backup.sh >> /var/log/prime-backup.log 2>&1
+```
+
+Скрипт копіює туди свіжі файли за останню добу. У самому сховищі налаштуйте
+зберігання ~30 днів. Раз на місяць варто відновити дамп у dev і переконатися,
+що він читається: неперевірений бекап — це надія, а не бекап.
+
+---
+
 ## 5. Каталог пакетів
 
 ```bash

@@ -46,6 +46,8 @@ services:
     volumes:
       - ./backend:/app
       - ./certificates:/app/static/certificates
+      # Файли кабінету (завдання, звіти, креативи): окремий том, поза кодом.
+      - uploads_dev_data:/data/uploads
     ports:
       # Порт можна перевизначити, якщо 8000 зайнятий:
       #   PowerShell:  $env:BACKEND_PORT=8001; docker compose -f docker-compose.dev.yml up -d
@@ -62,3 +64,4 @@ services:
 
 volumes:
   postgres_dev_data:
+  uploads_dev_data:

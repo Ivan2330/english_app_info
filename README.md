@@ -230,7 +230,8 @@ backend/
     core/
       pricing.py            ← ТАРИФНА СІТКА, єдине джерело правди по цінах
       seed_packages.py      генератор каталогу зі сітки
-      bootstrap_admin.py    створення першого адміна
+      access.py             ролі, розділи, сесія, CSRF кабінету
+      files.py              файли кабінету: перевірка типу за вмістом
     models/                 SQLAlchemy-моделі
     cli.py                  разові команди
 frontend/

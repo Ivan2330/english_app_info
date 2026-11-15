@@ -50,6 +50,10 @@ services:
       # Мапимо папку з хоста в контейнер backend,
       # щоб backend міг перевіряти/генерувати сертифікати
       - ./certificates:/app/static/certificates
+      # Файли кабінету: окремий named volume. НЕ в ./backend (там код, він
+      # змонтований цілком) і не під nginx — віддає їх лише API після перевірки прав.
+      # Бекап: scripts/backup.sh архівує цей том разом із базою.
+      - uploads_data:/data/uploads
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     expose:
       - "8000"
@@ -146,3 +150,4 @@ networks:
 
 volumes:
   postgres_data:
+  uploads_data:
