@@ -228,3 +228,14 @@ def test_cookie_banner_is_not_shown_in_the_cabinet():
     """Кабінет — службова частина: банер там перекривав кнопки форм на телефоні."""
     banner = read("components/CookieBanner.jsx")
     assert 'pathname.startsWith("/admin/")' in banner and 'pathname === "/admin"' in banner
+
+
+def test_privacy_policy_describes_meta_and_cookie_choice():
+    """Політика має збігатися з тим, що робить сайт: Meta Pixel і Conversions API за згодою,
+    мітки реклами, можливість змінити вибір. Банер cookie веде на розділ 6 (/privacy#p6)."""
+    privacy = read("lib/legal/privacy.js")
+    for fragment in ("Meta Pixel", "Conversions API", "мітки рекламної кампанії", "хешовані",
+                     "Налаштування cookie", "Поки ви не погодилися"):
+        assert fragment in privacy, fragment
+    assert "не передаємо їх для реклами третіх осіб" not in privacy
+    assert '"6. Файли cookie"' in privacy and "privacy#p6" in read("components/CookieBanner.jsx")
