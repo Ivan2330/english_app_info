@@ -37,7 +37,7 @@ const MENU = [
   ] },
   { group: "Сайт", items: [
     { to: "/admin/stats", label: "Статистика сайту", section: "dashboard" },
-    { to: "/admin/leads", label: "Заявки", section: "leads" },
+    { to: "/admin/leads", label: "Заявки", section: "leads", counter: "leads" },
     { to: "/admin/quotes", label: "Розрахунки", section: "quotes" },
     { to: "/admin/orders", label: "Замовлення", section: "orders" },
     { to: "/admin/certificates", label: "Сертифікати", section: "certificates" },
@@ -116,7 +116,7 @@ export default function AdminApp() {
           <span className="ws-topbar__brand">Prime Academy</span>
           <button type="button" className="ws-btn" aria-expanded={menuOpen} onClick={() => setMenuOpen((v) => !v)}>
             {menuOpen ? "Закрити меню" : "Меню"}
-            {!menuOpen && (counters.tasks || 0) + (counters.reports || 0) > 0 && <i className="ws-dot" />}
+            {!menuOpen && (counters.tasks || 0) + (counters.reports || 0) + (counters.leads || 0) > 0 && <i className="ws-dot" />}
           </button>
         </header>
 

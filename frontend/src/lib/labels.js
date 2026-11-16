@@ -56,6 +56,24 @@ export function money(value, currency = "UAH") {
   }
 }
 
+/** 3 платежі, 5 платежів. */
+export function paymentsWord(n) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return "платіж";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "платежі";
+  return "платежів";
+}
+
+/**
+ * Орієнтовний розмір однієї частини для «Покупки Частинами».
+ * Завжди зі знаком «≈»: точний графік рахує банк, а округлене «3 × 2 507 ₴» дає 7 521 ₴
+ * замість 7 520 ₴ і читається як зміна ціни, чого правила monobank не дозволяють.
+ */
+export function chastPart(total, parts, currency = "UAH") {
+  return `≈ ${money(Math.round(total / parts), currency)}`;
+}
+
 /** Правильне закінчення: 1 урок, 2 уроки, 5 уроків. */
 export function lessonsWord(n) {
   const mod10 = n % 10;

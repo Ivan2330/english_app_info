@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import CTAButton from "./CTAButton";
+import { OPEN_COOKIE_SETTINGS } from "./CookieBanner.jsx";
 import logo from "../assets/icons/prime_logo2.svg";
 import { PLATFORM_URL, ADMIN_PATH } from "../config.js";
 
@@ -9,7 +10,7 @@ export default function Footer() {
       <div className="container footer__top">
         {/* Бренд */}
         <div className="footer__brand">
-          <img src={logo} alt="Prime Academy" className="footer__logo" />
+          <img src={logo} alt="Prime Academy" className="footer__logo" width="46" height="46" loading="lazy" decoding="async" />
           <p className="footer__tagline">
             Онлайн школа англійської мови. Індивідуальні заняття, уроки в парі
             та міні-групи до 6 людей — для дітей, підлітків і дорослих.
@@ -60,7 +61,7 @@ export default function Footer() {
             <span aria-hidden="true">↗</span> Кабінет учня
           </a>
 
-          <NavLink to="/contacts">
+          <NavLink to="/trial">
             <CTAButton size="sm" label="Записатись на пробний урок" />
           </NavLink>
         </div>
@@ -98,6 +99,9 @@ export default function Footer() {
             <NavLink to="/offer#p10">Повернення коштів</NavLink>
             <NavLink to="/offer#p15">Реквізити</NavLink>
             <NavLink to="/privacy">Конфіденційність</NavLink>
+            <button type="button" className="footer__cookie" onClick={() => window.dispatchEvent(new Event(OPEN_COOKIE_SETTINGS))}>
+              Налаштування cookie
+            </button>
             <NavLink to="/guarantee">Гарантія результату</NavLink>
           </nav>
 

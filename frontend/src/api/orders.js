@@ -1,8 +1,10 @@
 // src/api/orders.js
 import apiPublic from "./apiClientPublic";
+import { attributionPayload } from "../lib/attribution.js";
 
 export async function createOrder(data) {
-  const res = await apiPublic.post("/api/orders", data);
+  // Джерело трафіку додається автоматично: потрібне для звіту «з якої реклами оплата»
+  const res = await apiPublic.post("/api/orders", { ...attributionPayload(), ...data });
   return res.data;
 }
 

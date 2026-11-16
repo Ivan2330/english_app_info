@@ -24,6 +24,13 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
 
+    <!-- Шрифти: preconnect + <link> замість CSS @import (швидше на ланцюжок запитів).
+         Змінні шрифти (діапазон ваг) дають по одному файлу на набір символів замість
+         восьми окремих накреслень. display=swap: текст видно одразу запасним шрифтом. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&family=Unbounded:wght@400..800&display=swap" />
+
     <!-- Превʼю при надсиланні посилання в Telegram, Instagram, Viber, Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Prime Academy" />
@@ -55,14 +62,8 @@
       }
     </script>
 
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-F01N8FPTZH"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-F01N8FPTZH');
-    </script>
+    <!-- Google Analytics 4 і Meta Pixel вантажаться з src/lib/analytics.js ЛИШЕ після згоди
+         на cookie. Не повертайте сюди статичні <script> лічильників. -->
   </head>
 
   <body>

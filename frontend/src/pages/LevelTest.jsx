@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import PageHero from "../components/PageHero.jsx";
 import { createLead } from "../api/leads.js";
+import { trackLead } from "../lib/analytics.js";
 import { useReveal } from "../lib/motion.js";
 import {
   TRACKS,
@@ -133,7 +134,7 @@ export default function LevelTest() {
 
       const band = estimateBand(track, correctCount, total);
 
-      await createLead({
+      const res = await createLead({
         kind: "trial",
         name: name.trim() || "Тест рівня",
         phone: phone.trim(),
@@ -143,6 +144,7 @@ export default function LevelTest() {
           `Орієнтовно: ${band}\n\n${summary}`,
         source: "site/level-test",
       });
+      trackLead(res.event_id);
       setDone(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {

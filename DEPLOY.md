@@ -237,6 +237,95 @@ rclone config                       # створити remote, напр. "gdrive
 
 ---
 
+## 4б. Готовність до реклами Meta (гілка `fix/ads-readiness`, міграція 0013)
+
+Порядок той самий: **бекап → міграція → перезапуск**.
+
+```bash
+sh scripts/backup.sh
+git pull
+docker compose build backend nginx          # фронт збирається з prerender (SEO-теги, sitemap)
+docker compose exec backend alembic upgrade head      # 0013
+docker compose up -d
+docker compose exec nginx nginx -t
+```
+
+| Міграція | Що робить |
+|---|---|
+| 0013 | `leads`, `orders`: UTM, fbclid, referrer, landing_page, перший/останній дотик, fbp/fbc, згода на Meta; `leads.level`, `leads.event_id` (унікальний); статуси заявок «пробний призначено», «був на пробному» |
+
+Старі заявки й замовлення лишаються з порожнім джерелом. Відкат `alembic downgrade 0012_workspace`
+повертає заявки з новими статусами в «на зв'язку».
+
+### Змінні оточення (`backend/.env` на сервері, у git їх немає)
+
+| Змінна | Звідки | Що буде, якщо порожня |
+|---|---|---|
+| `META_PIXEL_ID` | Events Manager → ваш Pixel → Налаштування | Pixel на сайті не вантажиться |
+| `META_CAPI_TOKEN` | там само → Conversions API → «Згенерувати токен доступу» | сервер нічого не шле в Meta |
+| `META_TEST_EVENT_CODE` | Events Manager → «Тестові події» | події йдуть у бойовий потік |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `LEAD_NOTIFY_EMAIL` | поштовий сервіс (для Gmail — «пароль додатка») | листів про заявки немає, заявки видно в кабінеті |
+
+Після зміни `.env`: `docker compose up -d backend` (контейнер перечитує `env_file`).
+Перевірити, що конфіг їх бачить, не друкуючи значень:
+
+```bash
+docker compose exec backend python -c "from app.core.config import settings as s; print(bool(s.meta_pixel_id), bool(s.meta_capi_token), bool(s.meta_test_event_code), bool(s.smtp_host))"
+```
+
+### Перевірка в Events Manager (перед стартом реклами)
+
+1. Задати `META_TEST_EVENT_CODE`, перезапустити backend.
+2. Відкрити сайт у звичайному вікні, натиснути «Прийняти все» в банері cookie.
+3. Events Manager → «Тестові події»: має зʼявитись `PageView` (браузер).
+4. Залишити заявку на `/trial` → `Lead` двічі (браузер і сервер) з однаковим event ID,
+   Meta показує їх як одну подію («Deduplicated»).
+5. На `/checkout` натиснути «Оплатити» → `InitiateCheckout`, теж із дедуплікацією.
+6. `Purchase` іде ЛИШЕ з сервера після підтвердженої оплати (банк або «Оплата вручну»
+   в кабінеті). Із браузера його немає навмисно.
+7. **Прибрати `META_TEST_EVENT_CODE`** і перезапустити backend: інакше бойові події
+   так і лишаться в тестовій вкладці.
+
+Без згоди на cookie («Лише необхідні») у Meta не йде нічого: ні з браузера, ні з сервера.
+
+---
+
+## Автооновлення сертифіката Let's Encrypt
+
+**Нічого міняти на сервері не треба:** усе вже в `docker-compose.yml`. Тут опис, як це
+працює і як перевірити.
+
+**Сервіс `certbot`** — цикл `certbot renew` кожні 12 годин. Сертифікат перевипускається,
+лише коли до кінця лишається менше 30 днів; інакше прогін порожній.
+`--deploy-hook` пише в лог рядок `[certbot] сертифікат оновлено …` лише при справжньому
+перевипуску.
+
+**`--quiet` тут свідомо НЕ стоїть** (див. CLAUDE.md, «Сертифікат прострочувався у вересні 2026»):
+з ним помилки продовження теж зникають із логів, і про проблему дізнаються, коли сертифікат
+уже прострочений. Якщо логи certbot заважають, краще зменшити `max-size`, ніж ховати помилки.
+Якщо все ж потрібен `--quiet`, додати його в рядок `certbot renew` у `docker-compose.yml`.
+
+**Reload nginx — у контейнері `nginx`, не в certbot.** nginx тримає сертифікат у памʼяті,
+тому після перевипуску файлу його треба перечитати. У `command` контейнера `nginx` фоновий
+цикл `nginx -s reload` кожні 6 годин; reload не рве відкриті зʼєднання. Тож новий
+сертифікат починає віддаватись не пізніше ніж через 6 годин після перевипуску.
+Доступ certbot до `docker.sock`, щоб він сам робив reload, не даємо: це фактично root на хості.
+
+**Перевірка:**
+
+```bash
+docker compose logs --tail 50 certbot                      # є прогони, немає помилок
+docker compose exec certbot certbot certificates            # дата закінчення
+echo | openssl s_client -connect my-prime-academy.com:443 -servername my-prime-academy.com 2>/dev/null \
+  | openssl x509 -noout -enddate                            # що реально віддає nginx
+docker compose exec certbot certbot renew --dry-run --webroot -w /var/www/certbot   # тест без перевипуску
+```
+
+Якщо дати в `certbot certificates` і `openssl` різні — nginx ще не перечитав сертифікат:
+`docker compose exec nginx nginx -s reload`.
+
+---
+
 ## 5. Каталог пакетів
 
 ```bash

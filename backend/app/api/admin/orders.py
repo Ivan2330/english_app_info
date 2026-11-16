@@ -15,7 +15,9 @@ from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core import meta
 from app.core.access import require
+from app.core.attribution import attribution_dict
 from app.core import pricing as P
 from app.db.database import get_async_session
 from app.models.admin_user import AdminUser
@@ -25,11 +27,23 @@ from app.models.order import (
 
 router = APIRouter(prefix="/api/admin", tags=["admin-orders"])
 
+NO_SOURCE = "__none__"      # у фільтрі: замовлення без UTM
+
+
+@router.get("/orders/sources")
+async def order_sources(session: AsyncSession = Depends(get_async_session), admin: AdminUser = Depends(require("orders"))):
+    """Джерела для випадаючого фільтра: що реально є в базі, з кількістю."""
+    rows = (await session.execute(
+        select(Order.utm_source, func.count()).group_by(Order.utm_source).order_by(func.count().desc()))).all()
+    return [{"value": src or NO_SOURCE, "label": src or "без UTM (прямі, невідомо)", "count": n} for src, n in rows]
+
 
 @router.get("/orders")
 async def list_orders(
     status: OrderStatus | None = None,
     q: str | None = Query(None, max_length=120),
+    utm_source: str | None = Query(None, max_length=200),
+    utm_campaign: str | None = Query(None, max_length=200),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     session: AsyncSession = Depends(get_async_session),
@@ -39,6 +53,13 @@ async def list_orders(
 
     if status:
         stmt = stmt.where(Order.status == status)
+
+    if utm_source == NO_SOURCE:
+        stmt = stmt.where(Order.utm_source.is_(None))
+    elif utm_source:
+        stmt = stmt.where(Order.utm_source == utm_source)
+    if utm_campaign:
+        stmt = stmt.where(Order.utm_campaign == utm_campaign)
 
     if q:
         # Менеджер шукає як завжди: за номером, іменем або телефоном.
@@ -60,7 +81,8 @@ async def list_orders(
     return {
         "total": total,
         "items": [
-            {**o.as_dict(), "payments": [p.as_dict() for p in o.payments]}
+            {**o.as_dict(), "payments": [p.as_dict() for p in o.payments],
+             "attribution": attribution_dict(o)}
             for o in orders
         ],
     }
@@ -170,12 +192,16 @@ async def add_manual_payment(
     await session.refresh(order, ["payments"])
     paid = sum(p.amount - (p.refunded_amount or 0) for p in order.payments if p.status == PaymentStatus.SUCCESS)
     order.paid_amount = paid
+    first_time_paid = False
     if paid >= order.amount:
+        first_time_paid = order.paid_at is None
         order.status = OrderStatus.PAID
         order.paid_at = order.paid_at or datetime.utcnow()
     elif paid > 0:
         order.status = OrderStatus.PARTIAL
     await session.commit()
+    if first_time_paid:
+        meta.track_purchase(order)      # оплата підтверджена менеджером: так само, як банком
 
     return {"ok": True, "order": order.as_dict()}
 

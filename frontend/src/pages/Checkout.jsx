@@ -3,9 +3,11 @@ import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import PageHero from "../components/PageHero.jsx";
 import { fetchPackageBySlug } from "../api/packages.js";
 import { createOrder, payOrder } from "../api/orders.js";
-import { money, lessonsWord } from "../lib/labels.js";
+import { money, lessonsWord, paymentsWord, chastPart } from "../lib/labels.js";
 import { useReveal } from "../lib/motion.js";
 import { ChastBadge, ChastLegal } from "../components/ChastBadge.jsx";
+import { newEventId } from "../lib/attribution.js";
+import { trackInitiateCheckout, trackViewContent } from "../lib/analytics.js";
 
 /**
  * Оформлення замовлення.
@@ -37,6 +39,7 @@ export default function Checkout() {
   const pendingOrder = useRef(null);
   const submitting = useRef(false);
   const checkoutKey = useRef(null);
+  const icEventId = useRef(null);       // один id на замовлення: і в Pixel, і в Conversions API
 
   useReveal([pkg]);
 
@@ -45,6 +48,7 @@ export default function Checkout() {
     fetchPackageBySlug(slug)
       .then((p) => {
         setPkg(p);
+        trackViewContent({ ids: [p.slug], name: p.name, value: p.total_price });
         // Якщо для пакета ПЧ недоступна — не показуємо її взагалі,
         // щоб людина не обрала варіант, який одразу відпаде.
         if (!p.chast_enabled) setMethod("card");
@@ -79,15 +83,22 @@ export default function Checkout() {
         checkoutKey.current = sessionStorage.getItem(storageKey) || crypto.randomUUID();
         sessionStorage.setItem(storageKey, checkoutKey.current);
       }
+      const firstAttempt = !pendingOrder.current;
+      icEventId.current = icEventId.current || newEventId();
       const order = pendingOrder.current || (await createOrder({
         ...form,
         checkout_key: checkoutKey.current,
+        ic_event_id: icEventId.current,
         family_claim: familyClaim,
         package_slug: slug,
         source: "site/checkout",
       })).order;
       pendingOrder.current = order;
       sessionStorage.setItem("pa_last_order", order.public_id);
+      if (firstAttempt) {
+        // Те саме InitiateCheckout, що сервер шле в Conversions API за цим event_id
+        trackInitiateCheckout({ eventId: icEventId.current, ids: [slug], value: pkg?.total_price });
+      }
 
       /* Знижку рахує БЕКЕНД і повертає в `order.amount`. Фронт її не рахує
          принципово: інакше довелося б повторити правила перевірки коду
@@ -303,17 +314,31 @@ export default function Checkout() {
               </label>
             )}
 
-            {method === "chast" && partOptions.length > 1 && (
-              <label className="co__field co__parts">
-                <span>На скільки платежів</span>
-                <select value={parts} onChange={(e) => setParts(Number(e.target.value))}>
-                  {partOptions.map((n) => (
-                    <option key={n} value={n}>
-                      {n} платежі по {money(Math.round(pkg.total_price / n), pkg.currency)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+            {/* Кількість частин видно завжди, навіть коли варіант один. Сума не змінюється
+                від кількості частин (правило monobank): міняється лише розмір частини. */}
+            {method === "chast" && (
+              <div className="co__parts" data-testid="chast-parts">
+                {partOptions.length > 1 ? (
+                  <label className="co__field">
+                    <span>На скільки платежів</span>
+                    <select value={parts} onChange={(e) => setParts(Number(e.target.value))}>
+                      {partOptions.map((n) => (
+                        <option key={n} value={n}>
+                          {n} {paymentsWord(n)} {chastPart(pkg.total_price, n, pkg.currency)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <p className="co__parts-one">
+                    <b>{parts} {paymentsWord(parts)}</b> {chastPart(pkg.total_price, parts, pkg.currency)}
+                  </p>
+                )}
+                <p className="co__parts-total">
+                  Разом <b>{money(pkg.total_price, pkg.currency)}</b>, так само, як карткою.
+                  Без переплати й комісії для вас; точний графік покаже банк.
+                </p>
+              </div>
             )}
 
             {error && <p className="co__err" role="alert">{error}</p>}
@@ -332,7 +357,7 @@ export default function Checkout() {
             </button>
 
             <p className="co__fine">
-              Не впевнені у виборі? <Link to="/contacts">Запишіться на безкоштовний
+              Не впевнені у виборі? <Link to="/trial">Запишіться на безкоштовний
               пробний урок</Link> — підберемо формат разом.
             </p>
 

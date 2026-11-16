@@ -39,7 +39,7 @@ cov:
 
 # --outDir поза dist/: OneDrive тримає файли в dist/ і дає EPERM (див. CLAUDE.md).
 build:
-	cd frontend && npm ci --no-audit --no-fund && npx vite build --outDir ../.tmp-dist-check --emptyOutDir
+	cd frontend && npm ci --no-audit --no-fund && npx vite build --outDir ../.tmp-dist-check --emptyOutDir && node scripts/prerender.mjs ../.tmp-dist-check
 
 check: test build
 

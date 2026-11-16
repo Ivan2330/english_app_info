@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import CTAButton from "./CTAButton";
+import TrialForm from "./TrialForm.jsx";
 import { useMagnetic } from "../lib/motion.js";
 
 /** Слова, що змінюються в заголовку. Кожне — окрема ціль навчання. */
@@ -50,11 +50,12 @@ export default function HeroSection() {
               програму, темп і викладача. Перший урок безкоштовний, без картки.
             </p>
 
+            {/* Форма запису прямо на першому екрані: на мобільному без прокрутки */}
+            <div className="hero__form">
+              <TrialForm compact source="site/home-hero" />
+            </div>
+
             <div className="hero__actions">
-              <CTAButton
-                label="Записатись на пробний урок"
-                onClick={() => navigate("/contacts")}
-              />
               <button
                 ref={ghostRef}
                 className="btn btn-ghost"

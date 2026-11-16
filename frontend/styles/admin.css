@@ -720,3 +720,12 @@ body.admin-mode .adm-disc__promo {
     cursor: pointer;
 }
 .adm-quote-note button:hover { background: #313748; }
+
+/* ---------- джерело трафіку й підсвітка нових заявок ---------- */
+.adm-source { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #9aa3b8; }
+.adm-source .adm-select { min-height: 36px; }
+.adm-tag--ad { background: #2d2a4a; color: #cfc6ff; }
+.adm-new { margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: #ff8a73; color: #1a0f0c; font-size: 11px; font-weight: 800; vertical-align: middle; }
+.adm-row.st-new { background: #181630; }
+.adm-row.st-trial_scheduled { border-left-color: #1fd6e8; }
+.adm-row.st-trial_done { border-left-color: #f0b400; }

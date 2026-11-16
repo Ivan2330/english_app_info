@@ -8,7 +8,7 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.admin.tasks import task_out
@@ -16,6 +16,7 @@ from app.core.access import has_section, require_any
 from app.core.workspace import aware, is_unread, people_names, seen_map
 from app.db.database import get_async_session
 from app.models.admin_user import AdminUser
+from app.models.lead import Lead, LeadStatus
 from app.models.workspace import Comment, Report, ReportStatus, Review, Task, TaskStatus
 
 router = APIRouter(prefix="/api/admin", tags=["admin-home"])
@@ -35,6 +36,10 @@ async def counters_for(session: AsyncSession, user: AdminUser) -> dict:
         seen = await seen_map(session, user, "report")
         reports = (await session.execute(select(Report))).scalars().all()
         out["reports"] = sum(is_unread(r, user, seen) for r in reports)
+    if has_section(user, "leads"):
+        # Нові заявки: статус «нова», доки менеджер не змінить його
+        out["leads"] = (await session.execute(
+            select(func.count()).select_from(Lead).where(Lead.status == LeadStatus.NEW))).scalar_one()
     return out
 
 

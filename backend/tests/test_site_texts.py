@@ -128,3 +128,103 @@ def test_iban_only_in_offer():
 def test_groups_from_two_to_six():
     assert (P.GROUP_SIZE_MIN, P.GROUP_SIZE_MAX) == (2, 6)
     assert P.CLUB_MIN_PARTICIPANTS == 4
+
+
+# ------------------------------------------------------------- цифри на головній (реклама в Meta)
+
+def test_home_stats_have_no_unverified_results():
+    """Перед рекламою прибрано «500+ студентів», «95% з першого разу» і «4 місяці до розмов».
+    Тест не дає їм непомітно повернутись у блок цифр."""
+    content = read("lib/content.js")
+    block = content[content.index("export const STATS"):content.index("/* ============ НАПРЯМКИ")]
+    for forbidden in ("500", "95", "студентів", "з першого разу", "місяці до"):
+        assert forbidden not in block, forbidden
+    assert "до " in block and "90" in block and "CEFR" in block        # перевірювані: CEFR, група до 6, 90 хв
+
+
+def test_group_size_in_stats_matches_the_code():
+    assert P.GROUP_SIZE_MAX == 6
+
+
+# ------------------------------------------------------------- SEO (src/lib/seoData.js, scripts/prerender.mjs)
+
+def seo_routes() -> dict[str, str]:
+    """Маршрут → блок його опису в seoData.js."""
+    text = read("lib/seoData.js")
+    body = text[text.index("export const ROUTES = {"):text.index("export const NOT_FOUND")]
+    return {m.group(1): m.group(2) for m in re.finditer(r'^\s+"(/[^"]*)": \{(.*?)\n?\s*\},?$', body, re.M | re.S)}
+
+
+def app_routes() -> set[str]:
+    paths = set(re.findall(r'<Route path="([^"]+)"', read("App.jsx")))
+    return {p for p in paths if p != "*" and not p.startswith("/admin")}
+
+
+def test_every_site_route_has_its_own_title_and_description():
+    routes = seo_routes()
+    missing = app_routes() - set(routes)
+    assert missing == set(), f"маршрути без SEO-тегів у seoData.js: {missing}"
+    titles = re.findall(r'title: "([^"]+)"', read("lib/seoData.js"))
+    assert len(titles) == len(set(titles)), "однакові title на різних сторінках"
+
+
+def test_service_pages_are_noindex_and_landing_pages_are_not():
+    routes = seo_routes()
+    for path in ("/thanks", "/checkout", "/payment/result"):
+        assert "noindex: true" in routes[path], path
+    for path in ("/", "/trial", "/packages", "/programs"):
+        assert "noindex" not in routes[path], path
+
+
+def test_index_html_has_the_tags_prerender_replaces():
+    """scripts/prerender.mjs шукає ці теги регулярками; без них збірка в Docker падає."""
+    html = (ROOT / "frontend" / "index.html").read_text(encoding="utf-8")
+    for pattern in (r"<title>[\s\S]*?</title>", r'<meta\s+name="description"[\s\S]*?/>', r'<link rel="canonical"[^>]*/>',
+                    r'<meta property="og:url"[^>]*/>', r'<meta property="og:title"[^>]*/>',
+                    r'<meta\s+property="og:description"[\s\S]*?/>'):
+        assert re.search(pattern, html), pattern
+
+
+def test_no_counters_load_before_consent():
+    """GA4 і Meta Pixel вантажить лише lib/analytics.js після згоди; у HTML їх бути не повинно."""
+    html = (ROOT / "frontend" / "index.html").read_text(encoding="utf-8")
+    assert "googletagmanager.com/gtag" not in html and "fbevents.js" not in html
+
+
+def test_robots_closes_service_pages_and_points_to_sitemap():
+    robots = (ROOT / "frontend" / "public" / "robots.txt").read_text(encoding="utf-8")
+    for line in ("Disallow: /admin", "Disallow: /thanks", "Disallow: /checkout",
+                 "Sitemap: https://my-prime-academy.com/sitemap.xml"):
+        assert line in robots, line
+    # sitemap.xml генерується зі seoData під час збірки, статичної копії бути не повинно
+    assert not (ROOT / "frontend" / "public" / "sitemap.xml").exists()
+
+
+def test_every_trial_button_leads_to_trial_page():
+    """Усі кнопки «Пробний урок» ведуть на /trial, не на /contacts."""
+    offenders = []
+    for path, text in frontend_sources():
+        for m in re.finditer(r'navigate\("/contacts"\)|to="/contacts"', text):
+            around = text[m.start():m.start() + 260]
+            if "робн" in around:          # «Пробний», «пробний»
+                offenders.append(path.relative_to(SRC).as_posix())
+    assert offenders == []
+
+
+# ------------------------------------------------------------- «Покупка Частинами» на чекауті
+
+def test_chast_shows_parts_count_and_approximate_part_without_changing_the_total():
+    """Кількість частин видно завжди; частина лише орієнтовна («≈»), сума та сама, що карткою.
+    Округлене «3 × 2 507 ₴» = 7 521 ₴ читалося б як зміна ціни, що заборонено правилами monobank."""
+    co = read("pages/Checkout.jsx")
+    assert 'data-testid="chast-parts"' in co and "chastPart(" in co and "paymentsWord(" in co
+    assert "платежі по" not in co
+    assert "так само, як карткою" in co
+    assert "≈" in read("lib/labels.js")
+    assert "Math.round(pkg.total_price / pkg.chast_max_parts)" not in read("pages/Contacts.jsx")
+
+
+def test_cookie_banner_is_not_shown_in_the_cabinet():
+    """Кабінет — службова частина: банер там перекривав кнопки форм на телефоні."""
+    banner = read("components/CookieBanner.jsx")
+    assert 'pathname.startsWith("/admin/")' in banner and 'pathname === "/admin"' in banner

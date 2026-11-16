@@ -36,7 +36,7 @@ from app.api.admin import (
 )
 from app.api.public import (
     certificates as pub_certs, leads as pub_leads, orders as pub_orders,
-    packages as pub_packages, quotes as pub_quotes, track as pub_track,
+    packages as pub_packages, quotes as pub_quotes, track as pub_track, config as pub_config,
 )
 from app.core.access import ALL_SECTIONS, make_token
 from app.core.config import settings
@@ -51,7 +51,7 @@ RealAsyncClient = httpx.AsyncClient
 
 ALL_ROUTERS = [
     pub_packages.router, pub_leads.router, pub_certs.router, pub_orders.router,
-    pub_track.router, pub_quotes.router,
+    pub_track.router, pub_quotes.router, pub_config.router,
     admin_auth.router, admin_leads.router, admin_packages.router,
     admin_certs.router, admin_orders.router, admin_stats.router, admin_quotes.router,
     admin_team.router, admin_social.router, admin_tasks.router, admin_notes.router,
@@ -70,6 +70,12 @@ def _test_settings(monkeypatch):
     monkeypatch.setattr(settings, "mono_chast_base_url", "https://chast.test")
     monkeypatch.setattr(settings, "mono_chast_min_parts", 3)
     monkeypatch.setattr(settings, "site_url", "https://site.test")
+    # Локальний backend/.env може містити справжні ключі Meta чи пошти: тести їх не бачать
+    monkeypatch.setattr(settings, "meta_pixel_id", "")
+    monkeypatch.setattr(settings, "meta_capi_token", "")
+    monkeypatch.setattr(settings, "meta_test_event_code", "")
+    monkeypatch.setattr(settings, "smtp_host", "")
+    monkeypatch.setattr(settings, "lead_notify_email", "")
     monkeypatch.setattr(settings, "secret_key", "test-secret-key-for-tests-only-0123456789")
 
 

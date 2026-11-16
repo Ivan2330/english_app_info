@@ -239,7 +239,7 @@ async def test_migrations_build_a_working_schema_from_scratch(migrated):
                       "page_visits", "payments", "quote_requests", "admin_login_attempts",
                       "ws_comments", "ws_reviews", "ws_attachments", "ws_audit_log", "ws_read_marks",
                       "ws_tasks", "ws_notes", "ws_reports"}
-    assert version == "0012_workspace"
+    assert version == "0013_attribution"
 
 
 async def test_models_and_migrations_do_not_drift(migrated):
@@ -369,3 +369,47 @@ async def test_workspace_on_postgres(pg_app, pg):
     home = (await pg_app.get("/api/admin/home")).json()
     assert "tasks_today" in home
     assert (await pg_app.get("/api/admin/audit")).status_code == 200
+
+
+# =============================================================== джерело трафіку (0013)
+
+async def test_attribution_migration_keeps_old_rows_and_rolls_back(migrated):
+    """Старі заявки й замовлення після 0013 живі (NULL / false); нові статуси працюють; відкат чистий."""
+    url, engine = migrated
+    assert alembic(url, "downgrade", "0012_workspace").returncode == 0
+    async with engine.begin() as conn:
+        cols = {r[0] for r in await conn.execute(text(
+            "select column_name from information_schema.columns where table_name='leads'"))}
+        assert "utm_source" not in cols and "event_id" not in cols
+        await conn.execute(text(
+            "insert into leads (kind, name, status, created_at, updated_at) "
+            "values ('TRIAL','Стара','NEW',now(),now())"))
+    up = alembic(url, "upgrade", "head")
+    assert up.returncode == 0, up.stderr[-2000:]
+    async with engine.begin() as conn:
+        row = (await conn.execute(text(
+            "select utm_source, first_touch, meta_consent, event_id, level from leads"))).one()
+        assert tuple(row) == (None, None, False, None, None)
+        await conn.execute(text(
+            "insert into leads (kind, name, status, created_at, updated_at) "
+            "values ('TRIAL','Нова','TRIAL_SCHEDULED',now(),now()), ('TRIAL','Була','TRIAL_DONE',now(),now())"))
+    # Відкат: заявки з новими статусами не ламають стару схему
+    assert alembic(url, "downgrade", "0012_workspace").returncode == 0
+    async with engine.connect() as conn:
+        statuses = sorted((await conn.execute(text("select status::text from leads"))).scalars().all())
+    assert statuses == ["CONTACTED", "CONTACTED", "NEW"]
+    assert alembic(url, "upgrade", "head").returncode == 0
+
+
+async def test_attribution_filters_and_idempotency_on_postgres(pg_app, pg):
+    body = {"name": "Марія", "phone": "+380501112233", "event_id": "pg-evt-1",
+            "attribution": {"first_touch": {"utm_source": "facebook", "utm_campaign": "dec"}}}
+    first = (await pg_app.post("/api/leads", json=body)).json()
+    again = (await pg_app.post("/api/leads", json=body)).json()
+    assert first["id"] == again["id"] and again["duplicate"] is True
+    rows = (await pg_app.get("/api/admin/leads", params={"utm_source": "facebook"})).json()
+    assert [r["attribution"]["utm_campaign"] for r in rows] == ["dec"]
+    assert (await pg_app.patch(f"/api/admin/leads/{first['id']}", json={"status": "trial_scheduled"})).status_code == 200
+    assert (await pg_app.get("/api/admin/leads", params={"status": "trial_scheduled"})).json()[0]["name"] == "Марія"
+    sources = (await pg_app.get("/api/admin/leads/sources")).json()
+    assert sources == [{"value": "facebook", "label": "facebook", "count": 1}]

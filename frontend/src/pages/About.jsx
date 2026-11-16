@@ -22,7 +22,7 @@ export default function About() {
         title="Ми міряємо результат, а не кількість уроків"
         lead="Більшість шкіл продає години. Ми будуємо навчання навколо однієї речі: чи змінився ваш рівень і чи можете ви робити те, чого не могли на старті."
       >
-        <button type="button" className="btn btn-cta" onClick={() => navigate("/contacts")}>
+        <button type="button" className="btn btn-cta" onClick={() => navigate("/trial")}>
           Записатись на пробний урок
         </button>
         <a href="#method" className="btn btn-ghost">Як влаштоване навчання</a>

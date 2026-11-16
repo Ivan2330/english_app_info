@@ -32,6 +32,16 @@ export async function adminGetLeads(params = {}) {
   return res.data;
 }
 
+export async function adminLeadSources() {
+  const res = await apiAuth.get("/api/admin/leads/sources");
+  return res.data;
+}
+
+export async function adminOrderSources() {
+  const res = await apiAuth.get("/api/admin/orders/sources");
+  return res.data;
+}
+
 export async function adminUpdateLead(id, data) {
   const res = await apiAuth.patch(`/api/admin/leads/${id}`, data);
   return res.data;

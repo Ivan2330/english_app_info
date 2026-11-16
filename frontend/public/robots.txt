@@ -1,8 +1,12 @@
 User-agent: *
 Allow: /
 
-# Адмінка не має потрапляти в пошук
+# Адмінка й службові сторінки не мають потрапляти в пошук
 Disallow: /admin
 Disallow: /admin/
+Disallow: /thanks
+Disallow: /checkout
+Disallow: /payment/
 
+# sitemap.xml генерується під час збірки (scripts/prerender.mjs) з src/lib/seoData.js
 Sitemap: https://my-prime-academy.com/sitemap.xml
