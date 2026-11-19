@@ -98,7 +98,7 @@ export function Comments({ type, id, onChange }) {
 
 /* ================================================================ оцінки */
 
-export function Reviews({ type, id, onChange }) {
+export function Reviews({ type, id, onChange, maxScore = 10 }) {
   const [data, setData] = useState({ average: null, count: 0, items: [] });
   const [score, setScore] = useState(null);
   const [body, setBody] = useState("");
@@ -131,6 +131,7 @@ export function Reviews({ type, id, onChange }) {
       setData(await deleteReview(type, id));
       setScore(null);
       setBody("");
+      onChange?.();
     } catch (e) { setError(errorText(e)); }
   }
 
@@ -139,14 +140,14 @@ export function Reviews({ type, id, onChange }) {
       <h3>
         Оцінки{" "}
         {data.average != null
-          ? <span className="ws-score">середня {data.average} з 10 · {data.count}</span>
+          ? <span className="ws-score">середня {data.average} з {maxScore} · {data.count}</span>
           : <span className="ws-muted">поки без балів</span>}
       </h3>
 
       <div className="ws-review-form">
-        <span className="ws-field__label">Ваш бал (необовʼязково)</span>
-        <div className="ws-scale" role="radiogroup" aria-label="Бал від 1 до 10">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+        <span className="ws-field__label">{maxScore === 5 ? "Ваш бал" : "Ваш бал (необовʼязково)"}</span>
+        <div className={`ws-scale${maxScore === 5 ? " ws-scale--5" : ""}`} role="radiogroup" aria-label={`Бал від 1 до ${maxScore}`}>
+          {Array.from({ length: maxScore }, (_, i) => i + 1).map((n) => (
             <button key={n} type="button" role="radio" aria-checked={score === n}
                     className={score === n ? "is-on" : ""} onClick={() => setScore(score === n ? null : n)}>
               {n}
@@ -158,7 +159,7 @@ export function Reviews({ type, id, onChange }) {
         <ErrorBox text={error} />
         <div className="ws-row">
           <button type="button" className="ws-btn ws-btn--primary" onClick={save}
-                  disabled={score == null && !body.trim()}>
+                  disabled={score == null && (maxScore === 5 || !body.trim())}>
             {saved ? "Збережено ✓" : mine ? "Оновити мою оцінку" : "Зберегти оцінку"}
           </button>
           {mine && <button type="button" className="ws-btn" onClick={remove}>Прибрати мою</button>}
@@ -170,7 +171,7 @@ export function Reviews({ type, id, onChange }) {
           {data.items.filter((i) => !i.mine).map((r) => (
             <li key={r.id}>
               <b>{r.author}</b>
-              {r.score != null && <span className="ws-score">{r.score}/10</span>}
+              {r.score != null && <span className="ws-score">{r.score}/{maxScore}</span>}
               {r.body && <p>{r.body}</p>}
             </li>
           ))}
@@ -188,7 +189,7 @@ export function fileUrl(f, download = false) {
   return `${API_URL}${f.url}${download ? "?download=true" : ""}`;
 }
 
-export function Attachments({ type, id, onChange, title = "Файли" }) {
+export function Attachments({ type, id, onChange, title = "Файли", accept = ACCEPT }) {
   const [items, setItems] = useState([]);
   const [progress, setProgress] = useState(null);
   const [error, setError] = useState("");
@@ -253,7 +254,7 @@ export function Attachments({ type, id, onChange, title = "Файли" }) {
       </div>
       {open && <iframe className="ws-pdf" src={fileUrl(open)} title={open.name} />}
 
-      <input ref={input} type="file" multiple accept={ACCEPT} hidden
+      <input ref={input} type="file" multiple accept={accept} hidden
              onChange={(e) => upload([...e.target.files])} />
       {progress ? (
         <div className="ws-progress"><span>{progress.name}</span><i style={{ width: `${progress.pct}%` }} />

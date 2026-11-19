@@ -15,6 +15,7 @@ import NotesPage from "./NotesPage.jsx";
 import ReportsPage from "./ReportsPage.jsx";
 import TeamPage from "./TeamPage.jsx";
 import DailyPage from "./DailyPage.jsx";
+import IdeasPage from "./IdeasPage.jsx";
 import { AdminContext } from "./ws/ui.jsx";
 
 /**
@@ -35,6 +36,7 @@ const MENU = [
     { to: "/admin/tasks", label: "Завдання", section: "tasks", counter: "tasks" },
     { to: "/admin/reports", label: "Звіти", section: "reports", counter: "reports" },
     { to: "/admin/daily", label: "Звіт дня", section: "daily", counter: "daily" },
+    { to: "/admin/ideas", label: "Ідеї", section: "ideas" },
     { to: "/admin/notes", label: "Нотатки", section: null },
   ] },
   { group: "Сайт", items: [
@@ -47,10 +49,10 @@ const MENU = [
 ];
 
 const PAGES = {
-  tasks: TasksPage, reports: ReportsPage, daily: DailyPage, dashboard: Dashboard, leads: LeadsPage,
+  tasks: TasksPage, reports: ReportsPage, daily: DailyPage, ideas: IdeasPage, dashboard: Dashboard, leads: LeadsPage,
   quotes: QuotesPage, orders: OrdersPage, certificates: CertificatesPage,
 };
-const PATHS = { tasks: "tasks", reports: "reports", daily: "daily", dashboard: "stats", leads: "leads", quotes: "quotes",
+const PATHS = { tasks: "tasks", reports: "reports", daily: "daily", ideas: "ideas", dashboard: "stats", leads: "leads", quotes: "quotes",
                 orders: "orders", certificates: "certificates" };
 
 export default function AdminApp() {

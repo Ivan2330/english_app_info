@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.access import SECTIONS, has_section
 from app.models.admin_user import AdminUser
+from app.models.content import Idea
 from app.core import daily
 from app.models.workspace import DailyReport, Report, Task
 
@@ -18,6 +19,7 @@ ENTITIES: dict[str, tuple[str, type]] = {
     "task":   ("tasks", Task),
     "report": ("reports", Report),
     "daily":  ("daily", DailyReport),
+    "idea":   ("ideas", Idea),
 }
 
 # Додаткова перевірка «чи бачить цей користувач саме цей запис». Невидимий віддає 404:

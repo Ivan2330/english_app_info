@@ -28,6 +28,7 @@ from app.api.admin.notes import router as admin_notes
 from app.api.admin.reports import router as admin_reports
 from app.api.admin.home import router as admin_home
 from app.api.admin.daily import router as admin_daily
+from app.api.admin.ideas import router as admin_ideas
 
 
 # --- АВТОМАТИЧНЕ СТВОРЕННЯ ПАПКИ ДЛЯ СЕРТИФІКАТІВ ---
@@ -79,6 +80,7 @@ app.include_router(admin_notes)
 app.include_router(admin_reports)
 app.include_router(admin_home)
 app.include_router(admin_daily)
+app.include_router(admin_ideas)
 
 # Startup більше нічого не робить з базою.
 #
