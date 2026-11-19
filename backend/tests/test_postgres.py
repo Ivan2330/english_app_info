@@ -165,6 +165,28 @@ async def test_certificate_stats(pg_app, pg):
     assert body["by_month"][0]["count"] == 2
 
 
+@pytest.mark.parametrize("fields", [
+    {"lessons_count": "56", "hours": "56"},
+    {"started_at": "2025-09-01", "finished_at": "2026-01-02"},
+])
+async def test_admin_saves_browser_form_on_legacy_certificate(pg_app, pg, fields):
+    cert = Certificate(serial_number="PA-2026-1234567890", public_code="legacy-code",
+                       kind=CertificateKind.COURSE, student_full_name="Test Student",
+                       course_title="English Language Course", pdf_url="/static/certificates/legacy.pdf")
+    pg.add(cert)
+    await pg.commit()
+
+    response = await pg_app.patch(f"/api/admin/certificates/{cert.id}", json={"level_to": "A1", **fields})
+    assert response.status_code == 200, response.text
+    saved = response.json()["certificate"]
+    assert saved["serial_number"] == cert.serial_number
+    assert saved["public_code"] == cert.public_code and saved["pdf_url"] == cert.pdf_url
+    assert saved["level_to"] == "A1"
+    for field, value in fields.items():
+        expected = f"{value}T00:00:00+00:00" if field.endswith("_at") else int(value)
+        assert saved[field] == expected
+
+
 # =============================================================== пошук: регістр кирилиці
 
 async def test_cyrillic_search_is_case_insensitive_in_postgres(pg_app, pg):

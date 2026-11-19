@@ -23,9 +23,11 @@ PDF, і перевірка має відповідати «анульовано�
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import Field, TypeAdapter, ValidationError
 from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -40,6 +42,34 @@ from app.models.certificate import Certificate, CertificateKind
 # Лого для шапки PDF. Той самий файл, що й для іконок сайту.
 
 router = APIRouter(prefix="/api/admin", tags=["admin-certificates"])
+_COUNTS = {"lessons_count": "Занять", "hours": "Годин"}
+_COUNT_TYPE = TypeAdapter(Annotated[int, Field(ge=0, le=2_147_483_647)])
+
+
+def _count(data: dict, key: str) -> int | None:
+    value = data.get(key)
+    if value is None or value == "":
+        return None
+    try:
+        if not isinstance(value, bool):
+            return _COUNT_TYPE.validate_python(value)
+    except ValidationError:
+        pass
+    raise HTTPException(status_code=400, detail=f"«{_COUNTS[key]}»: введіть ціле число від 0 до 2147483647")
+
+
+def _date(data: dict, key: str, *, ignore_invalid: bool = False) -> datetime | None:
+    value = data.get(key)
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        if ignore_invalid:
+            return None
+        raise HTTPException(status_code=400, detail=f"погана дата в {key}") from None
+    # HTML date input has no offset. Store midnight UTC to preserve the calendar date.
+    return parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed
 
 
 def _full(c: Certificate) -> dict:
@@ -130,15 +160,6 @@ async def create_certificate(
     else:
         raise HTTPException(status_code=500, detail="не вдалося згенерувати номер")
 
-    def _dt(key):
-        raw = data.get(key)
-        if not raw:
-            return None
-        try:
-            return datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
-        except ValueError:
-            return None
-
     cert = Certificate(
         serial_number=serial,
         kind=CertificateKind(data.get("kind", "course")),
@@ -148,11 +169,11 @@ async def create_certificate(
         package_slug=data.get("package_slug"),
         level_from=data.get("level_from"),
         level_to=data.get("level_to"),
-        lessons_count=data.get("lessons_count"),
-        hours=data.get("hours"),
-        started_at=_dt("started_at"),
-        finished_at=_dt("finished_at"),
-        valid_until=_dt("valid_until"),
+        lessons_count=_count(data, "lessons_count"),
+        hours=_count(data, "hours"),
+        started_at=_date(data, "started_at", ignore_invalid=True),
+        finished_at=_date(data, "finished_at", ignore_invalid=True),
+        valid_until=_date(data, "valid_until", ignore_invalid=True),
         teacher_name=data.get("teacher_name"),
         issued_by=data.get("issued_by") or "Prime Academy",
         pdf_url=data.get("pdf_url"),
@@ -186,30 +207,20 @@ async def update_certificate(
 
     editable = (
         "student_full_name", "organization", "course_title", "package_slug",
-        "level_from", "level_to", "lessons_count", "hours",
+        "level_from", "level_to",
         "teacher_name", "issued_by", "pdf_url", "meta",
     )
-    for field in editable:
-        if field in data:
-            setattr(cert, field, data[field])
-
-    for field in ("started_at", "finished_at", "valid_until"):
-        if field in data:
-            raw = data[field]
-            if not raw:
-                setattr(cert, field, None)
-            else:
-                try:
-                    setattr(cert, field, datetime.fromisoformat(str(raw).replace("Z", "+00:00")))
-                except ValueError:
-                    raise HTTPException(status_code=400, detail=f"погана дата в {field}")
-
+    changes = {field: data[field] for field in editable if field in data}
+    changes.update({field: _count(data, field) for field in _COUNTS if field in data})
+    changes.update({field: _date(data, field) for field in ("started_at", "finished_at", "valid_until") if field in data})
     if "kind" in data:
         try:
-            cert.kind = CertificateKind(data["kind"])
+            changes["kind"] = CertificateKind(data["kind"])
         except ValueError:
             raise HTTPException(status_code=400, detail="невідомий тип сертифіката")
 
+    for field, value in changes.items():
+        setattr(cert, field, value)
     await session.commit()
     await session.refresh(cert)
     return {"ok": True, "certificate": _full(cert)}

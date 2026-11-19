@@ -184,6 +184,20 @@ async def test_patch_clears_date_and_rejects_bad_ones(admin_client):
     assert (await admin_client.patch(f"{BASE}/9999", json={})).status_code == 404
 
 
+async def test_issue_and_update_validate_counts(admin_client):
+    assert (await issue(admin_client, hours="2.5")).status_code == 400
+    issued = await issue(admin_client, hours="56", lessons_count=0)
+    assert issued.status_code == 200
+    cert = issued.json()["certificate"]
+    url = f"{BASE}/{cert['id']}"
+    assert (cert["hours"], cert["lessons_count"]) == (56, 0)
+    for invalid in (-1, True, "abc", 2_147_483_648):
+        response = await admin_client.patch(url, json={"hours": invalid, "level_to": "B2"})
+        assert response.status_code == 400 and "Годин" in response.json()["detail"]
+    cleared = (await admin_client.patch(url, json={"hours": ""})).json()["certificate"]
+    assert cleared["hours"] is None and cleared["level_to"] is None
+
+
 async def test_revoke_restore_cycle(admin_client, client):
     c = (await issue(admin_client)).json()["certificate"]
     assert (await admin_client.post(f"{BASE}/{c['id']}/revoke", json={"reason": "помилка"})).status_code == 200
