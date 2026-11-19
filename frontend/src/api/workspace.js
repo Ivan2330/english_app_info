@@ -115,3 +115,11 @@ export function saveCreativeMedia(id, mediaId, file, metadata, progress) {
     onUploadProgress: (event) => progress?.(event.total ? Math.round(event.loaded * 100 / event.total) : 0),
   }).then((response) => response.data);
 }
+
+/* ---------- апки ---------- */
+const appEntry = "/api/admin/apps/entries";
+export const getAppEntries = (kind, params) => get(appEntry, { ...params, kind });
+export const addAppEntry = (data) => post(appEntry, data);
+export const deleteAppEntry = (id) => del(`${appEntry}/${id}`);
+export const getEconomy = () => get("/api/admin/apps/economy");
+export const setEconomy = (data) => put("/api/admin/apps/economy", data);

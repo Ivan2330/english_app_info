@@ -239,8 +239,8 @@ async def test_migrations_build_a_working_schema_from_scratch(migrated):
                       "page_visits", "payments", "quote_requests", "admin_login_attempts",
                       "ws_comments", "ws_reviews", "ws_attachments", "ws_audit_log", "ws_read_marks",
                       "ws_tasks", "ws_notes", "ws_reports", "ws_settings", "ws_daily_reports", "ws_ideas",
-                      "ws_creatives", "ws_creative_media", "ws_creative_media_versions", "ws_creative_reviews"}
-    assert version == "0016_creatives"
+                      "ws_creatives", "ws_creative_media", "ws_creative_media_versions", "ws_creative_reviews", "ws_app_entries"}
+    assert version == "0017_admin_apps"
 
 
 async def test_models_and_migrations_do_not_drift(migrated):

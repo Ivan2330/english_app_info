@@ -33,6 +33,7 @@ export default function CreativesPage() {
   const statusOptions = me.role === "owner" ? STATUSES : Object.fromEntries(Object.entries(STATUSES).filter(([key]) => key !== "approved"));
   const [params, setParams] = useSearchParams();
   const id = params.get("open");
+  const initialCaption = params.get("caption")?.slice(0, 20_000) || "";
   const [query, setQuery] = useState({});
   const [offset, setOffset] = useState(0);
   const [data, setData] = useState(null);
@@ -145,13 +146,13 @@ export default function CreativesPage() {
       <button className="ws-btn" disabled={!offset} onClick={() => { setSelected([]); setOffset(offset - PAGE); }}>Назад</button>
       <button className="ws-btn" disabled={!data?.has_more} onClick={() => { setSelected([]); setOffset(offset + PAGE); }}>Далі</button>
     </div>}
-    {id && <CreativeDialog key={id} id={id} statusOptions={statusOptions} maxMb={settings?.max_mb} onClose={() => open(null)} open={open} refreshList={refresh} />}
+    {id && <CreativeDialog key={id} id={id} initialCaption={initialCaption} statusOptions={statusOptions} maxMb={settings?.max_mb} onClose={() => open(null)} open={open} refreshList={refresh} />}
     {showRankings && <Rankings onClose={() => setRankings(false)} onOpen={(id) => { setRankings(false); open(id); }} />}
   </div>;
 }
 
-function CreativeDialog({ id, statusOptions, maxMb, onClose, open, refreshList }) {
-  const [item, setItem] = useState(id === "new" ? NEW : null);
+function CreativeDialog({ id, initialCaption, statusOptions, maxMb, onClose, open, refreshList }) {
+  const [item, setItem] = useState(id === "new" ? { ...NEW, caption: initialCaption } : null);
   const [tab, setTab] = useState(id === "new" ? "edit" : "preview");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
