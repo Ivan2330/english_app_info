@@ -86,3 +86,32 @@ export const getDailyWeek = (start) => get("/api/admin/daily-reports/week", star
 export const getIdeas = (params) => get("/api/admin/ideas", params);
 export const createIdea = (data) => post("/api/admin/ideas", data);
 export const updateIdea = (id, data) => put(`/api/admin/ideas/${id}`, data);
+
+/* ---------- банк креативів ---------- */
+const creative = (id = "") => `/api/admin/creatives${id === "" ? "" : `/${id}`}`;
+export const getCreatives = (params) => get(creative(), params);
+export const getCreative = (id) => get(creative(id));
+export const createCreative = (data) => post(creative(), data);
+export const updateCreative = (id, data) => put(creative(id), data);
+export const setCreativeSchedule = (id, scheduled_at) => patch(`${creative(id)}/schedule`, { scheduled_at });
+export const convertIdea = (id) => post(`${creative()}/from-idea/${id}`);
+export const bulkCreatives = (data) => post(`${creative()}/bulk`, data);
+export const duplicateCreative = (id) => post(`${creative(id)}/duplicate`);
+export const getCreativeRankings = () => get(`${creative()}/rankings`);
+export const getCreativeReviews = (id) => get(`${creative(id)}/reviews`);
+export const saveCreativeReview = (id, data) => put(`${creative(id)}/reviews`, data);
+export const getCreativeUploadSettings = () => get(`${creative()}/settings/upload`);
+export const setCreativeUploadSettings = (data) => put(`${creative()}/settings/upload`, data);
+export const orderCreativeMedia = (id, ids) => put(`${creative(id)}/media-order`, { ids });
+export function saveCreativeMedia(id, mediaId, file, metadata, progress) {
+  const form = new FormData();
+  form.append("file", file);
+  if (metadata.width && metadata.height) {
+    form.append("width", metadata.width);
+    form.append("height", metadata.height);
+  }
+  if (metadata.poster) form.append("poster", metadata.poster, "poster.jpg");
+  return apiAuth.post(`${creative(id)}/media${mediaId ? `/${mediaId}` : ""}`, form, {
+    onUploadProgress: (event) => progress?.(event.total ? Math.round(event.loaded * 100 / event.total) : 0),
+  }).then((response) => response.data);
+}

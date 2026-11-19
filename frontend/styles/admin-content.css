@@ -8,3 +8,43 @@
 .ac-card strong { overflow-wrap: anywhere; }
 .ac-cover { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: .65rem; }
 .ac-description { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.ac-grid-three { display: grid; gap: .8rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ac-catalog-card { position: relative; min-width: 0; padding: 0; overflow: hidden; }
+.ac-catalog-card > input { position: absolute; z-index: 1; inset: .55rem auto auto .55rem; width: 20px; height: 20px; accent-color: var(--ws-accent); }
+.ac-catalog-button { display: grid; gap: .5rem; width: 100%; text-align: left; color: var(--ws-text); }
+.ac-catalog-button:hover { background: var(--ws-card-2); }
+.ac-tile, .ac-slide-tile, .ac-post-frame { display: grid; place-items: center; overflow: hidden; background: var(--ws-card-2); }
+.ac-tile { aspect-ratio: 4 / 5; width: 100%; }
+.ac-tile :is(img, video), .ac-slide-tile img { width: 100%; height: 100%; object-fit: cover; }
+.ac-catalog-title { display: grid; gap: .3rem; padding: .1rem .65rem .65rem; overflow-wrap: anywhere; }
+.ac-placeholder { text-align: center; color: var(--ws-muted); font-size: .8rem; }
+.ac-catalog-card--list .ac-catalog-button { grid-template-columns: 80px 1fr; align-items: center; }
+.ac-catalog-card--list .ac-tile { aspect-ratio: 1; }
+.ac-catalog-card--list .ac-catalog-title { padding: .65rem; }
+.ac-table { overflow-x: auto; }
+.ac-table table { width: 100%; min-width: 670px; border-collapse: collapse; background: var(--ws-card); }
+.ac-table :is(th, td) { text-align: left; padding: .65rem; border-bottom: 1px solid var(--ws-line); }
+.ac-post { width: min(100%, 35rem); margin-inline: auto; }
+.ac-post-frame { aspect-ratio: 4 / 5; border-radius: .65rem; touch-action: pan-y; }
+.ac-post-frame--vertical { aspect-ratio: 9 / 16; width: min(100%, 20rem); margin-inline: auto; }
+.ac-post-frame :is(img, video) { width: 100%; height: 100%; object-fit: contain; }
+.ac-copy { white-space: pre-wrap; overflow-wrap: anywhere; }
+.ac-hashtags { color: var(--ws-accent-2); }
+.ac-carousel { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .3rem; }
+.ac-dot { display: grid; place-items: center; min-height: 32px; min-width: 20px; }
+.ac-dot::after { content: ""; width: .53rem; height: .53rem; border-radius: 50%; background: var(--ws-muted); }
+.ac-dot[aria-pressed="true"]::after { background: var(--ws-accent-2); }
+.ac-slides { display: grid; gap: .65rem; list-style: none; padding: 0; margin: 0; }
+.ac-slides > li { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: .7rem; padding: .6rem; border: 1px solid var(--ws-line); border-radius: .65rem; }
+.ac-slides > li[draggable="true"] { cursor: grab; }
+.ac-slide-tile { aspect-ratio: 1; border-radius: .35rem; }
+.ac-slides strong { overflow-wrap: anywhere; }
+.ac-file-button { position: relative; overflow: hidden; }
+.ac-file-button input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+.ac-file-button:focus-within { outline: 2px solid var(--ws-accent-2); }
+@media (max-width: 640px) {
+  .ac-grid-three { gap: .35rem; }
+  .ac-catalog-card--grid .ac-catalog-title { padding: .2rem .35rem .45rem; font-size: .85rem; }
+  .ac-catalog-card--grid .ac-catalog-title .ws-small { font-size: .72rem; }
+  .ac-catalog-card--grid > input { inset: .3rem auto auto .3rem; }
+}

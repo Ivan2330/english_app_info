@@ -122,14 +122,14 @@ def content_matches(path: Path, ft: FileType) -> bool:
     return _is_text(path)          # csv, txt, md
 
 
-async def save_upload(upload: UploadFile) -> tuple[str, FileType, int]:
+async def save_upload(upload: UploadFile, *, max_bytes: int | None = None) -> tuple[str, FileType, int]:
     """Пише файл на диск під випадковим іменем. Повертає (stored_name, тип, розмір).
 
     Розмір рахується під час запису: файл понад ліміт обривається на першому
     ж зайвому мегабайті, а не після того, як увесь опинився на диску.
     """
     ft = extension_type(upload.filename)
-    limit = limit_bytes(ft)
+    limit = max_bytes if max_bytes is not None else limit_bytes(ft)
     root = upload_root()
     stored = f"{secrets.token_hex(16)}.{ft.ext}"
     target = root / stored

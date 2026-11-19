@@ -48,6 +48,7 @@ SECTIONS: dict[str, str] = {
     "reports":      "Звіти",
     "daily":        "Звіт дня",
     "ideas":        "Ідеї",
+    "creatives":    "Креативи",
     "content":      "Контент",
     "students":     "Учні",
     "payments":     "Оплати",
