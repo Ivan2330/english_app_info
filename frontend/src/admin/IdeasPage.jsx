@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
 import { errorText } from "../api/apiClientAuth";
-import { createIdea, getIdeas, updateIdea } from "../api/workspace";
+import { convertIdea, createIdea, getIdeas, updateIdea } from "../api/workspace";
 import { Attachments, Reviews } from "./ws/Discussion";
-import { Empty, ErrorBox, Field, fmtDate, Modal } from "./ws/ui";
+import { AdminContext, Empty, ErrorBox, Field, fmtDate, Modal } from "./ws/ui";
 import { FORMATS, topicColor } from "./ws/content";
 import "../../styles/admin-content.css";
 
@@ -99,6 +100,8 @@ export default function IdeasPage() {
 }
 
 function IdeaEditor({ item, onClose, onSaved, refresh }) {
+  const me = useContext(AdminContext);
+  const navigate = useNavigate();
   const [fields, setFields] = useState(() => Object.fromEntries(Object.keys(NEW).map((key) => [key, item[key]])));
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -112,6 +115,16 @@ function IdeaEditor({ item, onClose, onSaved, refresh }) {
     try {
       const body = { ...fields, priority: Number(fields.priority) };
       onSaved(await (item.id ? updateIdea(item.id, body) : createIdea(body)));
+    } catch (e) { setError(errorText(e)); }
+    finally { setBusy(false); }
+  }
+
+  async function convert() {
+    setBusy(true);
+    setError("");
+    try {
+      const creative = await convertIdea(item.id);
+      navigate(`/admin/creatives?open=${creative.id}`);
     } catch (e) { setError(errorText(e)); }
     finally { setBusy(false); }
   }
@@ -135,6 +148,8 @@ function IdeaEditor({ item, onClose, onSaved, refresh }) {
       </form>
       {item.id && <>
         <p className="ws-muted ws-small">{item.author} · {fmtDate(item.created_at)}</p>
+        {me.sections.includes("creatives") && <button type="button" className="ws-btn" disabled={busy}
+          onClick={convert}>Перетворити на креатив</button>}
         <Attachments type="idea" id={item.id} title="Зображення для референсу" accept=".jpg,.jpeg,.png,.webp" onChange={refresh} />
         <Reviews type="idea" id={item.id} maxScore={5} onChange={refresh} />
       </>}
