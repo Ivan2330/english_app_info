@@ -24,6 +24,15 @@ export default function HomePage() {
         <p className="ws-muted">Сьогодні {fmtDate(data.today)}</p>
       </header>
 
+      {/* Після 17:00 за Києвом, якщо звіту за сьогодні ще немає (рахує бекенд) */}
+      {data.daily_reminder && (
+        <Link to="/admin/daily" className="ws-card ws-daily-reminder" data-testid="daily-reminder">
+          <b>Ти ще не здав звіт за сьогодні</b>
+          <span>Займе пару хвилин: що зроблено, скільки годин, що заважало, план на завтра.</span>
+          <span className="ws-btn ws-btn--primary">Заповнити звіт</span>
+        </Link>
+      )}
+
       <div className="ws-grid">
         {hasTasks && (
           <Card title="Мої завдання на сьогодні" link="/admin/tasks?scope=mine" linkText="Усі мої завдання"
@@ -45,7 +54,8 @@ export default function HomePage() {
         <Card title={`Нові коментарі${data.new_comments_total ? ` · ${data.new_comments_total}` : ""}`}
               empty="Нових коментарів немає.">
           {data.new_comments.map((c, i) => (
-            <Link key={i} className="ws-line" to={c.entity_type === "task" ? `/admin/tasks?open=${c.entity_id}` : `/admin/reports/${c.entity_id}`}>
+            <Link key={i} className="ws-line" to={c.entity_type === "task" ? `/admin/tasks?open=${c.entity_id}`
+              : c.entity_type === "daily" ? "/admin/daily?tab=feed" : `/admin/reports/${c.entity_id}`}>
               <b>{c.author}</b> у «{c.title}»
               <span>{c.body}</span>
             </Link>

@@ -12,7 +12,7 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import (
-    Boolean, CheckConstraint, Column, Date, DateTime, ForeignKey, Index, Integer, JSON,
+    Boolean, CheckConstraint, Column, Date, DateTime, Float, ForeignKey, Index, Integer, JSON,
     String, Text, UniqueConstraint,
 )
 
@@ -193,6 +193,44 @@ class Report(Base):
     # manual — завантажив адмін руками; api — колись прийде від агента автоматично.
     source    = Column(String(8), nullable=False, default="manual")
     author_id = Column(Integer, ForeignKey("admin_users.id"), nullable=True)
+
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+    activity_at    = Column(DateTime(timezone=True), nullable=False, default=_now)
+    activity_by_id = Column(Integer, ForeignKey("admin_users.id"), nullable=True)
+
+
+# ============================================================ налаштування й «Звіт дня»
+
+class WorkspaceSetting(Base):
+    """Налаштування кабінету, які міняє owner (ключ → значення JSON)."""
+    __tablename__ = "ws_settings"
+
+    key        = Column(String(64), primary_key=True)
+    value      = Column(JSON, nullable=True)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+    updated_by = Column(Integer, ForeignKey("admin_users.id"), nullable=True)
+
+
+class DailyReport(Base):
+    """Звіт дня: один на людину на дату (за Києвом)."""
+    __tablename__ = "ws_daily_reports"
+    __table_args__ = (
+        UniqueConstraint("author_id", "date", name="uq_ws_daily_reports_author_date"),
+        CheckConstraint("mood is null or (mood >= 1 and mood <= 5)", name="mood"),
+        CheckConstraint("hours >= 0 and hours <= 24", name="hours"),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    author_id = Column(Integer, ForeignKey("admin_users.id"), nullable=False, index=True)
+    date      = Column(Date, nullable=False, index=True)
+    done      = Column(Text, nullable=False)                 # що зроблено
+    hours     = Column(Float, nullable=False, default=0)     # скільки годин
+    links     = Column(JSON, nullable=False, default=list)   # посилання
+    post_metrics = Column(JSON, nullable=False, default=list)  # метрики окремих публікацій
+    blockers  = Column(Text, nullable=False, default="")     # що заважало
+    plan      = Column(Text, nullable=False, default="")     # план на завтра
+    mood      = Column(Integer, nullable=True)               # настрій / навантаження 1–5
 
     created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
     updated_at = Column(DateTime(timezone=True), nullable=False, default=_now)

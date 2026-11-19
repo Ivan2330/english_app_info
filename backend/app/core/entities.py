@@ -11,11 +11,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.access import SECTIONS, has_section
 from app.models.admin_user import AdminUser
-from app.models.workspace import Report, Task
+from app.core import daily
+from app.models.workspace import DailyReport, Report, Task
 
 ENTITIES: dict[str, tuple[str, type]] = {
     "task":   ("tasks", Task),
     "report": ("reports", Report),
+    "daily":  ("daily", DailyReport),
+}
+
+# Додаткова перевірка «чи бачить цей користувач саме цей запис». Невидимий віддає 404:
+# у приватному режимі «Звіту дня» не можна прочитати чужий звіт навіть через коментарі.
+VISIBILITY = {
+    "daily": daily.entity_visible,
 }
 
 
@@ -27,6 +35,6 @@ async def load_entity(session: AsyncSession, user: AdminUser, entity_type: str, 
     if not has_section(user, section):
         raise HTTPException(status_code=403, detail=f"Немає доступу до розділу «{SECTIONS[section]}»")
     entity = await session.get(model, entity_id)
-    if entity is None:
+    if entity is None or (entity_type in VISIBILITY and not await VISIBILITY[entity_type](session, user, entity)):
         raise HTTPException(status_code=404, detail="Запис не знайдено")
     return entity

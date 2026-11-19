@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 from typing import Iterable
 
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.admin_user import AdminUser
@@ -48,13 +50,12 @@ async def audit(session: AsyncSession, actor: AdminUser | None, action: str, *,
 
 
 async def mark_read(session: AsyncSession, user: AdminUser, entity_type: str, entity_id: int) -> None:
-    row = (await session.execute(select(ReadMark).where(
-        ReadMark.user_id == user.id, ReadMark.entity_type == entity_type,
-        ReadMark.entity_id == entity_id))).scalar_one_or_none()
-    if row:
-        row.seen_at = now_utc()
-    else:
-        session.add(ReadMark(user_id=user.id, entity_type=entity_type, entity_id=entity_id, seen_at=now_utc()))
+    """Два одночасні відкриття звіту оновлюють одну позначку прочитання."""
+    now = now_utc()
+    insert = pg_insert if session.get_bind().dialect.name == "postgresql" else sqlite_insert
+    stmt = insert(ReadMark).values(user_id=user.id, entity_type=entity_type, entity_id=entity_id, seen_at=now)
+    await session.execute(stmt.on_conflict_do_update(
+        index_elements=["user_id", "entity_type", "entity_id"], set_={"seen_at": now}))
 
 
 async def seen_map(session: AsyncSession, user: AdminUser, entity_type: str) -> dict[int, datetime]:

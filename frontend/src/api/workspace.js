@@ -70,3 +70,14 @@ export function uploadFile(entity_type, entity_id, file, onProgress) {
   }).then((r) => r.data);
 }
 export const deleteFile = (id) => del(`/api/admin/files/${id}`);
+
+/* ---------- звіт дня ---------- */
+export const getDailyMine = () => get("/api/admin/daily-reports/mine");
+export const getDailyAuthors = () => get("/api/admin/daily-reports/authors");
+export const getDailyReports = (params) => get("/api/admin/daily-reports", params);
+export const getDailyReport = (id) => get(`/api/admin/daily-reports/${id}`);
+export const createDailyReport = (data) => post("/api/admin/daily-reports", data);
+export const updateDailyReport = (id, data) => patch(`/api/admin/daily-reports/${id}`, data);
+export const getDailySettings = () => get("/api/admin/daily-reports/settings");
+export const setDailyVisibility = (visibility) => put("/api/admin/daily-reports/settings", { visibility });
+export const getDailyWeek = (start) => get("/api/admin/daily-reports/week", start ? { start } : undefined);

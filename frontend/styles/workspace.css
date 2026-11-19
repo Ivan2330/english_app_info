@@ -286,3 +286,27 @@ textarea.ws-input { resize: vertical; }
     .ws-scale { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     .ws-row .ws-btn--big { flex: 1 1 auto; }
 }
+
+/* ---------- звіт дня ---------- */
+.ws-daily-vis { display: grid; gap: 8px; }
+.ws-scale--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.ws-daily-card { display: grid; gap: 8px; text-align: left; color: var(--ws-text); cursor: pointer; }
+.ws-daily-card:hover { border-color: #2c3546; }
+.ws-daily-card__done { white-space: pre-line; color: #c3cad8; font-size: 14px; line-height: 1.5; }
+.ws-daily-card__blocker { padding: 8px 10px; border-radius: 10px; background: rgba(240, 180, 0, .1); color: #ffe08a; font-size: 13.5px; }
+.ws-daily-links { display: grid; gap: 6px; }
+.ws-daily-links a { color: var(--ws-accent-2); overflow-wrap: anywhere; text-decoration: underline; }
+.ws-daily-reminder { display: grid; gap: 8px; border-color: #5a4a14; background: #1d1a10; color: var(--ws-text); }
+.ws-daily-reminder b { color: #ffe08a; font-size: 17px; }
+.ws-daily-reminder .ws-btn { justify-self: start; }
+.ws-daily-week { overflow-x: auto; padding: 0; }
+.ws-daily-week table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 14px; }
+.ws-daily-week th, .ws-daily-week td { padding: 10px 8px; border-bottom: 1px solid var(--ws-line); text-align: center; }
+.ws-daily-week thead th { color: var(--ws-muted); font-size: 12.5px; font-weight: 700; }
+.ws-daily-week thead small { display: block; font-weight: 600; }
+.ws-daily-week tbody th { text-align: left; color: #fff; white-space: nowrap; }
+.ws-daily-week td button { min-height: 32px; padding: 4px 8px; border-radius: 8px; background: #18382a; color: var(--ws-ok); font-weight: 700; }
+.ws-daily-week td.is-missing { color: var(--ws-danger); font-weight: 700; font-size: 12.5px; }
+.ws-daily-week .is-weekend { opacity: .65; }
+.ws-daily-filters, .ws-daily-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: .75rem; }
+.ws-daily-metrics > div { display: flex; flex-direction: column; gap: .2rem; }

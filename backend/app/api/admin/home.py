@@ -12,12 +12,14 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.admin.tasks import task_out
+from app.core import daily as D
+from app.core import kyiv
 from app.core.access import has_section, require_any
 from app.core.workspace import aware, is_unread, people_names, seen_map
 from app.db.database import get_async_session
 from app.models.admin_user import AdminUser
 from app.models.lead import Lead, LeadStatus
-from app.models.workspace import Comment, Report, ReportStatus, Review, Task, TaskStatus
+from app.models.workspace import Comment, DailyReport, Report, ReportStatus, Review, Task, TaskStatus
 
 router = APIRouter(prefix="/api/admin", tags=["admin-home"])
 
@@ -36,6 +38,14 @@ async def counters_for(session: AsyncSession, user: AdminUser) -> dict:
         seen = await seen_map(session, user, "report")
         reports = (await session.execute(select(Report))).scalars().all()
         out["reports"] = sum(is_unread(r, user, seen) for r in reports)
+    if has_section(user, "daily"):
+        # Нові чужі звіти дня, які мені видно (у приватному режимі admin бачить лише свої)
+        stmt = select(DailyReport)
+        cond = D.visible_filter(user, await D.visibility(session))
+        if cond is not None:
+            stmt = stmt.where(cond)
+        seen = await seen_map(session, user, "daily")
+        out["daily"] = sum(is_unread(r, user, seen) for r in (await session.execute(stmt)).scalars().all())
     if has_section(user, "leads"):
         # Нові заявки: статус «нова», доки менеджер не змінить його
         out["leads"] = (await session.execute(
@@ -55,6 +65,13 @@ async def home(user: AdminUser = Depends(require_any), session: AsyncSession = D
     out: dict = {"name": user.name or user.email.split("@")[0], "today": today,
                  "counters": await counters_for(session, user)}
 
+    if has_section(user, "daily"):
+        # Після 17:00 за Києвом нагадуємо, якщо звіту за сьогодні ще немає
+        now = kyiv.kyiv_now()
+        submitted = await D.report_for(session, user, now.date()) is not None
+        out["daily_today_submitted"] = submitted
+        out["daily_reminder"] = (not submitted) and now.hour >= kyiv.REMINDER_HOUR
+
     if has_section(user, "tasks"):
         mine = [t for t in await _my_tasks(session, user) if t.assignee_id == user.id and t.status != TaskStatus.DONE]
         out["tasks_today"] = [task_out(t, names, user) for t in mine if t.due_date == today]
@@ -69,8 +86,11 @@ async def home(user: AdminUser = Depends(require_any), session: AsyncSession = D
         watched += [("task", t.id, t.title) for t in await _my_tasks(session, user)]
     if has_section(user, "reports"):
         watched += [("report", r.id, r.title) for r in (await session.execute(select(Report))).scalars().all()]
+    if has_section(user, "daily"):
+        mine = (await session.execute(select(DailyReport).where(DailyReport.author_id == user.id))).scalars().all()
+        watched += [("daily", r.id, f"Звіт дня за {r.date.strftime('%d.%m')}") for r in mine]
     fresh = []
-    for etype in {"task", "report"}:
+    for etype in {"task", "report", "daily"}:
         ids = {eid: title for t, eid, title in watched if t == etype}
         if not ids:
             continue
