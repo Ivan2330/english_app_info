@@ -1,5 +1,5 @@
 """Каталог контенту кабінету."""
-from sqlalchemy import CheckConstraint, Column, Date, DateTime, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy import CheckConstraint, Column, Date, DateTime, ForeignKey, Index, Integer, JSON, String, Text, UniqueConstraint
 
 from app.db.database import Base
 
@@ -97,3 +97,14 @@ class CreativeReview(Base):
     advertising = Column(Integer, nullable=False)
     comment = Column(Text, nullable=False, default="")
     updated_at = Column(DateTime(timezone=True), nullable=False)
+
+
+class AppEntry(Base):
+    __tablename__ = "ws_app_entries"
+    __table_args__ = (Index("ix_ws_app_entries_kind_author", "kind", "author_id"),)
+
+    id = Column(Integer, primary_key=True)
+    kind = Column(String(16), nullable=False)
+    author_id = Column(Integer, ForeignKey("admin_users.id"), nullable=True)
+    data = Column(JSON, nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False)

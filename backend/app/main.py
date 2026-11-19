@@ -31,6 +31,7 @@ from app.api.admin.daily import router as admin_daily
 from app.api.admin.ideas import router as admin_ideas
 from app.api.admin.creatives import router as admin_creatives
 from app.api.admin.creative_media import router as admin_creative_media
+from app.api.admin.apps import router as admin_apps
 
 
 # --- АВТОМАТИЧНЕ СТВОРЕННЯ ПАПКИ ДЛЯ СЕРТИФІКАТІВ ---
@@ -85,6 +86,7 @@ app.include_router(admin_daily)
 app.include_router(admin_ideas)
 app.include_router(admin_creatives)
 app.include_router(admin_creative_media)
+app.include_router(admin_apps)
 
 # Startup більше нічого не робить з базою.
 #
