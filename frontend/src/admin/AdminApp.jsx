@@ -19,6 +19,8 @@ import IdeasPage from "./IdeasPage.jsx";
 import CreativesPage from "./CreativesPage.jsx";
 import AppsPage from "./AppsPage.jsx";
 import { AdminContext } from "./ws/ui.jsx";
+import Appearance, { useAppearance } from "./ws/Appearance";
+import "../../styles/admin-tokens.css";
 
 /**
  * Робочий простір школи.
@@ -58,12 +60,15 @@ const PAGES = {
 };
 const PATHS = { tasks: "tasks", reports: "reports", daily: "daily", ideas: "ideas", creatives: "creatives", apps: "apps", dashboard: "stats", leads: "leads", quotes: "quotes",
                 orders: "orders", certificates: "certificates" };
+const NAV_ICONS = { home: "⌂", tasks: "☑", reports: "▤", daily: "▦", notes: "✎", ideas: "✧",
+  creatives: "▧", apps: "▥", dashboard: "▥", leads: "✉", quotes: "₴", orders: "▣", certificates: "☆", team: "♙" };
 
 export default function AdminApp() {
   const [admin, setAdmin] = useState(null);
   const [checking, setChecking] = useState(true);
   const [counters, setCounters] = useState({});
   const [menuOpen, setMenuOpen] = useState(false);
+  const appearance = useAppearance(admin?.id);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -143,7 +148,9 @@ export default function AdminApp() {
                   <span className="ws-nav__title">{g.group}</span>
                   {items.map((i) => (
                     <NavLink key={i.to} to={i.to} end={i.end} className="adm__link ws-nav__link">
-                      {i.label}
+                      <span className="ws-nav__caption"><span className="ws-nav__icon" aria-hidden="true">
+                        {NAV_ICONS[i.section || (i.end ? "home" : "notes")]}
+                      </span>{i.label}</span>
                       {i.counter && counters[i.counter] > 0 && (
                         <span className="ws-badge" aria-label={`нових: ${counters[i.counter]}`}>{counters[i.counter]}</span>
                       )}
@@ -155,7 +162,9 @@ export default function AdminApp() {
             {isOwner && (
               <div className="ws-nav__group">
                 <span className="ws-nav__title">Керування</span>
-                <NavLink to="/admin/team" className="adm__link ws-nav__link">Команда</NavLink>
+                <NavLink to="/admin/team" className="adm__link ws-nav__link"><span className="ws-nav__caption">
+                  <span className="ws-nav__icon" aria-hidden="true">{NAV_ICONS.team}</span>Команда
+                </span></NavLink>
               </div>
             )}
           </nav>
@@ -163,6 +172,7 @@ export default function AdminApp() {
           <div className="ws-user">
             <b>{admin.name}</b>
             <span>{isOwner ? "Власник" : "Адміністратор"}</span>
+            <Appearance {...appearance} />
             <NavLink to="/admin/password" className="ws-user__link">Змінити пароль</NavLink>
             <button type="button" className="ws-btn" onClick={onLogout}>Вийти</button>
           </div>
