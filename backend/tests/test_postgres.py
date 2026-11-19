@@ -463,6 +463,6 @@ async def test_daily_reports_on_postgres(pg_app, pg, monkeypatch):
     assert (await pg_app.post("/api/admin/daily-reports", json={"done": "x", "hours": 1})).status_code == 409
     w = (await pg_app.get("/api/admin/daily-reports/week")).json()
     assert w["hours_total"] == 7.5 and [b["text"] for b in w["blockers"]] == ["Блокер"]
-    assert (await pg_app.put("/api/admin/daily-reports/settings", json={"visibility": "own"})).status_code == 200
+    assert (await pg_app.put("/api/admin/daily-reports/settings", json={"visibility": "owner_only"})).status_code == 200
     assert len((await pg_app.get("/api/admin/daily-reports")).json()["items"]) == 1     # owner бачить і так
     assert (await pg_app.get("/api/admin/home")).json()["daily_reminder"] is False

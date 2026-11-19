@@ -227,6 +227,7 @@ class DailyReport(Base):
     done      = Column(Text, nullable=False)                 # що зроблено
     hours     = Column(Float, nullable=False, default=0)     # скільки годин
     links     = Column(JSON, nullable=False, default=list)   # посилання
+    post_metrics = Column(JSON, nullable=False, default=list)  # метрики окремих публікацій
     blockers  = Column(Text, nullable=False, default="")     # що заважало
     plan      = Column(Text, nullable=False, default="")     # план на завтра
     mood      = Column(Integer, nullable=True)               # настрій / навантаження 1–5

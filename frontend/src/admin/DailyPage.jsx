@@ -2,7 +2,7 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   createDailyReport, getDailyMine, getDailyReport, getDailyReports, getDailySettings, getDailyWeek,
-  getPeople, setDailyVisibility, updateDailyReport,
+  getDailyAuthors, setDailyVisibility, updateDailyReport,
 } from "../api/workspace.js";
 import { errorText } from "../api/apiClientAuth.js";
 import Markdown from "./ws/Markdown.jsx";
@@ -14,6 +14,12 @@ const MOODS = [
   { v: 4, label: "Добре" }, { v: 5, label: "Легко" },
 ];
 const WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
+const METRICS = [
+  ["reach", "Охоплення"], ["saves", "Збереження"], ["shares", "Репости"],
+  ["comments", "Коментарі"], ["followers", "Нові підписники"],
+  ["direct_trial", "Direct «ПРОБНИЙ»"],
+];
+const emptyPost = () => ({ url: "", reach: 0, saves: 0, shares: 0, comments: 0, followers: 0, direct_trial: 0 });
 
 function shortDate(iso) {
   const [, m, d] = iso.split("-");
@@ -32,12 +38,13 @@ export default function DailyPage() {
   const [settings, setSettings] = useState(null);
   const [openId, setOpenId] = useState(null);
 
-  useEffect(() => { getDailySettings().then(setSettings).catch(() => {}); }, []);
+  const [settingsError, setSettingsError] = useState("");
+  useEffect(() => { getDailySettings().then(setSettings).catch((e) => setSettingsError(errorText(e))); }, []);
   const isOwner = me?.role === "owner";
   const tabs = [
     { v: "mine", label: "Мій звіт" },
-    { v: "feed", label: "Стрічка" },
-    ...(isOwner ? [{ v: "week", label: "Тиждень" }] : []),
+    { v: "feed", label: "Банк днів" },
+    { v: "week", label: "Тиждень" },
   ];
 
   return (
@@ -53,6 +60,7 @@ export default function DailyPage() {
       </header>
 
       {settings && <VisibilityBar settings={settings} onChange={setSettings} />}
+      <ErrorBox text={settingsError} />
 
       <div className="ws-seg" role="tablist">
         {tabs.map((t) => (
@@ -61,9 +69,9 @@ export default function DailyPage() {
         ))}
       </div>
 
-      {tab === "mine" && <MyReport onSaved={() => me.refreshCounters?.()} />}
+      {tab === "mine" && <MyReport author={me?.name} onSaved={() => me.refreshCounters?.()} />}
       {tab === "feed" && <Feed onOpen={setOpenId} showAuthorFilter={isOwner || settings?.visibility === "all"} />}
-      {tab === "week" && isOwner && <Week onOpen={setOpenId} />}
+      {tab === "week" && <Week onOpen={setOpenId} />}
 
       {openId && <ReportModal id={openId} onClose={() => { setOpenId(null); me.refreshCounters?.(); }} />}
     </div>
@@ -74,9 +82,12 @@ export default function DailyPage() {
 
 function VisibilityBar({ settings, onChange }) {
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
   async function choose(v) {
+    if (v === settings.visibility) return;
     setError("");
-    try { onChange(await setDailyVisibility(v)); } catch (e) { setError(errorText(e)); }
+    setBusy(true);
+    try { onChange(await setDailyVisibility(v)); } catch (e) { setError(errorText(e)); } finally { setBusy(false); }
   }
   if (!settings.can_change) {
     return <p className="ws-muted">Хто бачить звіти: <b>{settings.label}</b>.</p>;
@@ -86,7 +97,8 @@ function VisibilityBar({ settings, onChange }) {
       <span className="ws-field__label">Хто бачить звіти</span>
       <div className="ws-seg">
         {Object.entries(settings.options).map(([v, label]) => (
-          <button key={v} type="button" className={settings.visibility === v ? "is-on" : ""} onClick={() => choose(v)}>
+          <button key={v} type="button" className={settings.visibility === v ? "is-on" : ""}
+                  aria-pressed={settings.visibility === v} disabled={busy} onClick={() => choose(v)}>
             {label}
           </button>
         ))}
@@ -102,11 +114,12 @@ function VisibilityBar({ settings, onChange }) {
 function emptyForm(report) {
   return {
     done: report?.done || "", hours: report?.hours ?? "", links: (report?.links || []).join("\n"),
+    post_metrics: report?.post_metrics || [],
     blockers: report?.blockers || "", plan: report?.plan || "", mood: report?.mood ?? null,
   };
 }
 
-function MyReport({ onSaved }) {
+function MyReport({ author, onSaved }) {
   const [mine, setMine] = useState(null);
   const [day, setDay] = useState("today");
   const [f, setF] = useState(emptyForm());
@@ -137,6 +150,8 @@ function MyReport({ onSaved }) {
     const data = {
       done: f.done, hours: Number(f.hours || 0), blockers: f.blockers, plan: f.plan,
       links: f.links.split("\n").map((l) => l.trim()).filter(Boolean),
+      post_metrics: f.post_metrics.map((p) => Object.fromEntries(Object.entries(p).map(([k, v]) =>
+        [k, k === "url" ? v.trim() : Number(v || 0)]))),
     };
     try {
       if (report) {
@@ -160,9 +175,11 @@ function MyReport({ onSaved }) {
           Вчора, {shortDate(mine.yesterday.date)} {mine.yesterday.report ? "✓" : ""}
         </button>
       </div>
+      {!mine.today.report && <p className="ws-muted" role="status">Звіту за сьогодні немає.</p>}
 
       <form className="ws-card ws-stack" onSubmit={submit}>
         <h2>{report ? (readOnly ? "Звіт подано" : "Ваш звіт (можна виправити)") : "Новий звіт"} за {shortDate(slot.date)}</h2>
+        <p className="ws-muted">Автор: {report?.author || author}</p>
         {report && !readOnly && <Hint>Виправити можна до кінця {shortDate(report.editable_until)}.</Hint>}
         {readOnly && <Hint>Термін редагування цього звіту минув.</Hint>}
         <Field label="Що зроблено" hint="Коротко по пунктах. Можна markdown: - список, **жирний**">
@@ -171,7 +188,7 @@ function MyReport({ onSaved }) {
         </Field>
         <div className="ws-form2">
           <Field label="Скільки годин">
-            <input className="ws-input" type="number" min="0" max="24" step="0.5" inputMode="decimal" required
+            <input className="ws-input" type="number" min="0" max="24" step="0.01" inputMode="decimal" required
                    value={f.hours} onChange={set("hours")} disabled={readOnly} />
           </Field>
           <Field label="Настрій / навантаження" hint="Необовʼязково. Натисніть ще раз, щоб прибрати">
@@ -188,6 +205,29 @@ function MyReport({ onSaved }) {
           <textarea className="ws-input ws-input--mono" rows={3} value={f.links} onChange={set("links")} disabled={readOnly}
                     placeholder="https://…" />
         </Field>
+        <section className="ws-stack">
+          <h3>Метрики постів</h3>
+          <p className="ws-muted ws-small">Додайте кожен пост окремо. Залиште порожнім, якщо сьогодні публікацій не було.</p>
+          {f.post_metrics.map((post, index) => (
+            <div className="ws-card ws-stack" key={index}>
+              <Field label={`Посилання на пост ${index + 1}`}>
+                <input className="ws-input" type="url" required value={post.url} disabled={readOnly}
+                       onChange={(e) => setF({ ...f, post_metrics: f.post_metrics.map((p, i) => i === index ? { ...p, url: e.target.value } : p) })} />
+              </Field>
+              <div className="ws-daily-metrics">
+                {METRICS.map(([key, label]) => (
+                  <Field key={key} label={label}>
+                    <input className="ws-input" type="number" min="0" step="1" inputMode="numeric" required
+                           value={post[key]} disabled={readOnly}
+                           onChange={(e) => setF({ ...f, post_metrics: f.post_metrics.map((p, i) => i === index ? { ...p, [key]: e.target.value } : p) })} />
+                  </Field>
+                ))}
+              </div>
+              {!readOnly && <button type="button" className="ws-btn" onClick={() => setF({ ...f, post_metrics: f.post_metrics.filter((_, i) => i !== index) })}>Прибрати пост</button>}
+            </div>
+          ))}
+          {!readOnly && f.post_metrics.length < 20 && <button type="button" className="ws-btn" onClick={() => setF({ ...f, post_metrics: [...f.post_metrics, emptyPost()] })}>+ Додати пост</button>}
+        </section>
         <Field label="Що заважало">
           <textarea className="ws-input" rows={2} value={f.blockers} onChange={set("blockers")} disabled={readOnly}
                     placeholder="Якщо нічого, залиште порожнім" />
@@ -213,25 +253,64 @@ function Feed({ onOpen, showAuthorFilter }) {
   const [items, setItems] = useState(null);
   const [people, setPeople] = useState([]);
   const [author, setAuthor] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [blockers, setBlockers] = useState("");
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => { getPeople().then(setPeople).catch(() => {}); }, []);
   useEffect(() => {
-    getDailyReports(author ? { author_id: author } : {}).then((d) => setItems(d.items)).catch((e) => setError(errorText(e)));
-  }, [author]);
+    if (showAuthorFilter) getDailyAuthors().then(setPeople).catch(() => setPeople([]));
+  }, [showAuthorFilter]);
+  useEffect(() => {
+    let active = true;
+    getDailyReports({ ...(author && { author_id: author }), ...(dateFrom && { date_from: dateFrom }),
+      ...(dateTo && { date_to: dateTo }), ...(blockers && { has_blockers: blockers }), offset, limit: 60 })
+      .then((d) => { if (active) { setItems((old) => offset ? [...(old || []), ...d.items] : d.items); setHasMore(d.has_more); setError(""); } })
+      .catch((e) => { if (active) { setError(errorText(e)); setHasMore(false); } })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [author, dateFrom, dateTo, blockers, offset]);
 
-  if (error) return <ErrorBox text={error} />;
-  if (!items) return <p className="ws-muted">Завантажуємо…</p>;
+  const filter = (setter) => (event) => {
+    setItems(null);
+    setOffset(0);
+    setLoading(true);
+    setError("");
+    setter(event.target.value);
+  };
 
   return (
     <div className="ws-stack">
-      {showAuthorFilter && (
-        <select className="ws-input ws-input--auto" value={author} onChange={(e) => setAuthor(e.target.value)} aria-label="Чиї звіти">
-          <option value="">Усі люди</option>
-          {people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
-      )}
-      {!items.length ? <Empty title="Звітів поки немає">Перший звіт можна здати на вкладці «Мій звіт».</Empty> : (
+      <div className="ws-daily-filters">
+        {showAuthorFilter && (
+          <Field label="Автор">
+            <select className="ws-input" value={author} onChange={filter(setAuthor)} aria-label="Автор">
+              <option value="">Усі автори</option>
+              {people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </Field>
+        )}
+        <Field label="Від">
+          <input className="ws-input" type="date" value={dateFrom} max={dateTo || undefined} onChange={filter(setDateFrom)} />
+        </Field>
+        <Field label="До">
+          <input className="ws-input" type="date" value={dateTo} min={dateFrom || undefined} onChange={filter(setDateTo)} />
+        </Field>
+        <Field label="Блокери">
+          <select className="ws-input" value={blockers} onChange={filter(setBlockers)} aria-label="Блокери">
+            <option value="">Усі</option>
+            <option value="true">Є блокери</option>
+            <option value="false">Без блокерів</option>
+          </select>
+        </Field>
+      </div>
+      <ErrorBox text={error} />
+      {loading && <p className="ws-muted" role="status">Завантажуємо…</p>}
+      {items?.length === 0 && <Empty title={author || dateFrom || dateTo || blockers ? "За цими фільтрами звітів немає" : "Звітів поки немає"} />}
+      {items?.length > 0 && (
         <div className="ws-list">
           {items.map((r) => (
             <button key={r.id} type="button" className="ws-card ws-daily-card" onClick={() => onOpen(r.id)}>
@@ -249,6 +328,7 @@ function Feed({ onOpen, showAuthorFilter }) {
           ))}
         </div>
       )}
+      {hasMore && <button type="button" className="ws-btn" disabled={loading} onClick={() => { setLoading(true); setOffset(items.length); }}>Показати ще</button>}
     </div>
   );
 }
@@ -256,8 +336,8 @@ function Feed({ onOpen, showAuthorFilter }) {
 /* ================================================================ тиждень (owner) */
 
 function addDays(iso, n) {
-  const d = new Date(`${iso}T12:00:00`);
-  d.setDate(d.getDate() + n);
+  const d = new Date(`${iso}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);
 }
 
@@ -281,7 +361,7 @@ function Week({ onOpen }) {
         <button type="button" className="ws-btn" onClick={() => setStart(addDays(w.start, 7))}>Наступний →</button>
       </div>
 
-      <div className="ws-card ws-daily-week">
+      {w.members.length > 0 && <div className="ws-card ws-daily-week">
         <table>
           <thead>
             <tr>
@@ -309,8 +389,11 @@ function Week({ onOpen }) {
             ))}
           </tbody>
         </table>
-      </div>
-      <p className="ws-muted ws-small">Разом за тиждень: {w.hours_total} год. «Не здав» — робочий день до сьогодні включно без звіту.</p>
+      </div>}
+      <p className="ws-muted">Звітів за тиждень: {w.reports_total} · Годин: {w.hours_total}</p>
+      <div className="ws-card ws-stack"><h2>Сума метрик постів</h2><div className="ws-daily-metrics">
+        {METRICS.map(([key, label]) => <div key={key}><b>{w.post_metrics_total[key]}</b><span className="ws-muted ws-small">{label}</span></div>)}
+      </div></div>
 
       <section className="ws-card">
         <h2>Що заважало цього тижня</h2>
@@ -356,6 +439,12 @@ function ReportModal({ id, onClose }) {
                 </ul>
               </section>
             )}
+            {r.post_metrics?.length > 0 && <section className="ws-block"><h3>Метрики постів</h3>
+              {r.post_metrics.map((post, index) => <div className="ws-card ws-stack" key={index}>
+                <a href={post.url} target="_blank" rel="noopener noreferrer nofollow">Пост {index + 1}</a>
+                <div className="ws-daily-metrics">{METRICS.map(([key, label]) => <div key={key}><b>{post[key]}</b><span className="ws-muted ws-small">{label}</span></div>)}</div>
+              </div>)}
+            </section>}
             <section className="ws-block"><h3>Що заважало</h3><Markdown text={r.blockers} empty="Нічого не заважало." /></section>
             <section className="ws-block"><h3>План на завтра</h3><Markdown text={r.plan} empty="План не вказано." /></section>
           </div>

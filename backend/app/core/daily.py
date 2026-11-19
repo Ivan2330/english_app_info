@@ -2,8 +2,8 @@
 
 Видимість — один параметр `daily_reports_visibility` у `ws_settings`, міняє тільки owner:
   all — усі, кому відкрито розділ, бачать усі звіти (за замовчуванням);
-  own — кожен бачить лише свій, owner бачить усі.
-Перемикання не змінює дані, лише права читання. Чужий звіт у режимі own віддає 404
+  owner_only — кожен бачить лише свій, owner бачить усі.
+Перемикання не змінює дані, лише права читання. Чужий звіт у режимі owner_only віддає 404
 (як приватна нотатка): навіть факт його існування не видно. Те саме для коментарів,
 оцінок і файлів до нього — через `app/core/entities.py`.
 """
@@ -21,10 +21,10 @@ from app.models.workspace import DailyReport, WorkspaceSetting
 
 VISIBILITY_KEY = "daily_reports_visibility"
 VISIBILITY_ALL = "all"
-VISIBILITY_OWN = "own"
+VISIBILITY_OWNER_ONLY = "owner_only"
 VISIBILITY_LABELS = {
     VISIBILITY_ALL: "Усі бачать усі звіти",
-    VISIBILITY_OWN: "Кожен бачить лише свій, власник бачить усі",
+    VISIBILITY_OWNER_ONLY: "Кожен бачить лише свій, власник бачить усі",
 }
 
 
@@ -45,7 +45,9 @@ async def set_setting(session: AsyncSession, key: str, value, user: AdminUser) -
 
 async def visibility(session: AsyncSession) -> str:
     value = await get_setting(session, VISIBILITY_KEY, VISIBILITY_ALL)
-    return value if value in VISIBILITY_LABELS else VISIBILITY_ALL
+    if value == "own":
+        return VISIBILITY_OWNER_ONLY
+    return value if value in (VISIBILITY_ALL, VISIBILITY_OWNER_ONLY) else VISIBILITY_ALL
 
 
 def can_see(user: AdminUser, report: DailyReport, mode: str) -> bool:

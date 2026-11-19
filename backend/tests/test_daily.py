@@ -94,6 +94,19 @@ async def test_hours_and_mood_are_optional_details(client_for, dan):
         assert r.status_code == 201 and r.json()["mood"] is None and r.json()["links"] == []
 
 
+async def test_post_metrics_create_update_and_validation(client_for, dan):
+    post = {"url": "https://instagram.com/p/abc", "reach": 120, "saves": 8,
+            "shares": 3, "comments": 4, "followers": 2, "direct_trial": 1}
+    async with client_for(dan) as c:
+        created = await c.post("/api/admin/daily-reports", json=body(post_metrics=[post]))
+        assert created.status_code == 201, created.text
+        rid = created.json()["id"]
+        assert created.json()["post_metrics"] == [post]
+        assert (await c.patch(f"/api/admin/daily-reports/{rid}", json={"post_metrics": [{**post, "reach": 150}]})).json()["post_metrics"][0]["reach"] == 150
+        assert (await c.post("/api/admin/daily-reports", json=body(date="2026-11-17", post_metrics=[{**post, "reach": -1}]))).status_code == 422
+        assert (await c.patch(f"/api/admin/daily-reports/{rid}", json={"post_metrics": [{**post, "url": "javascript:bad"}]})).status_code == 422
+
+
 # ------------------------------------------------------------------ редагування до кінця наступного дня
 
 async def test_author_edits_until_end_of_next_day(client_for, dan, frozen_kyiv):
@@ -133,14 +146,15 @@ async def test_by_default_everyone_sees_everyone(client_for, admin_client, dan, 
 
 async def test_private_mode_hides_others_reports_everywhere(client_for, admin_client, dan, dima, session):
     async with client_for(dan) as d, client_for(dima) as m:
-        rep = (await d.post("/api/admin/daily-reports", json=body(blockers="Не працює ноутбук"))).json()
+        rep = (await d.post("/api/admin/daily-reports", json=body(blockers="Не працює ноутбук",
+            post_metrics=[{"url": "https://example.test/post", "reach": 100}]))).json()
         await m.post("/api/admin/daily-reports", json=body())
         rid = rep["id"]
         await admin_client.post("/api/admin/comments", json={"entity_type": "daily", "entity_id": rid, "body": "Добре"})
         await d.post("/api/admin/files", params={"entity_type": "daily", "entity_id": rid}, files={"file": ("a.png", PNG)})
         before = (await session.execute(select(func.count()).select_from(DailyReport))).scalar_one()
 
-        assert (await set_visibility(admin_client, "own"))["visibility"] == "own"
+        assert (await set_visibility(admin_client, "owner_only"))["visibility"] == "owner_only"
 
         # Дмитро: лише свій у списку, чужий за id — 404, і жодних обхідних шляхів
         items = (await m.get("/api/admin/daily-reports")).json()["items"]
@@ -154,7 +168,10 @@ async def test_private_mode_hides_others_reports_everywhere(client_for, admin_cl
         assert (await m.get("/api/admin/files", params=key)).status_code == 404
         assert (await m.get("/api/admin/reviews", params=key)).status_code == 404
         assert (await m.get("/api/admin/counters")).json()["daily"] == 0
-        assert (await m.get("/api/admin/daily-reports/week")).status_code == 403
+        week = (await m.get("/api/admin/daily-reports/week")).json()
+        assert week["reports_total"] == 1 and week["blockers"] == [] and week["members"] == []
+        assert week["post_metrics_total"]["reach"] == 0
+        assert (await m.get("/api/admin/daily-reports/authors")).json() == [{"id": dima.id, "name": "Дмитро"}]
 
         # Автор бачить свій, owner — усі
         assert (await d.get(f"/api/admin/daily-reports/{rid}")).status_code == 200
@@ -171,9 +188,9 @@ async def test_private_mode_hides_others_reports_everywhere(client_for, admin_cl
 
 async def test_only_owner_changes_visibility(client_for, admin_client, dan):
     async with client_for(dan) as d:
-        assert (await d.put("/api/admin/daily-reports/settings", json={"visibility": "own"})).status_code == 403
+        assert (await d.put("/api/admin/daily-reports/settings", json={"visibility": "owner_only"})).status_code == 403
     assert (await admin_client.put("/api/admin/daily-reports/settings", json={"visibility": "nobody"})).status_code == 422
-    r = await set_visibility(admin_client, "own")
+    r = await set_visibility(admin_client, "owner_only")
     assert r["label"].startswith("Кожен бачить лише свій") and r["can_change"] is True
     audit = (await admin_client.get("/api/admin/audit", params={"action": "daily."})).json()
     assert audit[0]["action"] == "daily.visibility"
@@ -233,7 +250,9 @@ async def test_week_summary_for_owner(client_for, admin_client, dan, dima, make_
     await make_admin(name="Без розділу", sections=["tasks"])                   # у зведення не потрапляє
     async with client_for(dan) as d, client_for(dima) as m:
         frozen_kyiv(datetime(2026, 11, 17, 12, 0, tzinfo=timezone(timedelta(hours=2))))   # вівторок
-        await d.post("/api/admin/daily-reports", json=body(hours=8, blockers="Немає доступу до Canva"))
+        await d.post("/api/admin/daily-reports", json=body(hours=8, blockers="Немає доступу до Canva",
+            post_metrics=[{"url": "https://instagram.com/p/abc", "reach": 120, "saves": 8, "shares": 3,
+                           "comments": 4, "followers": 2, "direct_trial": 1}]))
         frozen_kyiv(datetime(2026, 11, 18, 12, 0, tzinfo=timezone(timedelta(hours=2))))   # середа
         await d.post("/api/admin/daily-reports", json=body(hours=6.5))
         await m.post("/api/admin/daily-reports", json=body(hours=3, blockers="Хворів"))
@@ -248,6 +267,9 @@ async def test_week_summary_for_owner(client_for, admin_client, dan, dima, make_
     assert [(b["author"], b["text"]) for b in w["blockers"]] == [("Данило", "Немає доступу до Canva"),
                                                                   ("Дмитро", "Хворів")]
     assert w["hours_total"] == 17.5
+    assert w["reports_total"] == 3
+    assert w["post_metrics_total"] == {"reach": 120, "saves": 8, "shares": 3,
+                                        "comments": 4, "followers": 2, "direct_trial": 1}
     default = (await admin_client.get("/api/admin/daily-reports/week")).json()
     assert default["start"] == "2026-11-16"
 
@@ -255,7 +277,7 @@ async def test_week_summary_for_owner(client_for, admin_client, dan, dima, make_
 async def test_list_filters(client_for, admin_client, dan, dima, frozen_kyiv):
     async with client_for(dan) as d, client_for(dima) as m:
         frozen_kyiv(datetime(2026, 11, 17, 12, 0, tzinfo=timezone(timedelta(hours=2))))
-        await d.post("/api/admin/daily-reports", json=body())
+        await d.post("/api/admin/daily-reports", json=body(blockers="Canva"))
         frozen_kyiv(datetime(2026, 11, 18, 12, 0, tzinfo=timezone(timedelta(hours=2))))
         await d.post("/api/admin/daily-reports", json=body())
         await m.post("/api/admin/daily-reports", json=body())
@@ -263,6 +285,12 @@ async def test_list_filters(client_for, admin_client, dan, dima, frozen_kyiv):
     assert [x["date"] for x in (await get(author_id=dan.id)).json()["items"]] == ["2026-11-18", "2026-11-17"]
     assert len((await get(date_from="2026-11-18")).json()["items"]) == 2
     assert len((await get(date_to="2026-11-17")).json()["items"]) == 1
+    assert len((await get(has_blockers=True)).json()["items"]) == 1
+    assert len((await get(has_blockers=False)).json()["items"]) == 2
+    first = (await get(limit=1)).json()
+    assert len(first["items"]) == 1 and first["has_more"]
+    assert len((await get(limit=1, offset=1)).json()["items"]) == 1
+    assert [u["id"] for u in (await admin_client.get("/api/admin/daily-reports/authors")).json()] == [dan.id, dima.id]
 
 
 # ------------------------------------------------------------------ київський час

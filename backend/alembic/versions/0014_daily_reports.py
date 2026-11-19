@@ -40,6 +40,7 @@ def upgrade() -> None:
         sa.Column("done", sa.Text(), nullable=False),
         sa.Column("hours", sa.Float(), nullable=False, server_default="0"),
         sa.Column("links", sa.JSON(), nullable=False, server_default=sa.text("'[]'::json")),
+        sa.Column("post_metrics", sa.JSON(), nullable=False, server_default=sa.text("'[]'::json")),
         sa.Column("blockers", sa.Text(), nullable=False, server_default=""),
         sa.Column("plan", sa.Text(), nullable=False, server_default=""),
         sa.Column("mood", sa.Integer(), nullable=True),

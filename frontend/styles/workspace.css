@@ -308,3 +308,5 @@ textarea.ws-input { resize: vertical; }
 .ws-daily-week td button { min-height: 32px; padding: 4px 8px; border-radius: 8px; background: #18382a; color: var(--ws-ok); font-weight: 700; }
 .ws-daily-week td.is-missing { color: var(--ws-danger); font-weight: 700; font-size: 12.5px; }
 .ws-daily-week .is-weekend { opacity: .65; }
+.ws-daily-filters, .ws-daily-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: .75rem; }
+.ws-daily-metrics > div { display: flex; flex-direction: column; gap: .2rem; }
