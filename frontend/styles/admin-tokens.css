@@ -1,0 +1,325 @@
+/* Токени кабінету. Класична тема лишається початковим виглядом. */
+body.admin-mode {
+    --ws-bg: #0d1017;
+    --ws-card: #141920;
+    --ws-card-2: #10151c;
+    --ws-panel: #161b24;
+    --ws-dialog: #12171f;
+    --ws-side: #11151d;
+    --ws-line: #232a37;
+    --ws-border: #1e2531;
+    --ws-input-border: #2a3240;
+    --ws-text: #e6e9f0;
+    --ws-title: #fff;
+    --ws-muted: #8b93a7;
+    --ws-muted-detail: #6f7891;
+    --ws-muted-nav: #59617a;
+    --ws-text-secondary: #9aa3b8;
+    --ws-label: #b7bfd0;
+    --ws-copy: #c3cad8;
+    --ws-accent: #6d4bff;
+    --ws-accent-2: #8b7dff;
+    --ws-bright: #1fd6e8;
+    --ws-action: #6d4bff;
+    --ws-action-hover: #7d5dff;
+    --ws-on-action: #fff;
+    --ws-button: #222a38;
+    --ws-button-hover: #2c3546;
+    --ws-hover: #171d27;
+    --ws-line-hover: #1a212c;
+    --ws-tag-bg: #1c2432;
+    --ws-code: #0a0d13;
+    --ws-ok: #6ee7a8;
+    --ws-ok-bg: #18382a;
+    --ws-warn: #f0b400;
+    --ws-warn-text: #ffe08a;
+    --ws-warn-bg: #1d1a10;
+    --ws-warn-border: #5a4a14;
+    --ws-danger: #ff8a73;
+    --ws-danger-bg: #3a1d19;
+    --ws-danger-border: #5a2b24;
+    --ws-review-bg: #2d2a4a;
+    --ws-review-text: #cfc6ff;
+    --ws-focus: rgba(109, 75, 255, .25);
+    --ws-accent-tint: rgba(109, 75, 255, .1);
+    --ws-accent-border: rgba(109, 75, 255, .28);
+    --ws-device-tint: rgba(109, 75, 255, .22);
+    --ws-chart-end: #3a2a99;
+    --ws-on-warning: #1a1400;
+    --ws-on-notice: #1a0f0c;
+    --ws-notice: #ff8a73;
+    --ws-danger-soft: #ffd0c5;
+    --ws-danger-hover: #7a2c22;
+    --ws-error-tint: rgba(255, 138, 115, .1);
+    --ws-error-strong: rgba(255, 138, 115, .12);
+    --ws-error-outline: rgba(255, 138, 115, .4);
+    --ws-progress-bg: #1d3540;
+    --ws-progress-text: #9fe8f2;
+    --ws-review-warn-bg: #3d3317;
+    --ws-board-bg: #10141b;
+    --ws-markdown: #d7dce6;
+    --ws-overlay: rgba(5, 7, 11, .72);
+    --ws-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+    --ws-media-matte: #000;
+    --ws-warn-tint: rgba(240, 180, 0, .1);
+    --ws-table-divider: #161c26;
+    --ws-cert-hover: #232c3b;
+    --ws-discount-line: #2a2a3c;
+    --ws-discount-text: #f0b23a;
+    --ws-discount-tint: rgba(240, 178, 58, .10);
+    --ws-note-label: #8b94a7;
+    --ws-note-border: rgba(255, 255, 255, .12);
+    --ws-note-bg: #11141d;
+    --ws-note-button: #262b3a;
+    --ws-note-hover: #313748;
+    --ws-new-row: #181630;
+    --ws-font: var(--font-text);
+    --ws-radius-6: 6px;
+    --ws-radius-8: 8px;
+    --ws-radius-10: 10px;
+    --ws-radius-12: 12px;
+    --ws-radius-14: 14px;
+    --ws-radius-16: 16px;
+    --ws-radius-pill: 999px;
+    --ws-space-4: 4px;
+    --ws-space-6: 6px;
+    --ws-space-8: 8px;
+    --ws-space-10: 10px;
+    --ws-space-12: 12px;
+    --ws-space-14: 14px;
+    --ws-space-16: 16px;
+    --ws-space-18: 18px;
+    --ws-space-22: 22px;
+    --ws-space-24: 24px;
+    --ws-space-28: 28px;
+    --ws-space-30: 30px;
+    --ws-space-60: 60px;
+}
+
+body.admin-mode:is([data-admin-theme="nord-light"], [data-admin-theme="nord-dark"]) {
+    --ws-font: "Segoe UI", var(--font-text), sans-serif;
+    --ws-radius-10: 8px;
+    --ws-radius-14: 12px;
+}
+
+body.admin-mode[data-admin-theme="nord-light"] {
+    color-scheme: light;
+    --ws-bg: #eceff4;
+    --ws-side: #e2e8f0;
+    --ws-card: #fff;
+    --ws-card-2: #edf2f8;
+    --ws-panel: #fff;
+    --ws-dialog: #fff;
+    --ws-line: #bfcada;
+    --ws-border: #c9d3e0;
+    --ws-input-border: #8596ab;
+    --ws-title: #202a38;
+    --ws-text: #263344;
+    --ws-copy: #33465b;
+    --ws-text-secondary: #405369;
+    --ws-label: #3a4d63;
+    --ws-muted: #435770;
+    --ws-muted-detail: #4b5d73;
+    --ws-muted-nav: #4b5d73;
+    --ws-accent: #315674;
+    --ws-accent-2: #254f71;
+    --ws-bright: #2c6876;
+    --ws-action: #315674;
+    --ws-action-hover: #24445e;
+    --ws-button: #dee7f2;
+    --ws-button-hover: #cfdbea;
+    --ws-hover: #d6e0ee;
+    --ws-line-hover: #e2eaf4;
+    --ws-tag-bg: #dde7f1;
+    --ws-code: #dce6f0;
+    --ws-ok: #175641;
+    --ws-ok-bg: #d4ece2;
+    --ws-warn: #7a500a;
+    --ws-warn-text: #6f4606;
+    --ws-warn-bg: #fbefd5;
+    --ws-warn-border: #b39962;
+    --ws-danger: #8f292c;
+    --ws-danger-bg: #f8e0de;
+    --ws-danger-border: #ba7e7d;
+    --ws-review-bg: #e1e9f7;
+    --ws-review-text: #304e71;
+    --ws-focus: #31567438;
+}
+
+body.admin-mode[data-admin-theme="nord-dark"] {
+    color-scheme: dark;
+    --ws-bg: #252c39;
+    --ws-side: #2b3444;
+    --ws-card: #333e50;
+    --ws-card-2: #2f394a;
+    --ws-panel: #333e50;
+    --ws-dialog: #2d3747;
+    --ws-line: #556780;
+    --ws-border: #495a72;
+    --ws-input-border: #6c819b;
+    --ws-text: #e5ebf5;
+    --ws-title: #f7f9fd;
+    --ws-copy: #d7e2f2;
+    --ws-label: #cbd8e9;
+    --ws-muted: #b9c9df;
+    --ws-muted-detail: #b2c2d6;
+    --ws-muted-nav: #a8bdd8;
+    --ws-text-secondary: #c3d1e6;
+    --ws-accent: #8ec2e1;
+    --ws-accent-2: #a0d3ee;
+    --ws-bright: #8fcbce;
+    --ws-action: #84b2d2;
+    --ws-action-hover: #a1c7e2;
+    --ws-on-action: #142735;
+    --ws-button: #42526a;
+    --ws-button-hover: #50627e;
+    --ws-hover: #37465d;
+    --ws-line-hover: #3a4960;
+    --ws-tag-bg: #42526a;
+    --ws-code: #242d3d;
+    --ws-ok: #a4dbbd;
+    --ws-warn: #f3d6a1;
+    --ws-warn-text: #f7dbab;
+    --ws-danger: #ffb5b5;
+    --ws-focus: #8ec2e145;
+}
+
+body.admin-mode:is([data-admin-theme="school-light"], [data-admin-theme="school-dark"]) {
+    --ws-action: linear-gradient(135deg, #522383, #b9308e);
+    --ws-action-hover: linear-gradient(135deg, #451c70, #9e2278);
+    --ws-radius-10: 12px;
+    --ws-radius-14: 16px;
+}
+
+body.admin-mode[data-admin-theme="school-light"] {
+    color-scheme: light;
+    --ws-bg: #fbf6ff;
+    --ws-side: #f2e9fb;
+    --ws-card: #fff;
+    --ws-card-2: #f5eefb;
+    --ws-panel: #fff;
+    --ws-dialog: #fffbff;
+    --ws-line: #d5c6e2;
+    --ws-border: #e0d3eb;
+    --ws-input-border: #9480a9;
+    --ws-title: #2f173d;
+    --ws-text: #39264a;
+    --ws-copy: #473354;
+    --ws-label: #533964;
+    --ws-muted: #604d70;
+    --ws-muted-detail: #655274;
+    --ws-muted-nav: #655274;
+    --ws-text-secondary: #543c65;
+    --ws-accent: #704096;
+    --ws-accent-2: #682e8f;
+    --ws-bright: #b9308e;
+    --ws-button: #eee3f9;
+    --ws-button-hover: #e3d5f0;
+    --ws-hover: #e9ddf5;
+    --ws-line-hover: #f1e8f9;
+    --ws-tag-bg: #eee3f9;
+    --ws-code: #eee5f6;
+    --ws-ok: #18573f;
+    --ws-ok-bg: #d9efe3;
+    --ws-warn: #75480d;
+    --ws-warn-text: #6f4606;
+    --ws-warn-bg: #fbefd5;
+    --ws-warn-border: #b39962;
+    --ws-danger: #9b3040;
+    --ws-danger-bg: #f9e4ec;
+    --ws-danger-border: #b6768a;
+    --ws-review-bg: #eadff7;
+    --ws-review-text: #5a347d;
+    --ws-focus: #7942a33d;
+}
+
+body.admin-mode[data-admin-theme="school-dark"] {
+    color-scheme: dark;
+    --ws-bg: #1c1528;
+    --ws-side: #251c33;
+    --ws-card: #2b203b;
+    --ws-card-2: #241a32;
+    --ws-panel: #2b203b;
+    --ws-dialog: #292037;
+    --ws-line: #594772;
+    --ws-border: #493856;
+    --ws-input-border: #806694;
+    --ws-title: #f9edf9;
+    --ws-text: #f0e7f5;
+    --ws-copy: #e5d6ee;
+    --ws-label: #e4cee8;
+    --ws-muted: #c9b5d4;
+    --ws-muted-detail: #c2accf;
+    --ws-muted-nav: #c2accf;
+    --ws-text-secondary: #ddcae5;
+    --ws-accent: #cca4f2;
+    --ws-accent-2: #e0b6ff;
+    --ws-bright: #f294ca;
+    --ws-button: #402e54;
+    --ws-button-hover: #533b6d;
+    --ws-hover: #372749;
+    --ws-line-hover: #38294b;
+    --ws-tag-bg: #402e54;
+    --ws-code: #1e1629;
+    --ws-ok: #a0e2c1;
+    --ws-warn: #f8dca3;
+    --ws-warn-text: #f8dca3;
+    --ws-danger: #ffb4c8;
+    --ws-focus: #cca4f24a;
+}
+
+.ws-appearance { padding: var(--ws-space-6) 0; }
+.ws-appearance summary { color: var(--ws-accent-2); cursor: pointer; font-weight: 700; min-height: 34px; align-content: center; }
+.ws-appearance .ws-field { margin-bottom: var(--ws-space-8); }
+.ws-appearance .ws-seg { display: flex; }
+.ws-appearance .ws-seg button { flex: 1; padding-inline: var(--ws-space-8); }
+.ws-nav__caption { display: inline-flex; align-items: center; gap: var(--ws-space-8); }
+.ws-nav__icon { display: none; }
+
+body.admin-mode[data-admin-theme] { font-family: var(--ws-font); }
+body.admin-mode[data-admin-theme] {
+    --ws-table-divider: var(--ws-line);
+    --ws-notice: var(--ws-danger-bg);
+    --ws-on-notice: var(--ws-danger);
+    --ws-danger-soft: var(--ws-title);
+    --ws-error-tint: var(--ws-danger-bg);
+    --ws-error-strong: var(--ws-danger-bg);
+    --ws-error-outline: var(--ws-danger-border);
+    --ws-board-bg: var(--ws-card-2);
+    --ws-markdown: var(--ws-copy);
+    --ws-warn-tint: var(--ws-warn-bg);
+    --ws-cert-hover: var(--ws-hover);
+    --ws-discount-line: var(--ws-line);
+    --ws-discount-text: var(--ws-warn-text);
+    --ws-discount-tint: var(--ws-warn-bg);
+    --ws-note-label: var(--ws-label);
+    --ws-note-border: var(--ws-input-border);
+    --ws-note-bg: var(--ws-card-2);
+    --ws-note-button: var(--ws-button);
+    --ws-note-hover: var(--ws-button-hover);
+    --ws-new-row: var(--ws-card-2);
+}
+body.admin-mode[data-admin-theme$="-light"] {
+    --ws-on-warning: #fff;
+    --ws-danger-soft: #201322;
+    --ws-progress-bg: #e0eef2;
+    --ws-progress-text: #245564;
+    --ws-review-warn-bg: var(--ws-warn-bg);
+}
+body.admin-mode[data-admin-theme] .ws-nav__icon {
+    display: inline-grid; place-items: center; width: 1.25rem; flex: 0 0 1.25rem; color: currentColor; font-size: 1rem;
+}
+body.admin-mode[data-admin-theme] :is(.ws-card, .adm-card, .adm-panel) { box-shadow: 0 1px 3px #00000012; }
+body.admin-mode[data-admin-theme] :is(.ws-empty, .adm-empty) { background: var(--ws-card); }
+body.admin-mode[data-admin-theme] .ws-pagehead { padding-bottom: var(--ws-space-12); border-bottom: 1px solid var(--ws-line); }
+body.admin-mode[data-admin-theme] :is(.ws-h1, .adm-head h1) { font-size: clamp(1.55rem, 3vw, 2rem); }
+body.admin-mode[data-admin-theme] .adm-tabs button.is-on { background: var(--ws-action); color: var(--ws-on-action); }
+body.admin-mode[data-admin-theme] :is(.ws-btn, .adm-btn, .adm__link, .ws-appearance summary):focus-visible {
+    outline: 2px solid var(--ws-accent-2); outline-offset: 2px;
+}
+body.admin-mode[data-admin-theme$="-light"] .ws-daily-card__blocker { background: var(--ws-warn-bg); color: var(--ws-warn-text); }
+
+@media (max-width: 760px) {
+    body.admin-mode[data-admin-theme] .ws-appearance summary { min-height: 44px; }
+    body.admin-mode[data-admin-theme] .ws-user .ws-input { min-height: 44px; }
+}
