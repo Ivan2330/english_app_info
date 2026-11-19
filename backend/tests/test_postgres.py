@@ -238,8 +238,8 @@ async def test_migrations_build_a_working_schema_from_scratch(migrated):
     assert tables == {"admin_users", "alembic_version", "certificates", "leads", "orders", "packages",
                       "page_visits", "payments", "quote_requests", "admin_login_attempts",
                       "ws_comments", "ws_reviews", "ws_attachments", "ws_audit_log", "ws_read_marks",
-                      "ws_tasks", "ws_notes", "ws_reports", "ws_settings", "ws_daily_reports"}
-    assert version == "0014_daily_reports"
+                      "ws_tasks", "ws_notes", "ws_reports", "ws_settings", "ws_daily_reports", "ws_ideas"}
+    assert version == "0015_ideas"
 
 
 async def test_models_and_migrations_do_not_drift(migrated):
@@ -327,18 +327,19 @@ async def test_existing_admins_survive_the_role_migration(migrated):
             "insert into admin_users (email, password_hash, role, is_active, created_at) values "
             "('ivan@x.com','$2b$hash1','OWNER',true,now()), ('dan@x.com','$2b$hash2','MANAGER',true,now()),"
             "('ed@x.com','$2b$hash3','EDITOR',false,now())"))
-    up = alembic(url, "upgrade", "head")
+    up = alembic(url, "upgrade", "0011_admin_accounts")
     assert up.returncode == 0, up.stderr[-2000:]
     async with engine.connect() as conn:
         rows = (await conn.execute(text(
             "select email, role, name, password_hash, sections::text, must_change_password, token_version "
             "from admin_users order by email"))).all()
-    from app.core.access import ALL_SECTIONS, clean_sections
     import json
     assert [(r[0], r[1], r[2], r[3]) for r in rows] == [
         ("dan@x.com", "admin", "dan", "$2b$hash2"), ("ed@x.com", "admin", "ed", "$2b$hash3"),
         ("ivan@x.com", "owner", "ivan", "$2b$hash1")]
-    assert all(clean_sections(json.loads(r[4])) == ALL_SECTIONS and r[5] is False and r[6] == 0 for r in rows)
+    sections_at_0011 = ["dashboard", "leads", "quotes", "orders", "certificates", "tasks", "reports",
+                         "content", "students", "payments", "lessons", "instagram", "metrics"]
+    assert all(json.loads(r[4]) == sections_at_0011 and r[5] is False and r[6] == 0 for r in rows)
 
     async with engine.begin() as conn:
         bad = conn.execute(text("update admin_users set role='root' where email='dan@x.com'"))

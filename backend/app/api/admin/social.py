@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.access import require_any
 from app.core.entities import load_entity
-from app.core.files import remove_stored, save_upload, stored_path
+from app.core.files import extension_type, make_image_thumbnail, remove_stored, save_upload, stored_path, thumbnail_name
 from app.core.workspace import audit, now_utc, people_names, touch
 from app.db.database import get_async_session
 from app.models.admin_user import AdminUser
@@ -139,6 +139,8 @@ async def list_reviews(entity_type: str, entity_id: int, user: AdminUser = Depen
 async def save_review(data: ReviewIn, user: AdminUser = Depends(require_any),
                       session: AsyncSession = Depends(get_async_session)):
     entity = await load_entity(session, user, data.entity_type, data.entity_id)
+    if data.entity_type == "idea" and (data.score is None or data.score > 5):
+        raise HTTPException(status_code=422, detail="Поставте оцінку від 1 до 5")
     if data.score is None and not data.body.strip():
         raise HTTPException(status_code=400, detail="Поставте бал або напишіть коментар")
     r = (await session.execute(select(Review).where(
@@ -195,7 +197,15 @@ async def upload_file(entity_type: str = Query(..., max_length=32), entity_id: i
                       file: UploadFile = File(...), user: AdminUser = Depends(require_any),
                       session: AsyncSession = Depends(get_async_session)):
     entity = await load_entity(session, user, entity_type, entity_id)
+    if entity_type == "idea" and extension_type(file.filename).ext not in ("jpg", "png", "webp"):
+        raise HTTPException(status_code=415, detail="Для ідеї підійде зображення JPG, PNG або WebP")
     stored, ft, size = await save_upload(file)
+    if entity_type == "idea":
+        try:
+            make_image_thumbnail(stored)
+        except HTTPException:
+            remove_stored(stored)
+            raise
     name = (file.filename or f"file.{ft.ext}").replace("/", "_").replace("\\", "_")[:255]
     a = Attachment(entity_type=entity_type, entity_id=entity_id, stored_name=stored, original_name=name,
                    mime=ft.mime, kind=ft.kind, size_bytes=size, uploaded_by=user.id, created_at=now_utc())
@@ -217,9 +227,15 @@ async def _attachment(session, user, file_id) -> Attachment:
 
 
 @router.get("/files/{file_id}")
-async def download_file(file_id: int, download: bool = False, user: AdminUser = Depends(require_any),
+async def download_file(file_id: int, download: bool = False, thumbnail: bool = False,
+                        user: AdminUser = Depends(require_any),
                         session: AsyncSession = Depends(get_async_session)):
     a = await _attachment(session, user, file_id)
+    if thumbnail:
+        thumb = stored_path(thumbnail_name(a.stored_name))
+        if not thumb.is_file():
+            raise HTTPException(status_code=404, detail="Мініатюру не знайдено")
+        return FileResponse(thumb, media_type="image/jpeg", headers={"Cache-Control": "private, no-store"})
     path = stored_path(a.stored_name)
     if not path.exists():
         raise HTTPException(status_code=404, detail="Файл не знайдено на диску")
@@ -241,6 +257,8 @@ async def delete_file(file_id: int, user: AdminUser = Depends(require_any),
     await audit(session, user, "file.delete", entity_type=a.entity_type, entity_id=a.entity_id)
     await session.commit()
     remove_stored(a.stored_name)
+    if a.entity_type == "idea":
+        remove_stored(thumbnail_name(a.stored_name))
     return {"ok": True}
 
 

@@ -1,0 +1,10 @@
+.ac-quick { display: flex; gap: .65rem; flex-wrap: wrap; }
+.ac-quick .ws-input { flex: 1 1 18rem; }
+.ac-filters, .ac-cards { display: grid; gap: .8rem; }
+.ac-filters { grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); }
+.ac-cards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); }
+.ac-card { display: grid; gap: .65rem; align-content: start; text-align: left; color: var(--ws-text); }
+.ac-card:hover { border-color: var(--ws-accent); }
+.ac-card strong { overflow-wrap: anywhere; }
+.ac-cover { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: .65rem; }
+.ac-description { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }

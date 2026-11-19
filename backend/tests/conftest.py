@@ -30,7 +30,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.api.admin import (
     auth as admin_auth, certificates as admin_certs, daily as admin_daily, home as admin_home, leads as admin_leads,
-    notes as admin_notes, orders as admin_orders, packages as admin_packages, quotes as admin_quotes,
+    ideas as admin_ideas, notes as admin_notes, orders as admin_orders, packages as admin_packages, quotes as admin_quotes,
     reports as admin_reports, social as admin_social, stats as admin_stats, tasks as admin_tasks,
     team as admin_team,
 )
@@ -55,7 +55,7 @@ ALL_ROUTERS = [
     admin_auth.router, admin_leads.router, admin_packages.router,
     admin_certs.router, admin_orders.router, admin_stats.router, admin_quotes.router,
     admin_team.router, admin_social.router, admin_tasks.router, admin_notes.router,
-    admin_reports.router, admin_home.router, admin_daily.router,
+    admin_reports.router, admin_home.router, admin_daily.router, admin_ideas.router,
 ]
 
 

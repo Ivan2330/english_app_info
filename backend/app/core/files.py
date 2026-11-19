@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
+from PIL import Image, ImageOps
 
 from app.core.config import settings
 
@@ -167,3 +168,26 @@ def remove_stored(stored_name: str) -> None:
         stored_path(stored_name).unlink()
     except (FileNotFoundError, HTTPException):
         pass
+
+
+def thumbnail_name(stored_name: str) -> str:
+    return f"{stored_name}.thumb.jpg"
+
+
+def make_image_thumbnail(stored_name: str) -> tuple[int, int]:
+    target = stored_path(thumbnail_name(stored_name))
+    temp = target.with_suffix(".part")
+    try:
+        with Image.open(stored_path(stored_name)) as original:
+            if original.width * original.height > 40_000_000:
+                raise HTTPException(413, "Зображення перевищує 40 мегапікселів")
+            image = ImageOps.exif_transpose(original)
+            size = image.size
+            image.thumbnail((640, 640))
+            image.convert("RGB").save(temp, format="JPEG", quality=82)
+        os.replace(temp, target)
+    except (OSError, ValueError, Image.DecompressionBombError) as exc:
+        raise HTTPException(415, "Не вдалося прочитати зображення") from exc
+    finally:
+        temp.unlink(missing_ok=True)
+    return size

@@ -81,3 +81,8 @@ export const updateDailyReport = (id, data) => patch(`/api/admin/daily-reports/$
 export const getDailySettings = () => get("/api/admin/daily-reports/settings");
 export const setDailyVisibility = (visibility) => put("/api/admin/daily-reports/settings", { visibility });
 export const getDailyWeek = (start) => get("/api/admin/daily-reports/week", start ? { start } : undefined);
+
+/* ---------- банк ідей ---------- */
+export const getIdeas = (params) => get("/api/admin/ideas", params);
+export const createIdea = (data) => post("/api/admin/ideas", data);
+export const updateIdea = (id, data) => put(`/api/admin/ideas/${id}`, data);
